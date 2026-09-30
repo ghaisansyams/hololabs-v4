@@ -17,7 +17,7 @@ export const siteConfig = {
   tagline: "Reservasi kursi & paket F&B untuk Holomoc Exhibition.",
   description:
     "Pesan kursi dan paket makan-minum untuk Holomoc Exhibition secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketing-halomoc.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://halomoc-exhibition.vercel.app",
   locale: "id-ID",
   email: "hello@holomoc.id",
   whatsapp: "081774918611",
