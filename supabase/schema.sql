@@ -1,0 +1,397 @@
+-- Holomoc Exhibition — Booking Engine shared database
+--
+-- Run this once in the Supabase SQL Editor (Project → SQL Editor → New query
+-- → paste this whole file → Run). Safe to re-run: everything is IF NOT EXISTS
+-- / CREATE OR REPLACE, except the DROP POLICY/TRIGGER statements which only
+-- touch objects this file itself defines.
+--
+-- Domain, per the 16 Sept 2026 meeting notes (Spero x Holomoc):
+--   - One exhibition, several days, 3 one-hour slots per day (18.00–21.00 WIB).
+--   - Each slot ("session") holds at most 13 seats.
+--   - A guest books N seats + one F&B package. If the slot they asked for
+--     doesn't have N seats left, the system auto-routes them to the next
+--     session (later that day, then later days) that does — see
+--     `create_booking` below, which is the auto-routing rule from the notes.
+--   - Payment is QRIS. No live payment-gateway integration is wired yet (no
+--     merchant credentials were available while building this) — the
+--     payment page shows a QRIS code and the guest confirms via WhatsApp,
+--     same manual-verification pattern used elsewhere: an admin flips
+--     `payments.status` to PAID by hand in the Table Editor after checking
+--     the transfer, exactly like Kelas Bermain's bank-transfer flow. Swap in
+--     a real PG (Xendit/Midtrans QRIS) by replacing the payment service and
+--     adding its webhook — the schema doesn't need to change.
+
+create extension if not exists pgcrypto;
+
+-- ------------------------------------------------------------------
+-- Sequences + number formatting
+-- ------------------------------------------------------------------
+
+create table if not exists number_counters (
+  scope text not null,
+  year int not null,
+  value int not null default 0,
+  primary key (scope, year)
+);
+
+create or replace function next_yearly_number(p_scope text, p_prefix text, p_year int)
+returns text
+language plpgsql
+as $$
+declare
+  v_value int;
+begin
+  insert into number_counters (scope, year, value)
+  values (p_scope, p_year, 1)
+  on conflict (scope, year) do update set value = number_counters.value + 1
+  returning value into v_value;
+  return format('%s-%s-%s', p_prefix, p_year, lpad(v_value::text, 5, '0'));
+end;
+$$;
+
+-- ------------------------------------------------------------------
+-- packages (F&B bundles) — small, admin-editable catalogue
+-- ------------------------------------------------------------------
+
+create table if not exists packages (
+  id text primary key,
+  name text not null,
+  description text not null default '',
+  includes text[] not null default '{}',
+  price numeric not null,
+  sort_order int not null default 0,
+  active boolean not null default true
+);
+
+insert into packages (id, name, description, includes, price, sort_order) values
+  ('seat-only', 'Seat Only', 'Masuk pameran dan kursi tereservasi, tanpa paket F&B.',
+    array['Akses pameran 1 sesi (1 jam)', 'Kursi tereservasi'], 75000, 1),
+  ('standard', 'Standard F&B', 'Kursi tereservasi plus satu paket makanan & minuman ringan.',
+    array['Akses pameran 1 sesi (1 jam)', 'Kursi tereservasi', '1 pilihan makanan (dimsum/tahu)', '1 pilihan minuman'], 150000, 2),
+  ('premium', 'Premium F&B', 'Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.',
+    array['Akses pameran 1 sesi (1 jam)', 'Kursi prioritas', 'Aneka makanan (dimsum, tahu, camilan lain)', 'Minuman bebas pilih & refill'], 250000, 3)
+on conflict (id) do update set
+  name = excluded.name, description = excluded.description,
+  includes = excluded.includes, price = excluded.price, sort_order = excluded.sort_order;
+
+-- ------------------------------------------------------------------
+-- sessions (the bookable slots)
+-- ------------------------------------------------------------------
+
+create table if not exists sessions (
+  id uuid primary key default gen_random_uuid(),
+  session_date date not null,
+  slot_index int not null,
+  start_time time not null,
+  end_time time not null,
+  capacity int not null default 13,
+  -- Maintained transactionally by create_booking (never by a trigger reading
+  -- bookings), so the row itself can be locked with SELECT ... FOR UPDATE
+  -- while checking capacity — see create_booking below.
+  seats_taken int not null default 0,
+  unique (session_date, slot_index)
+);
+create index if not exists sessions_date_idx on sessions (session_date, slot_index);
+
+-- Seed the exhibition run: 5 days, 3 one-hour slots per day, 18.00–21.00 WIB,
+-- 13 seats per slot — exactly the mechanism described in the meeting notes.
+-- Adjust the date range here (and re-run) once the real exhibition dates are
+-- confirmed with Holomoc; nothing else in the schema depends on these values.
+insert into sessions (session_date, slot_index, start_time, end_time, capacity)
+select d::date, times.slot, times.start_time, times.end_time, 13
+from generate_series('2026-10-15'::date, '2026-10-19'::date, interval '1 day') as d
+cross join (
+  values (0, '18:00'::time, '19:00'::time),
+         (1, '19:00'::time, '20:00'::time),
+         (2, '20:00'::time, '21:00'::time)
+) as times(slot, start_time, end_time)
+on conflict (session_date, slot_index) do nothing;
+
+-- ------------------------------------------------------------------
+-- customers (whoever books — one row per WhatsApp number)
+-- ------------------------------------------------------------------
+
+create table if not exists customers (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  whatsapp text not null,
+  email text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists customers_whatsapp_idx on customers (whatsapp);
+
+-- ------------------------------------------------------------------
+-- bookings
+-- ------------------------------------------------------------------
+
+create table if not exists bookings (
+  id uuid primary key default gen_random_uuid(),
+  booking_number text unique not null default
+    next_yearly_number('booking', 'HLM-BOOK', extract(year from now())::int),
+  -- Opaque, unguessable id for the public payment/e-ticket URLs — never the
+  -- sequential booking_number, so it can't be walked to read someone else's
+  -- booking (same reasoning as Kelas Bermain's access_token).
+  access_token uuid not null default gen_random_uuid(),
+  customer_id uuid not null references customers (id) on delete restrict,
+  session_id uuid not null references sessions (id) on delete restrict,
+  package_id text not null references packages (id),
+  seats int not null check (seats > 0),
+  amount numeric not null default 0,
+  status text not null default 'PENDING',           -- PENDING | CONFIRMED | CANCELLED
+  payment_status text not null default 'PENDING',   -- PENDING | PAID | EXPIRED | CANCELLED
+  checkin_status text not null default 'NOT_CHECKED_IN', -- NOT_CHECKED_IN | CHECKED_IN
+  checked_in_at timestamptz,
+  -- True when the guest's originally requested session was full and the
+  -- booking engine auto-routed them to the next available one.
+  auto_routed boolean not null default false,
+  requested_session_id uuid references sessions (id),
+  created_at timestamptz not null default now()
+);
+create unique index if not exists bookings_access_token_idx on bookings (access_token);
+create index if not exists bookings_session_idx on bookings (session_id);
+create index if not exists bookings_customer_idx on bookings (customer_id);
+
+-- ------------------------------------------------------------------
+-- payments (QRIS, manually verified for now — see header note)
+-- ------------------------------------------------------------------
+
+create table if not exists payments (
+  id uuid primary key default gen_random_uuid(),
+  payment_number text unique not null default
+    next_yearly_number('payment', 'HLM-PAY', extract(year from now())::int),
+  booking_id uuid not null references bookings (id) on delete cascade,
+  amount numeric not null default 0,
+  method text not null default 'QRIS',
+  status text not null default 'PENDING',
+  provider text not null default 'QRIS (verifikasi manual)',
+  created_at timestamptz not null default now(),
+  paid_at timestamptz,
+  expires_at timestamptz
+);
+create index if not exists payments_booking_idx on payments (booking_id);
+
+-- ------------------------------------------------------------------
+-- Row Level Security — default deny, same posture as Kelas Bermain.
+-- Public site never touches these tables directly, only the RPCs below.
+-- ------------------------------------------------------------------
+
+alter table packages enable row level security;
+alter table sessions enable row level security;
+alter table customers enable row level security;
+alter table bookings enable row level security;
+alter table payments enable row level security;
+
+drop policy if exists packages_public_read on packages;
+create policy packages_public_read on packages for select to anon, authenticated using (active);
+
+drop policy if exists sessions_public_read on sessions;
+create policy sessions_public_read on sessions for select to anon, authenticated using (true);
+
+-- customers, bookings, payments: zero policies for anon/authenticated below
+-- (RLS enabled, no policy) means no row is readable or writable directly —
+-- every operation goes through a SECURITY DEFINER function instead.
+
+-- ------------------------------------------------------------------
+-- Availability view: seats left per session, computed live from bookings.
+-- ------------------------------------------------------------------
+
+create or replace view session_availability as
+select
+  s.id, s.session_date, s.slot_index, s.start_time, s.end_time, s.capacity,
+  s.seats_taken, s.capacity - s.seats_taken as seats_left
+from sessions s;
+
+create or replace function list_availability(p_from date default current_date)
+returns setof session_availability
+language sql security definer set search_path = public as $$
+  select * from session_availability where session_date >= p_from
+  order by session_date, slot_index;
+$$;
+
+grant execute on function list_availability to anon, authenticated;
+
+-- ------------------------------------------------------------------
+-- RPCs the public site calls
+-- ------------------------------------------------------------------
+
+create or replace function upsert_customer(
+  p_full_name text, p_whatsapp text, p_email text
+) returns customers
+language plpgsql security definer set search_path = public as $$
+declare
+  v_customer customers;
+begin
+  select * into v_customer from customers where whatsapp = p_whatsapp limit 1;
+  if v_customer.id is not null then
+    update customers set full_name = p_full_name, email = coalesce(nullif(p_email, ''), email)
+      where id = v_customer.id
+      returning * into v_customer;
+    return v_customer;
+  end if;
+  insert into customers (full_name, whatsapp, email)
+  values (p_full_name, p_whatsapp, coalesce(p_email, ''))
+  returning * into v_customer;
+  return v_customer;
+end;
+$$;
+
+-- Core booking + auto-routing rule. Locks candidate session rows
+-- (FOR UPDATE) while checking capacity so two guests booking the last seats
+-- at the same instant can never both succeed for the same slot.
+--
+-- Walk order: the requested session first, then every later session
+-- (same day first, then later days) in chronological order — "kalau slot
+-- ini penuh, majukan ke slot berikutnya yang masih cukup" exactly as
+-- described in the meeting notes.
+create or replace function create_booking(
+  p_customer_id uuid, p_requested_session_id uuid, p_package_id text,
+  p_seats int, p_amount numeric
+) returns bookings
+language plpgsql security definer set search_path = public as $$
+declare
+  v_requested sessions;
+  v_candidate_id uuid;
+  v_locked sessions;
+  v_chosen_id uuid;
+  v_auto_routed boolean := false;
+  v_booking bookings;
+begin
+  select * into v_requested from sessions where id = p_requested_session_id;
+  if v_requested.id is null then
+    raise exception 'SESSION_NOT_FOUND' using errcode = 'P0002';
+  end if;
+
+  -- Walk every session from the requested one onward, in chronological
+  -- order, locking each candidate row before reading its capacity so two
+  -- guests racing for the last seats of the same slot are serialized rather
+  -- than both succeeding. The row we end up booking against stays locked
+  -- until this transaction commits.
+  for v_candidate_id in
+    select s.id from sessions s
+    where (s.session_date, s.slot_index) >= (v_requested.session_date, v_requested.slot_index)
+    order by s.session_date, s.slot_index
+  loop
+    select * into v_locked from sessions where id = v_candidate_id for update;
+    if v_locked.capacity - v_locked.seats_taken >= p_seats then
+      v_chosen_id := v_locked.id;
+      v_auto_routed := v_locked.id <> p_requested_session_id;
+      exit;
+    end if;
+  end loop;
+
+  if v_chosen_id is null then
+    raise exception 'NO_AVAILABILITY' using errcode = 'P0005';
+  end if;
+
+  update sessions set seats_taken = seats_taken + p_seats where id = v_chosen_id;
+
+  insert into bookings (
+    customer_id, session_id, package_id, seats, amount, requested_session_id, auto_routed
+  ) values (
+    p_customer_id, v_chosen_id, p_package_id, p_seats, p_amount, p_requested_session_id, v_auto_routed
+  ) returning * into v_booking;
+
+  return v_booking;
+end;
+$$;
+
+create or replace function create_payment(
+  p_booking_id uuid, p_amount numeric, p_expires_at timestamptz
+) returns payments
+language plpgsql security definer set search_path = public as $$
+declare
+  v_payment payments;
+begin
+  insert into payments (booking_id, amount, expires_at)
+  values (p_booking_id, p_amount, p_expires_at)
+  returning * into v_payment;
+  return v_payment;
+end;
+$$;
+
+-- Payment/e-ticket page: looked up by the opaque access_token, never by the
+-- sequential booking_number.
+create or replace function get_booking_by_token(p_token uuid)
+returns table (
+  booking_id uuid, booking_number text, status text, payment_status text,
+  checkin_status text, seats int, amount numeric, auto_routed boolean,
+  session_date date, start_time time, end_time time,
+  package_id text, package_name text,
+  customer_full_name text, customer_whatsapp text,
+  payment_id uuid, payment_status_live text, payment_expires_at timestamptz
+)
+language sql security definer set search_path = public as $$
+  select b.id, b.booking_number, b.status, b.payment_status, b.checkin_status,
+         b.seats, b.amount, b.auto_routed,
+         s.session_date, s.start_time, s.end_time,
+         pk.id, pk.name,
+         c.full_name, c.whatsapp,
+         p.id, p.status, p.expires_at
+  from bookings b
+  join sessions s on s.id = b.session_id
+  join packages pk on pk.id = b.package_id
+  join customers c on c.id = b.customer_id
+  left join payments p on p.booking_id = b.id
+  where b.access_token = p_token;
+$$;
+
+-- Deliberately NOT granted to anon/authenticated. A guest must never be able
+-- to mark their own QRIS payment PAID — verifying it is admin's job: open
+-- Table Editor, confirm the QRIS proof shared over WhatsApp, flip
+-- payments.status and bookings.payment_status to PAID by hand. Stays defined
+-- for a future staff tool / real PG webhook, not for today's public site.
+create or replace function set_payment_status(p_token uuid, p_status text)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking_id uuid;
+begin
+  select id into v_booking_id from bookings where access_token = p_token;
+  if v_booking_id is null then
+    raise exception 'NOT_FOUND' using errcode = 'P0002';
+  end if;
+  update payments set status = p_status, paid_at = case when p_status = 'PAID' then now() else paid_at end
+    where booking_id = v_booking_id;
+  update bookings set
+    payment_status = p_status,
+    status = case when p_status = 'PAID' then 'CONFIRMED' else status end
+    where id = v_booking_id;
+end;
+$$;
+
+-- Door check-in: booking number + the WhatsApp number given at booking time
+-- must both match — knowing only the (sequential, guessable) booking number
+-- is not enough.
+create or replace function check_in_booking(p_booking_number text, p_whatsapp text)
+returns table (customer_full_name text, session_date date, start_time time, already_checked_in boolean)
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking bookings;
+  v_customer customers;
+  v_session sessions;
+begin
+  select * into v_booking from bookings where upper(booking_number) = upper(trim(p_booking_number));
+  if v_booking.id is null then
+    raise exception 'NOT_FOUND' using errcode = 'P0002';
+  end if;
+  select * into v_customer from customers where id = v_booking.customer_id;
+  if regexp_replace(v_customer.whatsapp, '\D', '', 'g') <> regexp_replace(p_whatsapp, '\D', '', 'g') then
+    raise exception 'CONTACT_MISMATCH' using errcode = 'P0003';
+  end if;
+  if v_booking.payment_status <> 'PAID' then
+    raise exception 'NOT_PAID' using errcode = 'P0006';
+  end if;
+  select * into v_session from sessions where id = v_booking.session_id;
+
+  update bookings set checkin_status = 'CHECKED_IN', checked_in_at = now()
+    where id = v_booking.id and checkin_status <> 'CHECKED_IN';
+
+  return query select v_customer.full_name, v_session.session_date, v_session.start_time,
+    (v_booking.checkin_status = 'CHECKED_IN');
+end;
+$$;
+
+grant execute on function
+  upsert_customer, create_booking, create_payment,
+  get_booking_by_token, check_in_booking
+  to anon, authenticated;
