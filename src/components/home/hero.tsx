@@ -22,7 +22,7 @@ export function Hero() {
             <Reveal>
               <span className="inline-flex items-center gap-2 rounded-pill border border-brand/30 bg-brand-soft px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-brand-ink">
                 <Sparkles className="size-3.5" aria-hidden />
-                Booking engine by {siteConfig.builtBy}
+                Pemesanan resmi {siteConfig.shortName}
               </span>
             </Reveal>
 
