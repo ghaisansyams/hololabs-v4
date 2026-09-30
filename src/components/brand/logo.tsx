@@ -1,8 +1,10 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * Holomoc Exhibition mark — a seat/aperture motif in a gradient ring,
- * standing in for the exhibition's own artwork until that is supplied.
+ * Compact square mark — used where a wordmark doesn't fit (e.g. the 404
+ * page's centerpiece). Holomoc's own square icon hasn't been supplied yet,
+ * so this stands in until then.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -26,23 +28,16 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo({
-  className,
-  markClassName,
-  showWordmark = true,
-}: {
-  className?: string;
-  markClassName?: string;
-  showWordmark?: boolean;
-}) {
+/** Holomoc's own wordmark artwork. */
+export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark className={markClassName} />
-      {showWordmark ? (
-        <span className="text-[1.0625rem] leading-none font-extrabold tracking-tight text-ink font-display">
-          HOLO<span className="text-gradient">MOC</span>
-        </span>
-      ) : null}
-    </span>
+    <Image
+      src="/logo-holomoc.png"
+      alt="Holomoc"
+      width={1848}
+      height={217}
+      priority
+      className={cn("h-6 w-auto sm:h-7", className)}
+    />
   );
 }
