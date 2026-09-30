@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase/client";
+import { getSql } from "@/lib/db/client";
 import type { ContactFormValues } from "@/lib/utils/validation";
 import type { BookingView, BookingStatus, CheckinStatus, PaymentStatus } from "@/lib/types";
 import { createPayment } from "./payment";
@@ -43,30 +43,32 @@ function mapBookingView(row: any): BookingView {
 const PAYMENT_WINDOW_MINUTES = 60;
 
 export async function createBooking(request: CreateBookingRequest): Promise<CreateBookingResult> {
-  const supabase = getSupabase();
+  const sql = getSql();
   const { contact, sessionId, packageId, seats, unitPrice } = request;
 
-  const { data: customerRow, error: customerError } = await supabase.rpc("upsert_customer", {
-    p_full_name: contact.fullName.trim(),
-    p_whatsapp: contact.whatsapp.trim(),
-    p_email: contact.email.trim(),
-  });
-  if (customerError || !customerRow) {
+  let customer;
+  try {
+    const rows = await sql`
+      select * from upsert_customer(${contact.fullName.trim()}, ${contact.whatsapp.trim()}, ${contact.email.trim()})
+    `;
+    customer = rows[0];
+  } catch {
     return { ok: false, error: "Gagal menyimpan data pemesan. Coba lagi sebentar lagi." };
   }
-  const customer = Array.isArray(customerRow) ? customerRow[0] : customerRow;
+  if (!customer) {
+    return { ok: false, error: "Gagal menyimpan data pemesan. Coba lagi sebentar lagi." };
+  }
 
   const amount = unitPrice * seats;
-  const { data: bookingRow, error: bookingError } = await supabase.rpc("create_booking", {
-    p_customer_id: customer.id,
-    p_requested_session_id: sessionId,
-    p_package_id: packageId,
-    p_seats: seats,
-    p_amount: amount,
-  });
-
-  if (bookingError) {
-    if (bookingError.message?.includes("NO_AVAILABILITY")) {
+  let booking;
+  try {
+    const rows = await sql`
+      select * from create_booking(${customer.id}, ${sessionId}, ${packageId}, ${seats}, ${amount})
+    `;
+    booking = rows[0];
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "";
+    if (message.includes("NO_AVAILABILITY")) {
       return {
         ok: false,
         error:
@@ -76,8 +78,6 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
     return { ok: false, error: "Gagal membuat booking. Coba lagi sebentar lagi." };
   }
 
-  const booking = Array.isArray(bookingRow) ? bookingRow[0] : bookingRow;
-
   const expiresAt = new Date(Date.now() + PAYMENT_WINDOW_MINUTES * 60 * 1000).toISOString();
   await createPayment({ bookingId: booking.id, amount, expiresAt });
 
@@ -85,11 +85,15 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
 }
 
 export async function getBookingByToken(token: string): Promise<BookingView | null> {
-  const { data, error } = await getSupabase().rpc("get_booking_by_token", { p_token: token });
-  if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
-  const row = Array.isArray(data) ? data[0] : data;
-  if (!row) return null;
-  return mapBookingView(row);
+  try {
+    const sql = getSql();
+    const rows = await sql`select * from get_booking_by_token(${token})`;
+    const row = rows[0];
+    if (!row) return null;
+    return mapBookingView(row);
+  } catch {
+    return null;
+  }
 }
 
 export interface CheckInResult {
@@ -102,28 +106,28 @@ export interface CheckInResult {
 }
 
 export async function checkInBooking(bookingNumber: string, whatsapp: string): Promise<CheckInResult> {
-  const { data, error } = await getSupabase().rpc("check_in_booking", {
-    p_booking_number: bookingNumber.trim(),
-    p_whatsapp: whatsapp.trim(),
-  });
-  if (error) {
-    if (error.message?.includes("NOT_FOUND")) {
+  try {
+    const sql = getSql();
+    const rows = await sql`select * from check_in_booking(${bookingNumber.trim()}, ${whatsapp.trim()})`;
+    const row = rows[0];
+    return {
+      ok: true,
+      customerFullName: row.customer_full_name,
+      sessionDate: row.session_date,
+      startTime: row.start_time,
+      alreadyCheckedIn: row.already_checked_in,
+    };
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "";
+    if (message.includes("NOT_FOUND")) {
       return { ok: false, error: "Nomor booking tidak ditemukan." };
     }
-    if (error.message?.includes("CONTACT_MISMATCH")) {
+    if (message.includes("CONTACT_MISMATCH")) {
       return { ok: false, error: "Nomor WhatsApp tidak sesuai dengan data booking." };
     }
-    if (error.message?.includes("NOT_PAID")) {
+    if (message.includes("NOT_PAID")) {
       return { ok: false, error: "Booking ini belum dibayar — verifikasi pembayaran dahulu." };
     }
     return { ok: false, error: "Gagal memproses check-in." };
   }
-  const row = Array.isArray(data) ? data[0] : data;
-  return {
-    ok: true,
-    customerFullName: row.customer_full_name,
-    sessionDate: row.session_date,
-    startTime: row.start_time,
-    alreadyCheckedIn: row.already_checked_in,
-  };
 }

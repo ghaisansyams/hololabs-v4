@@ -1,9 +1,19 @@
--- Holomoc Exhibition — Booking Engine shared database
+-- Holomoc Exhibition — Booking Engine shared database (Neon Postgres)
 --
--- Run this once in the Supabase SQL Editor (Project → SQL Editor → New query
--- → paste this whole file → Run). Safe to re-run: everything is IF NOT EXISTS
--- / CREATE OR REPLACE, except the DROP POLICY/TRIGGER statements which only
--- touch objects this file itself defines.
+-- Run this once against the Neon project's database — either paste this
+-- whole file into Neon's SQL Editor (Console → your project → SQL Editor)
+-- and run it, or `psql "$DATABASE_URL" -f db/schema.sql`. Safe to re-run:
+-- everything is IF NOT EXISTS / CREATE OR REPLACE.
+--
+-- Security model: every query in this app runs server-side only (Next.js
+-- Server Components and Server Actions — see src/lib/db/client.ts), using
+-- the single connection string from `DATABASE_URL`. That string is the only
+-- secret; there is no separate anon/public key and no RLS, unlike a
+-- Supabase-backed sibling project (Kelas Bermain) where the database is
+-- reachable straight from the browser. Functions stay SECURITY DEFINER
+-- mostly out of habit — harmless here since the connection role already
+-- owns everything, but it keeps this schema portable back to Supabase later
+-- if that's ever needed.
 --
 -- Domain, per the 16 Sept 2026 meeting notes (Spero x Holomoc):
 --   - One exhibition, several days, 3 one-hour slots per day (18.00–21.00 WIB).
@@ -16,10 +26,11 @@
 --     merchant credentials were available while building this) — the
 --     payment page shows a QRIS code and the guest confirms via WhatsApp,
 --     same manual-verification pattern used elsewhere: an admin flips
---     `payments.status` to PAID by hand in the Table Editor after checking
---     the transfer, exactly like Kelas Bermain's bank-transfer flow. Swap in
---     a real PG (Xendit/Midtrans QRIS) by replacing the payment service and
---     adding its webhook — the schema doesn't need to change.
+--     `payments.status` to PAID by hand (via Neon's SQL Editor / Tables view)
+--     after checking the transfer, exactly like Kelas Bermain's bank-transfer
+--     flow. Swap in a real PG (Xendit/Midtrans QRIS) by replacing the
+--     payment service and adding its webhook — the schema doesn't need to
+--     change.
 
 create extension if not exists pgcrypto;
 
@@ -171,33 +182,17 @@ create table if not exists payments (
 create index if not exists payments_booking_idx on payments (booking_id);
 
 -- ------------------------------------------------------------------
--- Row Level Security — default deny, same posture as Kelas Bermain.
--- Public site never touches these tables directly, only the RPCs below.
--- ------------------------------------------------------------------
-
-alter table packages enable row level security;
-alter table sessions enable row level security;
-alter table customers enable row level security;
-alter table bookings enable row level security;
-alter table payments enable row level security;
-
-drop policy if exists packages_public_read on packages;
-create policy packages_public_read on packages for select to anon, authenticated using (active);
-
-drop policy if exists sessions_public_read on sessions;
-create policy sessions_public_read on sessions for select to anon, authenticated using (true);
-
--- customers, bookings, payments: zero policies for anon/authenticated below
--- (RLS enabled, no policy) means no row is readable or writable directly —
--- every operation goes through a SECURITY DEFINER function instead.
-
--- ------------------------------------------------------------------
 -- Availability view: seats left per session, computed live from bookings.
 -- ------------------------------------------------------------------
 
+-- Date/time columns are cast to text here (and in every function below that
+-- returns one) so the app always gets plain "2026-10-15" / "18:00:00"
+-- strings back, regardless of how a given Postgres client library parses
+-- `date`/`time` — no ambiguity to reason about on the TypeScript side.
 create or replace view session_availability as
 select
-  s.id, s.session_date, s.slot_index, s.start_time, s.end_time, s.capacity,
+  s.id, s.session_date::text as session_date, s.slot_index,
+  s.start_time::text as start_time, s.end_time::text as end_time, s.capacity,
   s.seats_taken, s.capacity - s.seats_taken as seats_left
 from sessions s;
 
@@ -207,8 +202,6 @@ language sql security definer set search_path = public as $$
   select * from session_availability where session_date >= p_from
   order by session_date, slot_index;
 $$;
-
-grant execute on function list_availability to anon, authenticated;
 
 -- ------------------------------------------------------------------
 -- RPCs the public site calls
@@ -315,7 +308,7 @@ create or replace function get_booking_by_token(p_token uuid)
 returns table (
   booking_id uuid, booking_number text, status text, payment_status text,
   checkin_status text, seats int, amount numeric, auto_routed boolean,
-  session_date date, start_time time, end_time time,
+  session_date text, start_time text, end_time text,
   package_id text, package_name text,
   customer_full_name text, customer_whatsapp text,
   payment_id uuid, payment_status_live text, payment_expires_at timestamptz
@@ -323,7 +316,7 @@ returns table (
 language sql security definer set search_path = public as $$
   select b.id, b.booking_number, b.status, b.payment_status, b.checkin_status,
          b.seats, b.amount, b.auto_routed,
-         s.session_date, s.start_time, s.end_time,
+         s.session_date::text, s.start_time::text, s.end_time::text,
          pk.id, pk.name,
          c.full_name, c.whatsapp,
          p.id, p.status, p.expires_at
@@ -335,11 +328,12 @@ language sql security definer set search_path = public as $$
   where b.access_token = p_token;
 $$;
 
--- Deliberately NOT granted to anon/authenticated. A guest must never be able
--- to mark their own QRIS payment PAID — verifying it is admin's job: open
--- Table Editor, confirm the QRIS proof shared over WhatsApp, flip
--- payments.status and bookings.payment_status to PAID by hand. Stays defined
--- for a future staff tool / real PG webhook, not for today's public site.
+-- Deliberately never called from any public-facing action. A guest must
+-- never be able to mark their own QRIS payment PAID — verifying it is
+-- admin's job: open Neon's SQL Editor/Tables view, confirm the QRIS proof
+-- shared over WhatsApp, flip payments.status and bookings.payment_status to
+-- PAID by hand. Stays defined for a future staff tool / real PG webhook, not
+-- for today's public site.
 create or replace function set_payment_status(p_token uuid, p_status text)
 returns void
 language plpgsql security definer set search_path = public as $$
@@ -363,7 +357,7 @@ $$;
 -- must both match — knowing only the (sequential, guessable) booking number
 -- is not enough.
 create or replace function check_in_booking(p_booking_number text, p_whatsapp text)
-returns table (customer_full_name text, session_date date, start_time time, already_checked_in boolean)
+returns table (customer_full_name text, session_date text, start_time text, already_checked_in boolean)
 language plpgsql security definer set search_path = public as $$
 declare
   v_booking bookings;
@@ -386,12 +380,7 @@ begin
   update bookings set checkin_status = 'CHECKED_IN', checked_in_at = now()
     where id = v_booking.id and checkin_status <> 'CHECKED_IN';
 
-  return query select v_customer.full_name, v_session.session_date, v_session.start_time,
+  return query select v_customer.full_name, v_session.session_date::text, v_session.start_time::text,
     (v_booking.checkin_status = 'CHECKED_IN');
 end;
 $$;
-
-grant execute on function
-  upsert_customer, create_booking, create_payment,
-  get_booking_by_token, check_in_booking
-  to anon, authenticated;

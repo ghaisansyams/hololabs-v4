@@ -1,14 +1,14 @@
-import { getSupabase } from "@/lib/supabase/client";
+import { getSql } from "@/lib/db/client";
 import { siteConfig } from "@/data/site";
 import { formatRupiah } from "@/lib/utils/format";
 
 /**
  * QRIS is not yet wired to a real payment gateway — no merchant credentials
  * were available while building this (see the note at the top of
- * supabase/schema.sql). The payment page shows a QR code and the guest
- * confirms via WhatsApp; an admin verifies the transfer and flips the
- * booking to PAID by hand in the Supabase Table Editor, the same
- * manual-verification pattern Kelas Bermain uses for bank transfers.
+ * db/schema.sql). The payment page shows a QR code and the guest confirms
+ * via WhatsApp; an admin verifies the transfer and flips the booking to PAID
+ * by hand in Neon, the same manual-verification pattern Kelas Bermain uses
+ * for bank transfers.
  *
  * To go live with real QRIS, swap `buildQrisPayload` for the payload your
  * PG (Xendit, Midtrans, etc.) gives you and wire its webhook to call
@@ -20,11 +20,8 @@ export async function createPayment(args: {
   amount: number;
   expiresAt: string;
 }): Promise<void> {
-  await getSupabase().rpc("create_payment", {
-    p_booking_id: args.bookingId,
-    p_amount: args.amount,
-    p_expires_at: args.expiresAt,
-  });
+  const sql = getSql();
+  await sql`select * from create_payment(${args.bookingId}, ${args.amount}, ${args.expiresAt})`;
 }
 
 /** Demo QRIS payload — encodes a reference string, not a real merchant string. */

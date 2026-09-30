@@ -44,7 +44,7 @@ export function BookingWizard({
     return (
       <EmptyState
         title="Sistem pemesanan belum terhubung"
-        description="Database belum dikonfigurasi. Jalankan supabase/schema.sql lalu isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY di .env.local / Vercel."
+        description="Database belum dikonfigurasi. Jalankan db/schema.sql di Neon, lalu isi DATABASE_URL di .env.local / Vercel."
       />
     );
   }

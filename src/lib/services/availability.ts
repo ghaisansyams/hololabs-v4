@@ -1,4 +1,4 @@
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getSql, isDatabaseConfigured } from "@/lib/db/client";
 import type { Package, SessionAvailability } from "@/lib/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,21 +29,25 @@ function mapPackage(row: any): Package {
 
 /** Every bookable session from today onward, grouped by nobody — the caller groups by date. */
 export async function listAvailability(): Promise<SessionAvailability[]> {
-  if (!isSupabaseConfigured()) return [];
-  const { data, error } = await getSupabase().rpc("list_availability");
-  if (error || !data) return [];
-  return (data as unknown[]).map(mapSession);
+  if (!isDatabaseConfigured()) return [];
+  try {
+    const sql = getSql();
+    const rows = await sql`select * from list_availability()`;
+    return (rows as unknown[]).map(mapSession);
+  } catch {
+    return [];
+  }
 }
 
 export async function listPackages(): Promise<Package[]> {
-  if (!isSupabaseConfigured()) return [];
-  const { data, error } = await getSupabase()
-    .from("packages")
-    .select("*")
-    .eq("active", true)
-    .order("sort_order", { ascending: true });
-  if (error || !data) return [];
-  return (data as unknown[]).map(mapPackage);
+  if (!isDatabaseConfigured()) return [];
+  try {
+    const sql = getSql();
+    const rows = await sql`select * from packages where active = true order by sort_order asc`;
+    return (rows as unknown[]).map(mapPackage);
+  } catch {
+    return [];
+  }
 }
 
 /** Sessions bucketed by day, in chronological order — what the picker renders. */
