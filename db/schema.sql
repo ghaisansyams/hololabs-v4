@@ -199,7 +199,7 @@ from sessions s;
 create or replace function list_availability(p_from date default current_date)
 returns setof session_availability
 language sql security definer set search_path = public as $$
-  select * from session_availability where session_date >= p_from
+  select * from session_availability where session_date >= p_from::text
   order by session_date, slot_index;
 $$;
 
