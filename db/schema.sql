@@ -384,3 +384,54 @@ begin
     (v_booking.checkin_status = 'CHECKED_IN');
 end;
 $$;
+
+-- ------------------------------------------------------------------
+-- Admin operations (called only from the server-side /admin area)
+-- ------------------------------------------------------------------
+
+create or replace function admin_mark_paid(p_booking_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  update payments set status = 'PAID', paid_at = coalesce(paid_at, now())
+    where booking_id = p_booking_id;
+  update bookings set payment_status = 'PAID', status = 'CONFIRMED'
+    where id = p_booking_id and status <> 'CANCELLED';
+  if not found then
+    raise exception 'NOT_FOUND_OR_CANCELLED' using errcode = 'P0007';
+  end if;
+end;
+$$;
+
+-- Cancelling gives the seats back to the session, so availability (and the
+-- auto-routing walk) immediately sees them as free again.
+create or replace function admin_cancel_booking(p_booking_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking bookings;
+begin
+  select * into v_booking from bookings where id = p_booking_id for update;
+  if v_booking.id is null then
+    raise exception 'NOT_FOUND' using errcode = 'P0002';
+  end if;
+  if v_booking.status = 'CANCELLED' then
+    return;
+  end if;
+  update sessions set seats_taken = seats_taken - v_booking.seats where id = v_booking.session_id;
+  update bookings set status = 'CANCELLED', payment_status = 'CANCELLED' where id = p_booking_id;
+  update payments set status = 'CANCELLED' where booking_id = p_booking_id and status <> 'PAID';
+end;
+$$;
+
+create or replace function admin_check_in(p_booking_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  update bookings set checkin_status = 'CHECKED_IN', checked_in_at = coalesce(checked_in_at, now())
+    where id = p_booking_id and payment_status = 'PAID' and status <> 'CANCELLED';
+  if not found then
+    raise exception 'NOT_ELIGIBLE' using errcode = 'P0008';
+  end if;
+end;
+$$;
