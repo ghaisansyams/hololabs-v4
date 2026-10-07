@@ -1,26 +1,30 @@
 /**
- * Global site configuration for the Hololabs Exhibition booking engine.
+ * Global site configuration for the Hololabs booking engine.
  *
  * Built by Spero (PT Spero Mahakarya Nusantara) for Hololabs, per the
  * 16 Sept 2026 meeting notes: an Event Registration & Seat Booking system
- * for Hololabs Exhibition, revenue-shared between the two companies.
+ * for the Hololabs exhibition, revenue-shared between the two companies.
  * Hololabs owns the exhibition and its on-site operations; this site is
  * purely the booking engine (see the notes' "pemisahan entitas" point).
  *
  * Renamed from "Holomoc" to "Hololabs" per the client's request on
- * 7 Oct 2026 — same company/exhibition, new brand name.
+ * 7 Oct 2026. The brand name itself is just "Hololabs" — "Exhibition" was
+ * dropped from the display name on 7 Oct 2026 too (the real logo, supplied
+ * the same day, reads "HOLOLABS" with no "Exhibition" in the lockup);
+ * "exhibition"/"pameran" still appears in body copy as the descriptive noun
+ * for the event itself.
  */
 
 export const siteConfig = {
-  name: "Hololabs Exhibition",
+  name: "Hololabs",
   shortName: "Hololabs",
-  legalName: "Hololabs Exhibition — Booking Engine",
+  legalName: "Hololabs — Booking Engine",
   builtBy: "Spero",
   motto: "Reserve your seat. Save your spot.",
-  tagline: "Reservasi kursi & paket F&B untuk Hololabs Exhibition.",
+  tagline: "Reservasi kursi & paket F&B untuk exhibition Hololabs.",
   description:
-    "Pesan kursi dan paket makan-minum untuk Hololabs Exhibition secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs-exhibition.vercel.app",
+    "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs.vercel.app",
   locale: "id-ID",
   email: "hello@hololabs.id",
   whatsapp: "081774918611",

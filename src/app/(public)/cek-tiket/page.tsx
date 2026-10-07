@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
   title: "Cek & Check-in Tiket",
-  description: "Verifikasi nomor booking untuk check-in di lokasi Hololabs Exhibition.",
+  description: "Verifikasi nomor booking untuk check-in di lokasi exhibition Hololabs.",
 };
 
 export default function CekTiketPage() {

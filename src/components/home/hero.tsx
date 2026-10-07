@@ -33,7 +33,7 @@ export function Hero() {
 
             <Reveal delay={80}>
               <h1 className="mt-5 text-[2.1rem] leading-[1.08] font-extrabold text-ink sm:text-5xl lg:text-[3.4rem]">
-                Amankan kursimu di <span className="text-gradient">Hololabs Exhibition</span>.
+                Amankan kursimu di <span className="text-gradient">Hololabs</span>.
               </h1>
             </Reveal>
 

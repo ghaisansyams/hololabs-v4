@@ -67,7 +67,7 @@ export function SiteHeader() {
       </a>
 
       <Container className="flex h-16 items-center justify-between gap-4 lg:h-[4.5rem]">
-        <Link href="/" aria-label="Hololabs Exhibition — beranda" className="shrink-0">
+        <Link href="/" aria-label="Hololabs — beranda" className="shrink-0">
           <Logo />
         </Link>
 

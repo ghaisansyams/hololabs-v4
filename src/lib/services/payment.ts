@@ -31,7 +31,7 @@ export function buildQrisPayload(bookingNumber: string, amount: number): string 
 
 export function buildWhatsappConfirmationLink(bookingNumber: string, amount: number): string {
   const message = [
-    `Halo Admin Hololabs Exhibition, saya sudah membayar untuk booking ${bookingNumber}.`,
+    `Halo Admin Hololabs, saya sudah membayar untuk booking ${bookingNumber}.`,
     `Total: ${formatRupiah(amount)}.`,
     "Berikut bukti pembayarannya 🙏",
   ].join(" ");
