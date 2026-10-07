@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { CtaBanner } from "@/components/home/cta-banner";
 import { Hero } from "@/components/home/hero";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { JourneySection } from "@/components/home/journey-section";
 import { PackagesSection } from "@/components/home/packages-section";
 import { ScheduleSection } from "@/components/home/schedule-section";
+import { ServicesSection } from "@/components/home/services-section";
 import { ValueProps } from "@/components/home/value-props";
 import { siteConfig } from "@/data/site";
 
@@ -28,8 +30,10 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Hero />
       <ValueProps />
+      <JourneySection />
       <ScheduleSection />
       <PackagesSection />
+      <ServicesSection />
       <HowItWorks />
       <CtaBanner />
     </>

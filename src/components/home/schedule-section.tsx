@@ -13,8 +13,8 @@ export function ScheduleSection() {
       <Container>
         <SectionHeading
           eyebrow="Jadwal"
-          title="Lima hari, tiga sesi per hari"
-          description="Sisa kursi tiap sesi dihitung langsung dari sistem saat kamu membuka halaman pemesanan."
+          title="Lima hari, dua show per hari"
+          description="Satu show berdurasi 1,5 jam. Sisa kursi tiap show dihitung langsung dari sistem saat kamu membuka halaman pemesanan."
           action={
             <Link href="/pesan" className={buttonStyles({ size: "sm" })}>
               Cek kursi & pesan

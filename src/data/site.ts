@@ -23,9 +23,9 @@ export const siteConfig = {
   whatsapp: "081774918611",
   whatsappE164: "6281774918611",
   venueCity: "Jakarta",
-  sessionDurationLabel: "1 jam per sesi",
+  sessionDurationLabel: "1,5 jam per show",
   dailyWindowLabel: "18.00 – 21.00 WIB",
-  seatsPerSessionLabel: "Maks. 13 kursi per sesi",
+  seatsPerSessionLabel: "Maks. 13 kursi per show",
 } as const;
 
 export interface NavLink {
@@ -93,16 +93,16 @@ export const valueProps: ValueProp[] = [
     icon: "qr",
   },
   {
-    title: "Satu jam, fokus penuh",
-    description: "Tiap sesi berdurasi satu jam agar suasana tetap nyaman dan tidak berdesakan.",
+    title: "Satu show, pengalaman penuh",
+    description: "Tiap show berdurasi 1,5 jam, mengikuti rangkaian lengkap dari awal sampai akhir — tidak berdesakan.",
     icon: "clock",
   },
 ];
 
 export const howItWorks = [
   {
-    title: "Pilih tanggal & sesi",
-    description: "Lihat jadwal harian (18.00–21.00 WIB, 3 sesi) dan sisa kursi tiap sesi secara langsung.",
+    title: "Pilih tanggal & show",
+    description: "Lihat jadwal harian (18.00–21.00 WIB, 2 show) dan sisa kursi tiap show secara langsung.",
   },
   {
     title: "Pilih paket F&B",

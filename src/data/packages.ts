@@ -13,7 +13,7 @@ export const packagesPreview: Package[] = [
     id: "seat-only",
     name: "Seat Only",
     description: "Masuk pameran dan kursi tereservasi, tanpa paket F&B.",
-    includes: ["Akses pameran 1 sesi (1 jam)", "Kursi tereservasi"],
+    includes: ["Akses show 1,5 jam", "Kursi tereservasi"],
     price: 75_000,
     sortOrder: 1,
   },
@@ -22,7 +22,7 @@ export const packagesPreview: Package[] = [
     name: "Standard F&B",
     description: "Kursi tereservasi plus satu paket makanan & minuman ringan.",
     includes: [
-      "Akses pameran 1 sesi (1 jam)",
+      "Akses show 1,5 jam",
       "Kursi tereservasi",
       "1 pilihan makanan (dimsum/tahu)",
       "1 pilihan minuman",
@@ -35,7 +35,7 @@ export const packagesPreview: Package[] = [
     name: "Premium F&B",
     description: "Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.",
     includes: [
-      "Akses pameran 1 sesi (1 jam)",
+      "Akses show 1,5 jam",
       "Kursi prioritas",
       "Aneka makanan (dimsum, tahu, camilan lain)",
       "Minuman bebas pilih & refill",

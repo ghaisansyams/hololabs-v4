@@ -34,9 +34,9 @@ export function Hero() {
 
             <Reveal delay={150}>
               <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-muted sm:text-lg">
-                Pilih sesi, pilih paket F&amp;B, dan selesaikan pembayaran dalam hitungan menit.
-                Kalau sesi pilihanmu penuh, sistem otomatis mengarahkan ke sesi berikutnya yang
-                masih tersedia — tidak perlu bolak-balik cek jadwal.
+                Satu show, 1,5 jam pengalaman penuh — dari video mapping, pertunjukan interaktif,
+                sampai ngobrol dengan AI avatar. Kalau show pilihanmu penuh, sistem otomatis
+                mengarahkan ke show berikutnya yang masih tersedia.
               </p>
             </Reveal>
 
@@ -62,12 +62,12 @@ export function Hero() {
                   <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">WIB / hari</dt>
                 </div>
                 <div>
-                  <dd className="text-xl font-extrabold text-ink font-display">3</dd>
-                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Sesi / hari</dt>
+                  <dd className="text-xl font-extrabold text-ink font-display">2×1,5j</dd>
+                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Show / hari</dt>
                 </div>
                 <div>
                   <dd className="text-xl font-extrabold text-ink font-display">13</dd>
-                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Kursi / sesi</dt>
+                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Kursi / show</dt>
                 </div>
               </dl>
             </Reveal>
@@ -86,9 +86,8 @@ export function Hero() {
                 </div>
                 <div className="relative mt-6 space-y-3">
                   {[
-                    { time: "18.00 – 19.00", left: 4 },
-                    { time: "19.00 – 20.00", left: 0 },
-                    { time: "20.00 – 21.00", left: 9 },
+                    { time: "18.00 – 19.30", left: 0 },
+                    { time: "19.30 – 21.00", left: 6 },
                   ].map((slot) => (
                     <div
                       key={slot.time}
@@ -113,8 +112,8 @@ export function Hero() {
                   ))}
                 </div>
                 <p className="relative mt-5 text-xs leading-relaxed text-muted">
-                  Ilustrasi tampilan jadwal. Sesi 19.00 penuh — pemesan otomatis diarahkan ke sesi
-                  20.00 tanpa kehilangan urutan.
+                  Ilustrasi tampilan jadwal. Show 18.00 penuh — pemesan otomatis diarahkan ke show
+                  19.30 tanpa kehilangan urutan.
                 </p>
               </div>
             </Reveal>

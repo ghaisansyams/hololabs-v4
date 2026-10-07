@@ -76,11 +76,11 @@ create table if not exists packages (
 
 insert into packages (id, name, description, includes, price, sort_order) values
   ('seat-only', 'Seat Only', 'Masuk pameran dan kursi tereservasi, tanpa paket F&B.',
-    array['Akses pameran 1 sesi (1 jam)', 'Kursi tereservasi'], 75000, 1),
+    array['Akses show 1,5 jam', 'Kursi tereservasi'], 75000, 1),
   ('standard', 'Standard F&B', 'Kursi tereservasi plus satu paket makanan & minuman ringan.',
-    array['Akses pameran 1 sesi (1 jam)', 'Kursi tereservasi', '1 pilihan makanan (dimsum/tahu)', '1 pilihan minuman'], 150000, 2),
+    array['Akses show 1,5 jam', 'Kursi tereservasi', '1 pilihan makanan (dimsum/tahu)', '1 pilihan minuman'], 150000, 2),
   ('premium', 'Premium F&B', 'Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.',
-    array['Akses pameran 1 sesi (1 jam)', 'Kursi prioritas', 'Aneka makanan (dimsum, tahu, camilan lain)', 'Minuman bebas pilih & refill'], 250000, 3)
+    array['Akses show 1,5 jam', 'Kursi prioritas', 'Aneka makanan (dimsum, tahu, camilan lain)', 'Minuman bebas pilih & refill'], 250000, 3)
 on conflict (id) do update set
   name = excluded.name, description = excluded.description,
   includes = excluded.includes, price = excluded.price, sort_order = excluded.sort_order;
@@ -104,17 +104,38 @@ create table if not exists sessions (
 );
 create index if not exists sessions_date_idx on sessions (session_date, slot_index);
 
--- Seed the exhibition run: 5 days, 3 one-hour slots per day, 18.00–21.00 WIB,
--- 13 seats per slot — exactly the mechanism described in the meeting notes.
--- Adjust the date range here (and re-run) once the real exhibition dates are
--- confirmed with Holomoc; nothing else in the schema depends on these values.
+-- Seed the exhibition run: 5 days, 2 one-and-a-half-hour shows per day,
+-- 18.00–21.00 WIB, 13 seats per show — per the client's WhatsApp revision
+-- (7 Oct 2026): each show is a guided ~1.5h experience (seat booking → video
+-- mapping story → interactive DJ performance → AI avatar chat → smart home
+-- demo → 3D printing → pulang), which replaced the original 1-hour/3-slot
+-- plan from the 16 Sept meeting notes. Adjust the date range here (and
+-- re-run) once the real exhibition dates are confirmed with Holomoc;
+-- nothing else in the schema depends on these values.
+--
+-- This is a destructive re-seed (old 1-hour slot_index 2 rows are dropped,
+-- and slot 0/1 times are corrected in place) — safe only because no real
+-- bookings exist yet against the old 3-slot layout. See the guard below.
+do $$
+begin
+  if exists (select 1 from bookings) then
+    raise exception 'Refusing to reshape sessions: % booking(s) already reference the old slot layout. Resolve manually.',
+      (select count(*) from bookings);
+  end if;
+end $$;
+
+delete from sessions where slot_index = 2;
+delete from bookings where session_id in (select id from sessions); -- no-op given the guard above; kept for safety
+
+update sessions set start_time = '18:00', end_time = '19:30' where slot_index = 0;
+update sessions set start_time = '19:30', end_time = '21:00' where slot_index = 1;
+
 insert into sessions (session_date, slot_index, start_time, end_time, capacity)
 select d::date, times.slot, times.start_time, times.end_time, 13
 from generate_series('2026-10-15'::date, '2026-10-19'::date, interval '1 day') as d
 cross join (
-  values (0, '18:00'::time, '19:00'::time),
-         (1, '19:00'::time, '20:00'::time),
-         (2, '20:00'::time, '21:00'::time)
+  values (0, '18:00'::time, '19:30'::time),
+         (1, '19:30'::time, '21:00'::time)
 ) as times(slot, start_time, end_time)
 on conflict (session_date, slot_index) do nothing;
 
