@@ -24,7 +24,7 @@ export const siteConfig = {
   tagline: "Reservasi kursi & paket F&B untuk exhibition Hololabs.",
   description:
     "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs-id.vercel.app",
   locale: "id-ID",
   email: "hello@hololabs.id",
   whatsapp: "081774918611",
