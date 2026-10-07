@@ -1,14 +1,16 @@
-# Holomoc Exhibition — Booking Engine
+# Hololabs Exhibition — Booking Engine
 
-Event registration & seat booking platform for **Holomoc Exhibition**, built by
+Event registration & seat booking platform for **Hololabs Exhibition**, built by
 **Spero** (PT Spero Mahakarya Nusantara), per the 16 Sept 2026 meeting notes
-between Spero and Holomoc.
+between Spero and Hololabs.
 
 ## What this is
 
-- One exhibition, several days, **3 one-hour sessions/day** (18.00–21.00 WIB),
-  **max 13 seats per session**.
-- Guests pick a date, session, F&B package, and seat count.
+- One exhibition, several days, **2 one-and-a-half-hour shows/day**
+  (18.00–21.00 WIB), **max 13 seats per show**. Each show is a guided
+  7-step journey (seat booking → video mapping story → interactive DJ
+  performance → AI avatar chat → smart home demo → 3D printing → pulang).
+- Guests pick a date, show, F&B package, and seat count.
 - **Auto-routing**: if the chosen session doesn't have enough seats left, the
   booking is automatically moved to the next session (same day, then later
   days) that does — see `create_booking` in `db/schema.sql`.

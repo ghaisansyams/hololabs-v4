@@ -1,5 +1,5 @@
 /**
- * Domain model for the Holomoc Exhibition booking engine.
+ * Domain model for the Hololabs Exhibition booking engine.
  *
  * Mirrors supabase/schema.sql table-for-table. A "session" is one bookable
  * one-hour slot (max 13 seats); a "package" is an F&B bundle priced per
@@ -47,7 +47,7 @@ export interface BookingView {
    * True when the guest's requested slot was full and the booking engine
    * moved them to the next available one — surfaced on the payment/e-ticket
    * page so nobody is confused about why their time differs from what they
-   * picked (the auto-routing rule from the Spero x Holomoc meeting notes).
+   * picked (the auto-routing rule from the Spero x Hololabs meeting notes).
    */
   autoRouted: boolean;
   sessionDate: string;

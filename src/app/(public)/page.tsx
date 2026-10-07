@@ -22,7 +22,7 @@ export default function HomePage() {
     name: siteConfig.name,
     description: siteConfig.description,
     url: siteConfig.url,
-    organizer: { "@type": "Organization", name: "Holomoc" },
+    organizer: { "@type": "Organization", name: "Hololabs" },
   };
 
   return (

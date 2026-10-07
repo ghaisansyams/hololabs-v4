@@ -12,7 +12,7 @@ export default function AdminLoginPage() {
     <main className="flex min-h-dvh items-center justify-center px-5">
       <div className="w-full max-w-sm rounded-card border border-line bg-surface p-7">
         <h1 className="text-xl font-extrabold text-ink">Login Admin</h1>
-        <p className="mt-1 text-sm text-muted">Holomoc Exhibition — area pengelola.</p>
+        <p className="mt-1 text-sm text-muted">Hololabs Exhibition — area pengelola.</p>
         {isAdminConfigured() ? (
           <div className="mt-6">
             <LoginForm />

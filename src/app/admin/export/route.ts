@@ -32,7 +32,7 @@ export async function GET() {
   return new Response(lines.join("\n"), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="booking-holomoc-${new Date().toISOString().slice(0, 10)}.csv"`,
+      "Content-Disposition": `attachment; filename="booking-hololabs-${new Date().toISOString().slice(0, 10)}.csv"`,
     },
   });
 }

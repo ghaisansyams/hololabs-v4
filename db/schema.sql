@@ -1,4 +1,4 @@
--- Holomoc Exhibition — Booking Engine shared database (Neon Postgres)
+-- Hololabs Exhibition — Booking Engine shared database (Neon Postgres)
 --
 -- Run this once against the Neon project's database — either paste this
 -- whole file into Neon's SQL Editor (Console → your project → SQL Editor)
@@ -15,7 +15,7 @@
 -- owns everything, but it keeps this schema portable back to Supabase later
 -- if that's ever needed.
 --
--- Domain, per the 16 Sept 2026 meeting notes (Spero x Holomoc):
+-- Domain, per the 16 Sept 2026 meeting notes (Spero x Hololabs):
 --   - One exhibition, several days, 3 one-hour slots per day (18.00–21.00 WIB).
 --   - Each slot ("session") holds at most 13 seats.
 --   - A guest books N seats + one F&B package. If the slot they asked for
@@ -110,7 +110,7 @@ create index if not exists sessions_date_idx on sessions (session_date, slot_ind
 -- mapping story → interactive DJ performance → AI avatar chat → smart home
 -- demo → 3D printing → pulang), which replaced the original 1-hour/3-slot
 -- plan from the 16 Sept meeting notes. Adjust the date range here (and
--- re-run) once the real exhibition dates are confirmed with Holomoc;
+-- re-run) once the real exhibition dates are confirmed with Hololabs;
 -- nothing else in the schema depends on these values.
 --
 -- This is a destructive re-seed (old 1-hour slot_index 2 rows are dropped,

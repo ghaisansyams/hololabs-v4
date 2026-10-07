@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Users } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
+import { TiltCard } from "@/components/ui/tilt-card";
 import { siteConfig } from "@/data/site";
 
 export function Hero() {
@@ -13,6 +14,10 @@ export function Hero() {
         <div
           className="absolute -right-20 top-40 size-72 rounded-full bg-accent/20 blur-3xl motion-safe:animate-float-slow sm:size-96"
           style={{ animationDelay: "-3s" }}
+        />
+        <div
+          className="absolute left-1/2 top-1/3 size-56 -translate-x-1/2 rounded-full bg-gradient-to-br from-brand/15 to-accent/15 blur-3xl motion-safe:animate-float-slow"
+          style={{ animationDelay: "-6s" }}
         />
       </div>
 
@@ -28,7 +33,7 @@ export function Hero() {
 
             <Reveal delay={80}>
               <h1 className="mt-5 text-[2.1rem] leading-[1.08] font-extrabold text-ink sm:text-5xl lg:text-[3.4rem]">
-                Amankan kursimu di <span className="text-gradient">Holomoc Exhibition</span>.
+                Amankan kursimu di <span className="text-gradient">Hololabs Exhibition</span>.
               </h1>
             </Reveal>
 
@@ -75,47 +80,49 @@ export function Hero() {
 
           <div className="lg:col-span-5">
             <Reveal delay={120}>
-              <div className="glass relative overflow-hidden rounded-[1.75rem] p-6 shadow-lift sm:p-8">
-                <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full bg-accent/25 blur-2xl" />
-                <div className="relative flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Live preview</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-pill bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
-                    <span className="size-1.5 rounded-full bg-current motion-safe:animate-pulse-soft" />
-                    Kuota real-time
-                  </span>
-                </div>
-                <div className="relative mt-6 space-y-3">
-                  {[
-                    { time: "18.00 – 19.30", left: 0 },
-                    { time: "19.30 – 21.00", left: 6 },
-                  ].map((slot) => (
-                    <div
-                      key={slot.time}
-                      className="flex items-center justify-between rounded-2xl border border-line bg-surface/80 px-4 py-3.5"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-surface-raised text-accent">
-                          <Users className="size-4" aria-hidden />
-                        </span>
-                        <span className="text-sm font-semibold text-ink">{slot.time}</span>
-                      </div>
-                      <span
-                        className={
-                          slot.left === 0
-                            ? "text-xs font-bold uppercase tracking-wide text-danger"
-                            : "text-xs font-bold uppercase tracking-wide text-success"
-                        }
+              <TiltCard max={10}>
+                <div className="glass relative overflow-hidden rounded-[1.75rem] p-6 shadow-lift sm:p-8">
+                  <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full bg-accent/25 blur-2xl" />
+                  <div className="relative flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Live preview</span>
+                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-success-soft px-2.5 py-1 text-xs font-semibold text-success">
+                      <span className="size-1.5 rounded-full bg-current motion-safe:animate-pulse-soft" />
+                      Kuota real-time
+                    </span>
+                  </div>
+                  <div className="relative mt-6 space-y-3">
+                    {[
+                      { time: "18.00 – 19.30", left: 0 },
+                      { time: "19.30 – 21.00", left: 6 },
+                    ].map((slot) => (
+                      <div
+                        key={slot.time}
+                        className="flex items-center justify-between rounded-2xl border border-line bg-surface/80 px-4 py-3.5"
                       >
-                        {slot.left === 0 ? "Penuh → auto-routing" : `${slot.left} kursi tersisa`}
-                      </span>
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-surface-raised text-accent">
+                            <Users className="size-4" aria-hidden />
+                          </span>
+                          <span className="text-sm font-semibold text-ink">{slot.time}</span>
+                        </div>
+                        <span
+                          className={
+                            slot.left === 0
+                              ? "text-xs font-bold uppercase tracking-wide text-danger"
+                              : "text-xs font-bold uppercase tracking-wide text-success"
+                          }
+                        >
+                          {slot.left === 0 ? "Penuh → auto-routing" : `${slot.left} kursi tersisa`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="relative mt-5 text-xs leading-relaxed text-muted">
+                    Ilustrasi tampilan jadwal. Show 18.00 penuh — pemesan otomatis diarahkan ke show
+                    19.30 tanpa kehilangan urutan.
+                  </p>
                 </div>
-                <p className="relative mt-5 text-xs leading-relaxed text-muted">
-                  Ilustrasi tampilan jadwal. Show 18.00 penuh — pemesan otomatis diarahkan ke show
-                  19.30 tanpa kehilangan urutan.
-                </p>
-              </div>
+              </TiltCard>
             </Reveal>
           </div>
         </div>

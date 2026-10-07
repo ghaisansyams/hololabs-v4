@@ -1,25 +1,28 @@
 /**
- * Global site configuration for the Holomoc Exhibition booking engine.
+ * Global site configuration for the Hololabs Exhibition booking engine.
  *
- * Built by Spero (PT Spero Mahakarya Nusantara) for Holomoc, per the
+ * Built by Spero (PT Spero Mahakarya Nusantara) for Hololabs, per the
  * 16 Sept 2026 meeting notes: an Event Registration & Seat Booking system
- * for Holomoc Exhibition, revenue-shared between the two companies. Holomoc
- * owns the exhibition and its on-site operations; this site is purely the
- * booking engine (see the notes' "pemisahan entitas" point).
+ * for Hololabs Exhibition, revenue-shared between the two companies.
+ * Hololabs owns the exhibition and its on-site operations; this site is
+ * purely the booking engine (see the notes' "pemisahan entitas" point).
+ *
+ * Renamed from "Holomoc" to "Hololabs" per the client's request on
+ * 7 Oct 2026 — same company/exhibition, new brand name.
  */
 
 export const siteConfig = {
-  name: "Holomoc Exhibition",
-  shortName: "Holomoc",
-  legalName: "Holomoc Exhibition — Booking Engine",
+  name: "Hololabs Exhibition",
+  shortName: "Hololabs",
+  legalName: "Hololabs Exhibition — Booking Engine",
   builtBy: "Spero",
   motto: "Reserve your seat. Save your spot.",
-  tagline: "Reservasi kursi & paket F&B untuk Holomoc Exhibition.",
+  tagline: "Reservasi kursi & paket F&B untuk Hololabs Exhibition.",
   description:
-    "Pesan kursi dan paket makan-minum untuk Holomoc Exhibition secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://halomoc-exhibition.vercel.app",
+    "Pesan kursi dan paket makan-minum untuk Hololabs Exhibition secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs-exhibition.vercel.app",
   locale: "id-ID",
-  email: "hello@holomoc.id",
+  email: "hello@hololabs.id",
   whatsapp: "081774918611",
   whatsappE164: "6281774918611",
   venueCity: "Jakarta",
@@ -62,8 +65,8 @@ export const socialLinks: SocialLink[] = [
   },
   {
     label: "Instagram",
-    handle: "@holomoc.exhibition",
-    href: "https://instagram.com/holomoc.exhibition",
+    handle: "@hololabs.exhibition",
+    href: "https://instagram.com/hololabs.exhibition",
     icon: "instagram",
   },
 ];

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   applicationName: siteConfig.name,
   keywords: [
-    "holomoc exhibition",
+    "hololabs exhibition",
     "booking pameran",
     "reservasi kursi online",
     "tiket exhibition",
