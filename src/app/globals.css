@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — PRD bagian 5.
+ * Warna diambil dari filosofi warna compro HOLOLABS: perjalanan
+ * Technology -> Creativity -> Experience. Nilai di sini mengikat; skill
+ * UI UX Pro Max tidak boleh menggantinya (PRD bagian 10).
+ */
+:root {
+  --holo-cyan: #22d3ff;
+  --holo-blue: #2b6bff;
+  --holo-violet: #8b5cf6;
+  --holo-magenta: #f02fc2;
+  --holo-ink: #05060a;
+  --holo-paper: #f7f8fc;
+
+  --holo-gradient: linear-gradient(
+    90deg,
+    var(--holo-cyan) 0%,
+    var(--holo-violet) 52%,
+    var(--holo-magenta) 100%
+  );
+
+  /* Motion — PRD bagian 5. */
+  --holo-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --holo-fast: 400ms;
+  --holo-slow: 900ms;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-cyan-holo: var(--holo-cyan);
+  --color-blue-holo: var(--holo-blue);
+  --color-violet-holo: var(--holo-violet);
+  --color-magenta-holo: var(--holo-magenta);
+  --color-ink: var(--holo-ink);
+  --color-paper: var(--holo-paper);
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+html {
+  /* Lenis mengambil alih; tanpa JS, scroll asli tetap jalan. */
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--holo-ink);
+  color: var(--holo-paper);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Label kategori: "01 — WHO WE ARE" di compro. */
+.holo-eyebrow {
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--holo-paper) 55%, transparent);
+}
+
+.holo-display {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.holo-gradient-text {
+  background: var(--holo-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.holo-rule {
+  height: 2px;
+  background: var(--holo-gradient);
+  border-radius: 2px;
+}
+
+/* Scene terang — manifesto & penutup (PRD bagian 5). */
+.holo-light {
+  background: var(--holo-paper);
+  color: var(--holo-ink);
+}
+.holo-light .holo-eyebrow {
+  color: color-mix(in srgb, var(--holo-ink) 55%, transparent);
+}
+
+/*
+ * PRD bagian 8, aturan 6: prefers-reduced-motion mematikan seluruh parallax
+ * dan gerak kamera. Diganti fade sederhana.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* PRD bagian 8, aturan 7: fokus keyboard harus selalu terlihat. */
+:focus-visible {
+  outline: 2px solid var(--holo-cyan);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.holo-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+}
+.holo-skip:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--holo-paper);
+  color: var(--holo-ink);
+  border-radius: 8px;
+}
