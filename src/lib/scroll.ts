@@ -41,3 +41,20 @@ export function maxScroll(): number {
   if (typeof document === "undefined") return 1;
   return Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
 }
+
+/**
+ * Pada progres berapa sebuah scene berada tepat di tengah layar.
+ *
+ * Dipakai untuk menempatkan objek 3D. Versi sebelumnya menaruh objek pada
+ * jarak yang sama rata di sepanjang koridor, seolah tiap section setinggi
+ * section lainnya. Padahal scene Solutions jauh lebih tinggi daripada scene
+ * Colors, sehingga objek dan teksnya melenceng makin jauh ke bawah halaman —
+ * sistem orbit bahkan tidak pernah sampai ke layar. Mengambil posisi nyata
+ * section dari DOM membuat keduanya selalu bertemu.
+ */
+export function sceneCenterProgress(key: string): number {
+  const bounds = sceneOffsets.get(key);
+  if (!bounds) return 0;
+  const center = (bounds.start + bounds.end) / 2 - scrollState.viewport / 2;
+  return Math.min(1, Math.max(0, center / maxScroll()));
+}

@@ -24,9 +24,9 @@ interface Props {
 /**
  * Logo H sebagai objek kaca.
  *
- * Di mode "full" kacanya memakai material fisik dengan transmission; di
- * "lite" transmission dimatikan karena menuntut render pass tambahan yang
- * menjatuhkan frame rate di GPU lemah (PRD bagian 5).
+ * Bentuknya tetap: dua sayap dan jembatan jam pasir pada filosofi simbol H.
+ * Yang berubah hanya cara kacanya dipalsukan — lihat catatan pada
+ * glassProps di bawah.
  */
 export function HoloH({ tier, progress, split = 0, pointer }: Props) {
   const group = useRef<THREE.Group>(null);
@@ -39,30 +39,24 @@ export function HoloH({ tier, progress, split = 0, pointer }: Props) {
     [tier],
   );
 
+  /**
+   * Tanpa transmission, sengaja.
+   *
+   * `transmission > 0` pada MeshPhysicalMaterial membuat three.js merender
+   * ulang seluruh scene ke render target terpisah setiap frame, supaya ada
+   * yang bisa dilihat "menembus" kaca. Satu objek saja sudah melipatgandakan
+   * beban gambar. Di sini kesan kaca dibangun dari metalness tinggi,
+   * roughness rendah, dan pancaran warna brand — satu pass biasa, dan di GPU
+   * lemah selisihnya besar sekali.
+   */
   const glassProps = useMemo(
-    () =>
-      tier === "full"
-        ? {
-            transmission: 0.92,
-            thickness: 1.4,
-            roughness: 0.08,
-            metalness: 0.1,
-            ior: 1.45,
-            clearcoat: 1,
-            clearcoatRoughness: 0.12,
-            envMapIntensity: 2.2,
-          }
-        : {
-            // Tanpa transmission: tampil sebagai kaca berwarna yang memancar,
-            // bukan kaca tembus pandang. Jauh lebih murah.
-            transmission: 0,
-            opacity: 0.86,
-            transparent: true,
-            roughness: 0.22,
-            metalness: 0.35,
-            clearcoat: 0.6,
-            envMapIntensity: 1.2,
-          },
+    () => ({
+      metalness: 0.85,
+      roughness: tier === "full" ? 0.16 : 0.3,
+      envMapIntensity: tier === "full" ? 1.9 : 1.1,
+      transparent: true,
+      opacity: 0.92,
+    }),
     [tier],
   );
 
@@ -91,22 +85,34 @@ export function HoloH({ tier, progress, split = 0, pointer }: Props) {
   return (
     <group ref={group} dispose={null}>
       <mesh ref={leftWing} geometry={wing} position={[-1.28, 0, 0]} rotation={[0, 0.34, 0]}>
-        <meshPhysicalMaterial {...glassProps} color={BLUE} attach="material" />
+        <meshStandardMaterial
+          {...glassProps}
+          color={BLUE}
+          emissive={new THREE.Color(CYAN)}
+          emissiveIntensity={0.42}
+          attach="material"
+        />
       </mesh>
 
       <mesh geometry={bridge}>
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           {...glassProps}
           color={VIOLET}
           emissive={new THREE.Color(VIOLET)}
-          emissiveIntensity={0.35}
+          emissiveIntensity={0.6}
           side={THREE.DoubleSide}
           attach="material"
         />
       </mesh>
 
       <mesh ref={rightWing} geometry={wing} position={[1.28, 0, 0]} rotation={[0, -0.34, 0]}>
-        <meshPhysicalMaterial {...glassProps} color={MAGENTA} attach="material" />
+        <meshStandardMaterial
+          {...glassProps}
+          color={MAGENTA}
+          emissive={new THREE.Color(MAGENTA)}
+          emissiveIntensity={0.42}
+          attach="material"
+        />
       </mesh>
 
       {/* Rim light warna brand — membuat tepi kaca menyala seperti di compro. */}

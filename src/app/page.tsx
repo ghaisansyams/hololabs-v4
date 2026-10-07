@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { draftMode } from "next/headers";
 
-import { Stage } from "@/components/three/stage";
+import { StageLoader } from "@/components/three/stage-loader";
 import { SmoothScroll } from "@/components/scroll/smooth-scroll";
 import { MotionToggle, Preloader, SceneNav, ScrollProgress } from "@/components/scroll/chrome";
 import { Hero } from "@/components/scenes/hero";
@@ -58,7 +58,7 @@ export default async function Home() {
     <>
       <Preloader />
       <SmoothScroll />
-      <Stage />
+      <StageLoader />
       <ScrollProgress />
       <SceneNav />
       <MotionToggle />

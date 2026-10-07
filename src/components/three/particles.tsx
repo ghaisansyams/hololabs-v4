@@ -12,15 +12,16 @@ interface Props {
 }
 
 /**
- * Bidang partikel yang membentang di sepanjang koridor.
+ * Bidang bintang yang membentang di sepanjang koridor.
  *
- * Jumlahnya dibatasi 18.000 di mode full — di bawah pagu 25.000 pada tabel
- * requirement teknis PRD bagian 8, menyisakan ruang untuk partikel scene
- * lain. Di mode lite tidak ada partikel sama sekali.
+ * Turun dari 18.000 ke 7.000. Pada ukuran titik sekecil ini, menggandakan
+ * jumlahnya tidak membuat langitnya terlihat lebih padat — yang bertambah
+ * hanya 264 KB buffer GPU dan pekerjaan rasterisasi. Mode lite kini
+ * mendapat 2.000, bukan nol: langit kosong terlihat seperti halaman rusak.
  */
 export function ParticleField({ tier, pointer }: Props) {
   const points = useRef<THREE.Points>(null);
-  const count = tier === "full" ? 18000 : 0;
+  const count = tier === "full" ? 7000 : 2000;
 
   const geometry = useMemo(() => {
     const positions = new Float32Array(count * 3);
@@ -49,15 +50,13 @@ export function ParticleField({ tier, pointer }: Props) {
   }, [count]);
 
   useFrame((state) => {
-    if (!points.current || count === 0) return;
+    if (!points.current) return;
     const t = state.clock.elapsedTime;
     points.current.rotation.z = t * 0.012;
     // Bereaksi ke kursor dan sentuhan (PRD bagian 6).
     points.current.position.x = (pointer?.current?.x ?? 0) * 1.4;
     points.current.position.y = (pointer?.current?.y ?? 0) * -1.1;
   });
-
-  if (count === 0) return null;
 
   return (
     <points ref={points} geometry={geometry} frustumCulled={false}>

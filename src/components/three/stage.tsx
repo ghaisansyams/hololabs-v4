@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
@@ -9,30 +9,9 @@ import { useQuality } from "@/lib/quality";
 import { scrollState } from "@/lib/scroll";
 import { HoloH } from "./holo-h";
 import { ParticleField } from "./particles";
-import { GlassLayers } from "./glass-layers";
-import { EcosystemStack } from "./ecosystem-stack";
-
-/** Jarak antar-perhentian kamera di koridor, dalam satuan dunia. */
-const SPACING = 16;
-/** Urutan harus sama dengan urutan section di halaman. */
-const ANCHORS = [
-  "hero",
-  "essence",
-  "integration",
-  "colors",
-  "dna",
-  "solutions",
-  "ecosystem",
-  "journey",
-  "process",
-  "contact",
-] as const;
-
-const CORRIDOR_END = (ANCHORS.length - 1) * SPACING;
-
-function anchorZ(key: (typeof ANCHORS)[number]) {
-  return -ANCHORS.indexOf(key) * SPACING;
-}
+import { BlackHole } from "./blackhole";
+import { OrbitalSystem } from "./orbital-system";
+import { CORRIDOR_END, SceneAnchor } from "./scene-anchor";
 
 /**
  * Satu kamera yang menyusuri koridor, bukan potongan halaman terpisah
@@ -53,11 +32,7 @@ function CameraRig({ pointer }: { pointer: React.RefObject<THREE.Vector2> }) {
     const sway = Math.sin(p * Math.PI * 3.1) * 1.6;
     const rise = Math.cos(p * Math.PI * 2.2) * 0.9;
 
-    target.current.set(
-      sway + pointer.current.x * 0.5,
-      rise + pointer.current.y * 0.35,
-      z,
-    );
+    target.current.set(sway + pointer.current.x * 0.5, rise + pointer.current.y * 0.35, z);
 
     camera.position.lerp(target.current, 0.08);
     camera.lookAt(sway * 0.35, rise * 0.3, z - 8);
@@ -73,6 +48,24 @@ function PointerTracker({ pointer }: { pointer: React.RefObject<THREE.Vector2> }
     pointer.current.lerp(state.pointer, 0.08);
   });
   return null;
+}
+
+/** Logo yang membelah mengikuti posisinya sendiri di layar. */
+function SplittingLogo({
+  tier,
+  pointer,
+}: {
+  tier: ReturnType<typeof useQuality>["tier"];
+  pointer: React.RefObject<THREE.Vector2>;
+}) {
+  const split = useRef(0);
+
+  useFrame((state) => {
+    // Terbuka paling lebar di tengah perjalanan scene, lalu menyatu lagi.
+    split.current = 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 0.5);
+  });
+
+  return <HoloH tier={tier} progress={0} split={split.current} pointer={pointer} />;
 }
 
 function Corridor() {
@@ -91,8 +84,14 @@ function Corridor() {
         Lingkungan dibangun dari lightformer, bukan berkas .hdr.
         Lampiran A mencatat HDRI sebagai aset yang belum ada, dan cara ini
         tidak mengunduh apa pun sehingga anggaran 6 MB tetap utuh.
+
+        frames={1}: cubemap-nya dirender sekali lalu dipakai terus. Lampu di
+        dalamnya memang tidak bergerak, jadi merendernya tiap frame hanya
+        membuang GPU. Resolusinya juga diturunkan — pantulan pada permukaan
+        melengkung tidak menunjukkan selisih 256 dan 64, tetapi memorinya
+        berbeda jauh.
       */}
-      <Environment resolution={tier === "full" ? 256 : 128}>
+      <Environment frames={1} resolution={tier === "full" ? 64 : 32}>
         <Lightformer form="rect" intensity={4} color="#22d3ff" position={[-5, 2, -2]} scale={[8, 8, 1]} />
         <Lightformer form="rect" intensity={4} color="#f02fc2" position={[5, -2, -2]} scale={[8, 8, 1]} />
         <Lightformer form="circle" intensity={2.4} color="#8b5cf6" position={[0, 4, 2]} scale={[6, 6, 1]} />
@@ -102,60 +101,59 @@ function Corridor() {
       <ParticleField tier={tier} pointer={pointer} />
 
       {/*
-        Scene 01 — Hero. Digeser ke kanan supaya tidak menabrak headline:
-        kolom teks menempati sisi kiri (max-w-3xl), jadi logo mengisi ruang
-        kosong di kanan seperti komposisi sampul compro.
+        Tiap objek ditempelkan ke section-nya lewat SceneAnchor, yang membaca
+        posisi nyata section itu di halaman. Versi sebelumnya menaruh objek
+        pada jarak sama rata di koridor, seolah semua section sama tinggi —
+        akibatnya sistem orbit tidak pernah sampai ke layar. Mengubah panjang
+        teks dari dashboard admin kini juga tidak membuat objek melenceng.
       */}
-      <group position={[3.6, 0.15, anchorZ("hero") - 4.5]} scale={0.95}>
+      <SceneAnchor sceneKey="hero" x={3.6} y={0.15} distance={5} band={0.07}>
         <HoloH tier={tier} progress={scrollState.progress} pointer={pointer} />
-      </group>
+      </SceneAnchor>
 
-      {/* Scene 02 — dua sisi logo memisah lalu menyatu. */}
-      <group position={[-3.4, 0.5, anchorZ("essence") - 3]} scale={0.8}>
+      <SceneAnchor sceneKey="essence" x={-3.4} y={0.5} distance={5} band={0.06}>
         <SplittingLogo tier={tier} pointer={pointer} />
-      </group>
+      </SceneAnchor>
 
-      {/* Scene 03 — bidang kaca transparan, overlapping, layered. */}
-      <group position={[3.2, 0, anchorZ("integration") - 3]}>
-        <GlassLayers tier={tier} />
-      </group>
+      <SceneAnchor sceneKey="integration" x={3.2} y={0.2} distance={13} band={0.07}>
+        <BlackHole tier={tier} />
+      </SceneAnchor>
 
-      {/* Scene 10 — empat layer ekosistem menumpuk. */}
-      <group position={[2.0, -0.6, anchorZ("ecosystem") - 3]}>
-        <EcosystemStack tier={tier} />
-      </group>
+      <SceneAnchor sceneKey="ecosystem" x={4.6} y={-0.2} distance={26} band={0.08}>
+        <OrbitalSystem tier={tier} />
+      </SceneAnchor>
 
-      {/* Scene 12 — logo kembali untuk manifesto penutup. */}
-      <group position={[-3.2, 0, anchorZ("process") - 5]} scale={0.85}>
+      <SceneAnchor sceneKey="process" x={-3.2} y={0} distance={6} band={0.07}>
         <HoloH tier={tier} progress={scrollState.progress * 0.5} pointer={pointer} />
-      </group>
+      </SceneAnchor>
     </>
   );
 }
 
-/** Logo yang membelah mengikuti progres scroll di scene Brand Essence. */
-function SplittingLogo({
-  tier,
-  pointer,
-}: {
-  tier: ReturnType<typeof useQuality>["tier"];
-  pointer: React.RefObject<THREE.Vector2>;
-}) {
-  const split = useRef(0);
-  const group = useRef<THREE.Group>(null);
+/**
+ * Menghentikan render ketika tab tidak terlihat.
+ *
+ * requestAnimationFrame biasanya melambat sendiri di tab latar, tetapi tidak
+ * selalu berhenti — dan di laptop, loop yang masih jalan berarti kipas tetap
+ * berputar untuk gambar yang tidak dilihat siapa pun.
+ */
+function PauseWhenHidden() {
+  const invalidate = useThree((state) => state.invalidate);
+  const setFrameloop = useThree((state) => state.setFrameloop);
 
-  useFrame(() => {
-    // Terbelah paling lebar saat scene berada di tengah layar, lalu menyatu.
-    const local = THREE.MathUtils.clamp((scrollState.progress - 0.08) / 0.12, 0, 1);
-    split.current = Math.sin(local * Math.PI);
-    if (group.current) group.current.visible = local > 0.001 && local < 0.999;
-  });
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) setFrameloop("never");
+      else {
+        setFrameloop("always");
+        invalidate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [invalidate, setFrameloop]);
 
-  return (
-    <group ref={group}>
-      <HoloH tier={tier} progress={0} split={split.current} pointer={pointer} />
-    </group>
-  );
+  return null;
 }
 
 /**
@@ -172,24 +170,19 @@ export function Stage() {
   if (!ready || tier === "static") return null;
 
   return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{ contain: "strict" }}
-    >
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0" style={{ contain: "strict" }}>
       <Canvas
-        camera={{ position: [0, 0, 7], fov: 48, near: 0.1, far: 200 }}
-        dpr={tier === "full" ? [1, 1.75] : [1, 1.25]}
-        gl={{
-          antialias: tier === "full",
-          powerPreference: "high-performance",
-          alpha: true,
-        }}
-        // Render hanya saat ada perubahan tidak cocok di sini: scene selalu
-        // bergerak mengikuti scroll dan waktu.
+        camera={{ position: [0, 0, 7], fov: 48, near: 0.1, far: 220 }}
+        // Dibatasi 1.5, bukan mengikuti devicePixelRatio penuh. Di layar
+        // Retina selisihnya hampir tidak terlihat pada objek yang menyala dan
+        // bergerak, sementara jumlah piksel yang digambar turun lebih dari
+        // sepertiga.
+        dpr={tier === "full" ? [1, 1.5] : [1, 1]}
+        gl={{ antialias: tier === "full", powerPreference: "high-performance", alpha: true }}
         frameloop="always"
       >
         <Suspense fallback={null}>
+          <PauseWhenHidden />
           <Corridor />
         </Suspense>
       </Canvas>
