@@ -5,6 +5,34 @@ import { useEffect, useState } from "react";
 import { useQuality } from "@/lib/quality";
 import { sceneNav } from "@/content/site";
 
+/** Tombol unduh company profile, selalu terlihat di pojok kanan atas. */
+export function BrochureButton() {
+  return (
+    <a
+      href="/hololabs-company-profile.pdf"
+      download="HOLOLABS-Company-Profile.pdf"
+      className="fixed right-3 top-3 z-50 flex items-center gap-2 rounded-full border border-white/15 bg-black/55 px-3.5 py-2 text-[11px] tracking-wide text-white/80 backdrop-blur transition hover:border-white/40 hover:text-white sm:right-4 sm:top-4"
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="size-3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 3v12" />
+        <path d="m7 10 5 5 5-5" />
+        <path d="M5 19h14" />
+      </svg>
+      <span className="hidden sm:inline">Download Brosur</span>
+      <span className="sm:hidden">Brosur</span>
+    </a>
+  );
+}
+
 /** Indikator progres scroll di tepi layar, gradien cyan ke magenta. */
 export function ScrollProgress() {
   return (

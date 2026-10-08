@@ -3,7 +3,7 @@ import { draftMode } from "next/headers";
 
 import { StageLoader } from "@/components/three/stage-loader";
 import { SmoothScroll } from "@/components/scroll/smooth-scroll";
-import { MotionToggle, Preloader, SceneNav, ScrollProgress } from "@/components/scroll/chrome";
+import { BrochureButton, MotionToggle, Preloader, SceneNav, ScrollProgress } from "@/components/scroll/chrome";
 import { Hero } from "@/components/scenes/hero";
 import { Dna, Integration } from "@/components/scenes/story";
 import { Solutions } from "@/components/scenes/solutions";
@@ -64,6 +64,7 @@ export default async function Home() {
       <ScrollProgress />
       <SceneNav />
       <MotionToggle />
+      <BrochureButton />
 
       <a href="#hero" className="holo-skip">
         Lompat ke konten
