@@ -50,24 +50,6 @@ function PointerTracker({ pointer }: { pointer: React.RefObject<THREE.Vector2> }
   return null;
 }
 
-/** Logo yang membelah mengikuti posisinya sendiri di layar. */
-function SplittingLogo({
-  tier,
-  pointer,
-}: {
-  tier: ReturnType<typeof useQuality>["tier"];
-  pointer: React.RefObject<THREE.Vector2>;
-}) {
-  const split = useRef(0);
-
-  useFrame((state) => {
-    // Terbuka paling lebar di tengah perjalanan scene, lalu menyatu lagi.
-    split.current = 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 0.5);
-  });
-
-  return <HoloH tier={tier} progress={0} split={split.current} pointer={pointer} />;
-}
-
 function Corridor() {
   const { tier } = useQuality();
   const pointer = useRef(new THREE.Vector2(0, 0));
@@ -109,10 +91,6 @@ function Corridor() {
       */}
       <SceneAnchor sceneKey="hero" x={3.6} y={0.15} distance={5} band={0.07}>
         <HoloH tier={tier} progress={scrollState.progress} pointer={pointer} />
-      </SceneAnchor>
-
-      <SceneAnchor sceneKey="essence" x={-3.4} y={0.5} distance={5} band={0.06}>
-        <SplittingLogo tier={tier} pointer={pointer} />
       </SceneAnchor>
 
       <SceneAnchor sceneKey="integration" x={3.2} y={0.2} distance={13} band={0.07}>

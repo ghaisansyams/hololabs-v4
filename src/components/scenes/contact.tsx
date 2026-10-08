@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Display, Eyebrow, Section } from "@/components/ui/section";
 import { Reveal } from "@/components/ui/reveal";
 import type { SiteContent } from "@/lib/site-content";
@@ -86,10 +88,8 @@ export function Footer({ content }: { content: SiteContent }) {
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="holo-display text-2xl tracking-[0.2em]">
-              HOLO<span className="holo-gradient-text">LABS</span>
-            </p>
-            <p className="holo-eyebrow mt-2">{identity.tagline}</p>
+            <Image src="/hololabs-lockup.png" alt="HOLOLABS" width={1269} height={756} className="h-10 w-auto" />
+            <p className="holo-eyebrow mt-3">{identity.tagline}</p>
             <ul className="mt-4 flex gap-x-5 text-[11px] tracking-[0.16em] text-white/40">
               {identity.pillars.map((pillar) => (
                 <li key={pillar}>{pillar.toUpperCase()}</li>

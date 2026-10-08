@@ -5,9 +5,10 @@ import { StageLoader } from "@/components/three/stage-loader";
 import { SmoothScroll } from "@/components/scroll/smooth-scroll";
 import { MotionToggle, Preloader, SceneNav, ScrollProgress } from "@/components/scroll/chrome";
 import { Hero } from "@/components/scenes/hero";
-import { Colors, Dna, Essence, Integration } from "@/components/scenes/story";
+import { Dna, Integration } from "@/components/scenes/story";
 import { Solutions } from "@/components/scenes/solutions";
 import { Ecosystem } from "@/components/scenes/ecosystem";
+import { Clients, BestWorks } from "@/components/scenes/clients";
 import { Journey } from "@/components/scenes/journey";
 import { Process } from "@/components/scenes/process";
 import { Contact, Footer } from "@/components/scenes/contact";
@@ -78,12 +79,12 @@ export default async function Home() {
 
       <main id="main" className="relative z-10">
         {show("hero") && <Hero content={content} />}
-        {show("essence") && <Essence content={content} />}
         {show("integration") && <Integration content={content} />}
-        {show("colors") && <Colors content={content} />}
         {show("dna") && <Dna />}
         {show("solutions") && <Solutions />}
         {show("ecosystem") && <Ecosystem content={content} />}
+        {show("clients") && <Clients />}
+        {show("best-works") && <BestWorks />}
         {show("journey") && <Journey content={content} />}
         {show("process") && <Process content={content} />}
         {show("contact") && <Contact content={content} />}

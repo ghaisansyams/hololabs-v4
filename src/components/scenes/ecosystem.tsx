@@ -19,7 +19,7 @@ export function Ecosystem({ content }: { content: SiteContent }) {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="06">{ecosystem.eyebrow}</Eyebrow>
+        <Eyebrow index="04">{ecosystem.eyebrow}</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>

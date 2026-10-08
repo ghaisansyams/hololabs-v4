@@ -34,7 +34,7 @@ export function Solutions() {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="05">What we do</Eyebrow>
+        <Eyebrow index="03">What we do</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>

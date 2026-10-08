@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Section } from "@/components/ui/section";
 import { Reveal } from "@/components/ui/reveal";
 import type { SiteContent } from "@/lib/site-content";
@@ -12,7 +14,11 @@ export function Hero({ content }: { content: SiteContent }) {
     >
       <div className="max-w-3xl">
         <Reveal>
-          <p className="holo-eyebrow">{hero.eyebrow}</p>
+          <Image src="/hololabs-lockup.png" alt="HOLOLABS" width={1269} height={756} priority className="h-14 w-auto sm:h-16" />
+        </Reveal>
+
+        <Reveal delay={40}>
+          <p className="holo-eyebrow mt-8">{hero.eyebrow}</p>
         </Reveal>
 
         <Reveal delay={80}>
