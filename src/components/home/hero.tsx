@@ -4,6 +4,7 @@ import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { TiltCard } from "@/components/ui/tilt-card";
+import { HeroSceneLoader } from "@/components/three/hero-scene-loader";
 import { siteConfig } from "@/data/site";
 
 export function Hero() {
@@ -78,7 +79,18 @@ export function Hero() {
             </Reveal>
           </div>
 
-          <div className="lg:col-span-5">
+          <div className="relative lg:col-span-5">
+            {/* The hologram globe — a real WebGL scene (react-three-fiber),
+                sized larger than the card below so it visibly projects out
+                from behind it, like the card is floating in front of a
+                hologram emitter. */}
+            <div
+              aria-hidden
+              className="absolute -inset-x-10 -inset-y-16 -z-10 motion-reduce:hidden sm:-inset-x-16"
+            >
+              <HeroSceneLoader />
+            </div>
+
             <Reveal delay={120}>
               <TiltCard max={10}>
                 <div className="glass relative overflow-hidden rounded-[1.75rem] p-6 shadow-lift sm:p-8">

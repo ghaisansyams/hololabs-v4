@@ -212,6 +212,51 @@
     );
   }
 
+  /* Hologram dust — small drifting/twinkling particles layered inside every
+     TiltCard, so every "3D" surface on the site carries moving hologram
+     particles, not just the hero globe. See components/ui/tilt-card.tsx. */
+  .hologram-dust {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .hologram-dust > span {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--dust-color, var(--color-accent));
+    opacity: 0;
+    animation: hologram-drift var(--dust-duration, 6s) ease-in-out infinite,
+      hologram-twinkle var(--dust-duration, 6s) ease-in-out infinite;
+    animation-delay: var(--dust-delay, 0s);
+    box-shadow: 0 0 6px 1px currentColor;
+  }
+  @keyframes hologram-drift {
+    0% {
+      transform: translateY(6px) translateX(0);
+    }
+    50% {
+      transform: translateY(-10px) translateX(3px);
+    }
+    100% {
+      transform: translateY(6px) translateX(0);
+    }
+  }
+  @keyframes hologram-twinkle {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    35%,
+    65% {
+      opacity: 0.85;
+    }
+  }
+
   /* 3D wordmark fallback logo — see components/brand/logo.tsx. */
   .logo-3d {
     display: inline-block;
