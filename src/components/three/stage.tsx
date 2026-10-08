@@ -119,7 +119,7 @@ function Corridor() {
         <BlackHole tier={tier} />
       </SceneAnchor>
 
-      <SceneAnchor sceneKey="ecosystem" x={4.6} y={-0.2} distance={26} band={0.08}>
+      <SceneAnchor sceneKey="ecosystem" x={4.6} y={-0.2} distance={19} band={0.08}>
         <OrbitalSystem tier={tier} />
       </SceneAnchor>
 

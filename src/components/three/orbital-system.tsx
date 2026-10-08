@@ -110,7 +110,7 @@ export function OrbitalSystem({ tier }: { tier: Quality }) {
   });
 
   return (
-    <group ref={group} rotation={[0.42, 0, 0.1]}>
+    <group ref={group} rotation={[0.42, 0, 0.38]}>
       {/* Pusat: inti yang memancar. Sengaja kecil — bintang yang terlalu
           besar menenggelamkan orbitnya sendiri dan jadi sekadar bola putih. */}
       <mesh geometry={sphere} scale={0.42}>
