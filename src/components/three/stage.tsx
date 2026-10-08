@@ -101,9 +101,6 @@ function Corridor() {
         <OrbitalSystem tier={tier} />
       </SceneAnchor>
 
-      <SceneAnchor sceneKey="process" x={-3.2} y={0} distance={6} band={0.07}>
-        <HoloH tier={tier} progress={scrollState.progress * 0.5} pointer={pointer} />
-      </SceneAnchor>
     </>
   );
 }

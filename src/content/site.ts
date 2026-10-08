@@ -508,8 +508,6 @@ export const sceneNav = [
   { key: "ecosystem", label: "Ecosystem" },
   { key: "best-works", label: "Best Works" },
   { key: "journey", label: "Journey" },
-  { key: "process", label: "Process" },
-  { key: "contact", label: "Contact" },
 ];
 
 export const budgetRanges = [

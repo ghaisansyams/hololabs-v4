@@ -10,8 +10,7 @@ import { Solutions } from "@/components/scenes/solutions";
 import { Ecosystem } from "@/components/scenes/ecosystem";
 import { BestWorks } from "@/components/scenes/best-works";
 import { Journey } from "@/components/scenes/journey";
-import { Process } from "@/components/scenes/process";
-import { Contact, Footer } from "@/components/scenes/contact";
+import { Footer } from "@/components/scenes/contact";
 import { getHiddenSections } from "@/lib/content";
 import { getSiteContent } from "@/lib/site-content";
 
@@ -32,7 +31,9 @@ async function loadPage() {
 }
 
 /**
- * Satu halaman scroll, 12 scene.
+ * Satu halaman scroll: Hero lalu scene bernomor 01–06. Essence, Colors,
+ * Process/Vision, dan Contact sudah dihapus (lihat riwayat git 8 Okt 2026) —
+ * kontak dan formulir kerja sama ditangani situs lain.
  *
  * Seluruh teks dirender di server sebagai HTML biasa. Kanvas 3D menempel di
  * belakangnya sebagai lapisan dekoratif, jadi halaman ini tetap utuh dan
@@ -85,8 +86,6 @@ export default async function Home() {
         {show("ecosystem") && <Ecosystem content={content} />}
         {show("best-works") && <BestWorks />}
         {show("journey") && <Journey content={content} />}
-        {show("process") && <Process content={content} />}
-        {show("contact") && <Contact content={content} />}
       </main>
 
       <Footer content={content} />
