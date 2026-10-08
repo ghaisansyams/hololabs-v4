@@ -47,8 +47,8 @@ export const hero = {
   titleAccent: "into experience.",
   lead:
     "Projection, display, game, AI, VR, smart space, dan 3D printing yang saling terhubung menjadi satu pengalaman utuh.",
-  ctaPrimary: { label: "Pesan Tiket", href: "#journey" },
-  ctaSecondary: { label: "Lihat Jadwal Tiket", href: "#journey" },
+  ctaPrimary: { label: "Pesan Tiket", href: "#pesan" },
+  ctaSecondary: { label: "Lihat Jadwal Tiket", href: "#jadwal" },
   keywords: ["Ideas", "Technology", "Spaces", "People", "Experiences"],
 };
 
@@ -487,6 +487,61 @@ export const process = {
  * and a descriptive filename can't silently shift out of sync the way an
  * index can if an image is ever added, removed, or reordered here.
  */
+/**
+ * Jadwal show dan paket F&B — teks dan harga disamakan dengan hololabs-id
+ * (lihat juga seed `show_sessions`/`packages` di supabase/schema.sql).
+ * Dipakai untuk render section "Jadwal & Paket" yang di-cache; form
+ * pemesanan selalu membaca harga dan sisa kursi langsung dari basis data.
+ */
+export const showSchedule = {
+  eyebrow: "Jadwal",
+  title: "Lima hari,",
+  titleAccent: "dua show per hari.",
+  lead: "Satu show berdurasi 1,5 jam. Sisa kursi tiap show dihitung langsung dari sistem saat kamu membuka halaman pemesanan.",
+  cta: "Cek kursi & pesan",
+  dates: ["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19"],
+  slots: [
+    { label: "Show 1", time: "18.00 – 19.30" },
+    { label: "Show 2", time: "19.30 – 21.00" },
+  ],
+};
+
+export const showPackages = {
+  eyebrow: "Paket F&B",
+  title: "Pilih paket sesuai rombonganmu",
+  lead: "Harga berlaku per kursi. Dipilih saat pemesanan, bersamaan dengan sesi dan jumlah kursi.",
+  featured: "standard",
+  featuredBadge: "Paling dipilih",
+  items: [
+    {
+      id: "seat-only",
+      name: "Seat Only",
+      description: "Masuk pameran dan kursi tereservasi, tanpa paket F&B.",
+      includes: ["Akses show 1,5 jam", "Kursi tereservasi"],
+      price: 75_000,
+    },
+    {
+      id: "standard",
+      name: "Standard F&B",
+      description: "Kursi tereservasi plus satu paket makanan & minuman ringan.",
+      includes: ["Akses show 1,5 jam", "Kursi tereservasi", "1 pilihan makanan (dimsum/tahu)", "1 pilihan minuman"],
+      price: 150_000,
+    },
+    {
+      id: "premium",
+      name: "Premium F&B",
+      description: "Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.",
+      includes: [
+        "Akses show 1,5 jam",
+        "Kursi prioritas",
+        "Aneka makanan (dimsum, tahu, camilan lain)",
+        "Minuman bebas pilih & refill",
+      ],
+      price: 250_000,
+    },
+  ],
+};
+
 export const bestWorks = [
   { title: "Planetarium Dome Projection & Content", client: "Planetarium Jakarta", src: "/works/planetarium.png" },
   { title: "Virtual DJ Gear & Car Projection Mapping", client: "Mercedes-Benz", src: "/works/mercedes.png" },
@@ -507,6 +562,7 @@ export const sceneNav = [
   { key: "solutions", label: "Solutions" },
   { key: "ecosystem", label: "Ecosystem" },
   { key: "best-works", label: "Best Works" },
+  { key: "jadwal", label: "Jadwal & Paket" },
   { key: "journey", label: "Journey" },
 ];
 

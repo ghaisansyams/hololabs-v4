@@ -5,6 +5,17 @@ import { recordAudit } from "@/lib/audit";
 import { bookingCode, normalizeWhatsapp, validateReservation } from "@/lib/validate";
 import { clientIp, tooMany } from "@/lib/rate-limit";
 
+export interface ReservationResult {
+  code: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  packageName: string;
+  seats: number;
+  amount: number;
+  autoRouted: boolean;
+}
+
 export async function POST(request: Request) {
   if (!hasDatabase()) {
     return NextResponse.json(
@@ -21,7 +32,7 @@ export async function POST(request: Request) {
 
   const errors = validateReservation(body);
   if (Object.keys(errors).length > 0) {
-    return NextResponse.json({ message: "Ada isian yang belum benar.", errors }, { status: 422 });
+    return NextResponse.json({ message: "Periksa kembali isian yang ditandai.", errors }, { status: 422 });
   }
 
   const sql = getSql()!;
@@ -38,49 +49,71 @@ export async function POST(request: Request) {
     );
   }
 
-  const code = bookingCode();
-
   try {
-    const rows = (await sql`
-      insert into bookings (code, name, whatsapp, email, people, visitor_type, preferred_date, note, source_ip)
-      values (
-        ${code},
+    // Sesi akhir, harga, dan total ditentukan basis data (auto-routing +
+    // harga dari tabel packages), bukan dari angka yang dikirim browser.
+    const rows = await sql`
+      select * from create_show_booking(
+        ${bookingCode()},
         ${String(body.name).trim()},
         ${whatsapp},
         ${String(body.email ?? "").trim()},
-        ${Number(body.people)},
-        ${String(body.visitorType)},
-        ${String(body.preferredDate)},
+        ${String(body.sessionId)}::uuid,
+        ${String(body.packageId)},
+        ${Number(body.seats)},
         ${String(body.note ?? "").trim()},
         ${ip}
       )
-      returning id, code
-    `) as { id: string; code: string }[];
+    `;
+    const row = rows[0];
 
     await recordAudit({
       action: "BOOKING_CREATED",
       entity: "bookings",
-      entityId: rows[0].id,
-      newValue: { code: rows[0].code, people: Number(body.people) },
+      entityId: row.id,
+      newValue: { code: row.code, seats: row.seats, package: row.package_name, amount: Number(row.amount) },
       ip,
     });
 
-    return NextResponse.json({
-      message: `Reservasi tercatat. Kode booking kamu ${rows[0].code}. Kami konfirmasi lewat WhatsApp.`,
-      code: rows[0].code,
-    });
+    const result: ReservationResult = {
+      code: row.code,
+      sessionDate: row.session_date,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      packageName: row.package_name,
+      seats: Number(row.seats),
+      amount: Number(row.amount),
+      autoRouted: Boolean(row.auto_routed),
+    };
+    return NextResponse.json({ message: `Booking ${row.code} tercatat.`, booking: result });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "";
     // Batas tiga booking aktif ditegakkan trigger basis data, bukan aplikasi,
     // supaya dua permintaan bersamaan tidak bisa menembusnya.
-    if (error instanceof Error && error.message.includes("BOOKING_LIMIT")) {
+    if (message.includes("BOOKING_LIMIT")) {
       return NextResponse.json(
         { message: "Nomor ini sudah punya 3 reservasi aktif. Selesaikan dulu salah satunya." },
         { status: 409 },
       );
     }
+    if (message.includes("NO_AVAILABILITY")) {
+      return NextResponse.json(
+        {
+          message:
+            "Tidak ada sesi dengan kursi cukup untuk jumlah yang diminta, termasuk sesi berikutnya. Coba kurangi jumlah kursi atau pilih tanggal lain.",
+        },
+        { status: 409 },
+      );
+    }
+    if (message.includes("PACKAGE_NOT_FOUND") || message.includes("SESSION_NOT_FOUND")) {
+      return NextResponse.json(
+        { message: "Sesi atau paket yang dipilih tidak tersedia. Muat ulang halaman lalu pilih lagi." },
+        { status: 422 },
+      );
+    }
     console.error("[reservation] gagal", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan saat menyimpan. Coba lagi sebentar lagi." },
+      { message: "Gagal membuat booking. Coba lagi sebentar lagi." },
       { status: 500 },
     );
   }

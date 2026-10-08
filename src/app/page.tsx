@@ -9,6 +9,7 @@ import { Dna, Integration } from "@/components/scenes/story";
 import { Solutions } from "@/components/scenes/solutions";
 import { Ecosystem } from "@/components/scenes/ecosystem";
 import { BestWorks } from "@/components/scenes/best-works";
+import { Schedule } from "@/components/scenes/schedule";
 import { Journey } from "@/components/scenes/journey";
 import { Footer } from "@/components/scenes/contact";
 import { getHiddenSections } from "@/lib/content";
@@ -31,7 +32,7 @@ async function loadPage() {
 }
 
 /**
- * Satu halaman scroll: Hero lalu scene bernomor 01–06. Essence, Colors,
+ * Satu halaman scroll: Hero lalu scene bernomor 01–07. Essence, Colors,
  * Process/Vision, dan Contact sudah dihapus (lihat riwayat git 8 Okt 2026) —
  * kontak dan formulir kerja sama ditangani situs lain.
  *
@@ -86,6 +87,7 @@ export default async function Home() {
         {show("solutions") && <Solutions />}
         {show("ecosystem") && <Ecosystem content={content} />}
         {show("best-works") && <BestWorks />}
+        {show("jadwal") && <Schedule />}
         {show("journey") && <Journey content={content} />}
       </main>
 

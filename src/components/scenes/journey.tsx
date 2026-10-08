@@ -1,7 +1,7 @@
 import { Display, Eyebrow, Section } from "@/components/ui/section";
 import { Reveal } from "@/components/ui/reveal";
 import type { SiteContent } from "@/lib/site-content";
-import { ReservationForm } from "@/components/forms/reservation-form";
+import { BookingForm } from "@/components/forms/booking-form";
 
 /** Scene 11 — Experience Journey 90 menit. */
 export function Journey({ content }: { content: SiteContent }) {
@@ -15,7 +15,7 @@ export function Journey({ content }: { content: SiteContent }) {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="06">{journey.eyebrow}</Eyebrow>
+        <Eyebrow index="07">{journey.eyebrow}</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>
@@ -85,13 +85,13 @@ export function Journey({ content }: { content: SiteContent }) {
       </Reveal>
 
       <Reveal delay={560}>
-        <div className="mt-14 rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-9">
+        <div id="pesan" className="mt-14 scroll-mt-24 rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-9">
           <h3 className="holo-display text-2xl">Pesan kursi</h3>
           <p className="mt-2 max-w-lg text-sm text-white/60">
             Experience memakai sistem scheduled show dan seat reservation, sehingga jumlah pengunjung
             tiap sesi disesuaikan dengan karakter experience.
           </p>
-          <ReservationForm />
+          <BookingForm />
         </div>
       </Reveal>
     </Section>

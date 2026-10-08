@@ -182,6 +182,162 @@ create trigger bookings_limit
   for each row execute function enforce_active_booking_limit();
 
 -- ------------------------------------------------------------------
+-- 3b. Show booking: jadwal show + paket F&B
+--
+-- Disamakan dengan booking engine hololabs-id (repo ghaisansyams/hololabs,
+-- db/schema.sql): 5 hari pameran, 2 show per hari @1,5 jam, maks. 13 kursi
+-- per show, tiga paket F&B dengan harga per kursi yang sama. Kalau harga
+-- atau tanggal berubah, ubah di kedua repo — dan di src/content/site.ts
+-- (showSchedule/showPackages) yang dipakai halaman publik saat render.
+--
+-- Kolom lama di bookings (people, visitor_type, preferred_date) tetap diisi
+-- supaya dashboard admin yang sudah ada tidak perlu tahu skema baru ini.
+-- ------------------------------------------------------------------
+
+create table if not exists packages (
+  id text primary key,
+  name text not null,
+  description text not null default '',
+  includes text[] not null default '{}',
+  price numeric not null check (price >= 0),
+  sort_order int not null default 0,
+  active boolean not null default true
+);
+
+insert into packages (id, name, description, includes, price, sort_order) values
+  ('seat-only', 'Seat Only', 'Masuk pameran dan kursi tereservasi, tanpa paket F&B.',
+    array['Akses show 1,5 jam', 'Kursi tereservasi'], 75000, 1),
+  ('standard', 'Standard F&B', 'Kursi tereservasi plus satu paket makanan & minuman ringan.',
+    array['Akses show 1,5 jam', 'Kursi tereservasi', '1 pilihan makanan (dimsum/tahu)', '1 pilihan minuman'], 150000, 2),
+  ('premium', 'Premium F&B', 'Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.',
+    array['Akses show 1,5 jam', 'Kursi prioritas', 'Aneka makanan (dimsum, tahu, camilan lain)', 'Minuman bebas pilih & refill'], 250000, 3)
+on conflict (id) do update set
+  name = excluded.name, description = excluded.description,
+  includes = excluded.includes, price = excluded.price, sort_order = excluded.sort_order;
+
+create table if not exists show_sessions (
+  id uuid primary key default gen_random_uuid(),
+  session_date date not null,
+  slot_index int not null,
+  start_time time not null,
+  end_time time not null,
+  capacity int not null default 13 check (capacity > 0),
+  unique (session_date, slot_index)
+);
+
+insert into show_sessions (session_date, slot_index, start_time, end_time)
+select d::date, t.slot, t.start_time, t.end_time
+from generate_series('2026-10-15'::date, '2026-10-19'::date, interval '1 day') as d
+cross join (
+  values (0, '18:00'::time, '19:30'::time),
+         (1, '19:30'::time, '21:00'::time)
+) as t(slot, start_time, end_time)
+on conflict (session_date, slot_index) do nothing;
+
+alter table bookings add column if not exists session_id uuid references show_sessions (id);
+alter table bookings add column if not exists requested_session_id uuid references show_sessions (id);
+alter table bookings add column if not exists package_id text references packages (id);
+alter table bookings add column if not exists seats int check (seats between 1 and 13);
+alter table bookings add column if not exists amount numeric not null default 0;
+alter table bookings add column if not exists auto_routed boolean not null default false;
+
+create index if not exists bookings_session_idx on bookings (session_id);
+
+-- Kursi terpakai dihitung dari booking aktif, bukan disimpan sebagai
+-- penghitung: membatalkan booking dari dashboard admin (yang hanya
+-- mengubah status) otomatis mengembalikan kursinya tanpa trigger tambahan.
+-- Tanggal dan jam di-cast ke teks supaya klien mana pun membacanya sama.
+create or replace view show_availability as
+select
+  s.id,
+  s.session_date::text as session_date,
+  s.slot_index,
+  s.start_time::text as start_time,
+  s.end_time::text as end_time,
+  s.capacity,
+  coalesce(sum(b.seats) filter (where b.status in ('PENDING', 'CONFIRMED', 'ATTENDED')), 0)::int as seats_taken
+from show_sessions s
+left join bookings b on b.session_id = s.id
+group by s.id;
+
+-- Booking + aturan auto-routing: kalau show yang diminta tidak punya cukup
+-- kursi, booking dipindah ke show berikutnya (hari yang sama dulu, lalu hari
+-- sesudahnya) yang masih cukup. Tiap kandidat dikunci FOR UPDATE sebelum
+-- kursinya dihitung, jadi dua pemesan yang berebut kursi terakhir di show
+-- yang sama diproses bergantian, tidak bisa sama-sama lolos. Harga dihitung
+-- di sini dari tabel packages — angka dari browser tidak pernah dipercaya.
+create or replace function create_show_booking(
+  p_code text, p_name text, p_whatsapp text, p_email text,
+  p_requested_session uuid, p_package text, p_seats int, p_note text, p_ip text
+) returns table (
+  id uuid, code text, session_date text, start_time text, end_time text,
+  package_name text, seats int, amount numeric, auto_routed boolean
+)
+language plpgsql
+as $$
+#variable_conflict use_column
+declare
+  v_requested show_sessions;
+  v_candidate uuid;
+  v_locked show_sessions;
+  v_taken int;
+  v_chosen show_sessions;
+  v_package packages;
+  v_booking bookings;
+begin
+  if p_seats is null or p_seats < 1 or p_seats > 13 then
+    raise exception 'INVALID_SEATS' using errcode = 'P0001';
+  end if;
+
+  select * into v_package from packages where packages.id = p_package and packages.active;
+  if v_package.id is null then
+    raise exception 'PACKAGE_NOT_FOUND' using errcode = 'P0001';
+  end if;
+
+  select * into v_requested from show_sessions where show_sessions.id = p_requested_session;
+  if v_requested.id is null then
+    raise exception 'SESSION_NOT_FOUND' using errcode = 'P0001';
+  end if;
+
+  for v_candidate in
+    select s.id from show_sessions s
+    where (s.session_date, s.slot_index) >= (v_requested.session_date, v_requested.slot_index)
+    order by s.session_date, s.slot_index
+  loop
+    select * into v_locked from show_sessions where show_sessions.id = v_candidate for update;
+    select coalesce(sum(b.seats), 0) into v_taken
+      from bookings b
+      where b.session_id = v_candidate and b.status in ('PENDING', 'CONFIRMED', 'ATTENDED');
+    if v_locked.capacity - v_taken >= p_seats then
+      v_chosen := v_locked;
+      exit;
+    end if;
+  end loop;
+
+  if v_chosen.id is null then
+    raise exception 'NO_AVAILABILITY' using errcode = 'P0001';
+  end if;
+
+  insert into bookings (
+    code, name, whatsapp, email, people, visitor_type, preferred_date, note, source_ip,
+    session_id, requested_session_id, package_id, seats, amount, auto_routed
+  ) values (
+    p_code, p_name, p_whatsapp, coalesce(p_email, ''), p_seats,
+    case when p_seats <= 3 then 'individual' when p_seats <= 6 then 'family' else 'community' end,
+    v_chosen.session_date, coalesce(p_note, ''), p_ip,
+    v_chosen.id, v_requested.id, v_package.id, p_seats, v_package.price * p_seats,
+    v_chosen.id <> v_requested.id
+  )
+  returning * into v_booking;
+
+  return query select
+    v_booking.id, v_booking.code, v_chosen.session_date::text,
+    v_chosen.start_time::text, v_chosen.end_time::text,
+    v_package.name, v_booking.seats, v_booking.amount, v_booking.auto_routed;
+end;
+$$;
+
+-- ------------------------------------------------------------------
 -- 4. Audit trail — hanya-tambah (PRD bagian 9)
 -- ------------------------------------------------------------------
 

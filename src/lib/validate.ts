@@ -50,24 +50,34 @@ export function validateInquiry(data: Record<string, unknown>): Errors {
   return errors;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Pemesanan show: sesi + paket F&B + jumlah kursi (maks. 13 per show),
+ * disamakan dengan hololabs-id. Keberadaan sesi dan paket, serta harga,
+ * diperiksa ulang oleh fungsi create_show_booking di basis data.
+ */
 export function validateReservation(data: Record<string, unknown>): Errors {
   const errors: Errors = {};
   const name = String(data.name ?? "").trim();
   const whatsapp = String(data.whatsapp ?? "");
   const email = String(data.email ?? "").trim();
-  const people = Number(data.people);
-  const visitorType = String(data.visitorType ?? "");
-  const preferredDate = String(data.preferredDate ?? "");
+  const seats = Number(data.seats);
+  const sessionId = String(data.sessionId ?? "");
+  const packageId = String(data.packageId ?? "");
+  const note = String(data.note ?? "");
 
-  if (name.length < 3 || name.length > 80) errors.name = "Nama 3–80 karakter.";
-  if (!WA.test(whatsapp.replace(/[\s-]/g, ""))) errors.whatsapp = "Nomor WhatsApp tidak valid.";
-  if (email && !EMAIL.test(email)) errors.email = "Format email tidak valid.";
-  if (!Number.isInteger(people) || people < 1 || people > 30) {
-    errors.people = "Jumlah orang antara 1 dan 30.";
+  if (!UUID.test(sessionId)) errors.sessionId = "Pilih tanggal dan sesi terlebih dahulu.";
+  if (!packageId) errors.packageId = "Pilih paket F&B terlebih dahulu.";
+  if (!Number.isInteger(seats) || seats < 1 || seats > 13) {
+    errors.seats = "Jumlah kursi harus antara 1 dan 13.";
   }
-  if (!visitorType) errors.visitorType = "Pilih tipe kunjungan.";
-  if (!preferredDate) errors.preferredDate = "Pilih tanggal kunjungan.";
-  else if (!notPast(preferredDate)) errors.preferredDate = "Tanggal sudah lewat.";
+  if (name.length < 3 || name.length > 80) errors.name = "Nama minimal 3 karakter.";
+  if (!WA.test(whatsapp.replace(/[\s-]/g, ""))) {
+    errors.whatsapp = "Gunakan format nomor Indonesia, contoh 08123456789.";
+  }
+  if (email && !EMAIL.test(email)) errors.email = "Masukkan alamat email yang valid, atau kosongkan.";
+  if (note.length > 500) errors.note = "Catatan maksimal 500 karakter.";
 
   return errors;
 }
