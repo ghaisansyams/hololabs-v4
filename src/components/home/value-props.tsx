@@ -2,7 +2,6 @@ import { Clock, QrCode, Route, Users, type LucideIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { TiltCard } from "@/components/ui/tilt-card";
 import { valueProps, type ValueProp } from "@/data/site";
 
 const icons: Record<ValueProp["icon"], LucideIcon> = {
@@ -27,15 +26,13 @@ export function ValueProps() {
             const Icon = icons[item.icon];
             return (
               <Reveal key={item.title} delay={index * 70}>
-                <TiltCard className="h-full" max={8}>
-                  <article className="group h-full rounded-card border border-line bg-surface p-6 transition-[border-color,box-shadow] duration-300 hover:border-brand/30 hover:shadow-lift">
-                    <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent text-canvas shadow-glow transition-transform duration-300 group-hover:scale-110">
-                      <Icon className="size-6" aria-hidden />
-                    </span>
-                    <h3 className="mt-5 text-lg font-extrabold text-ink">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">{item.description}</p>
-                  </article>
-                </TiltCard>
+                <article className="group h-full rounded-card border border-line bg-surface p-6 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-lift">
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-brand-soft text-brand-ink transition-transform duration-300 group-hover:scale-105">
+                    <Icon className="size-6" aria-hidden />
+                  </span>
+                  <h3 className="mt-5 text-lg font-extrabold text-ink">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{item.description}</p>
+                </article>
               </Reveal>
             );
           })}
