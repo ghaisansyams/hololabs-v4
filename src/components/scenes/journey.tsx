@@ -15,7 +15,7 @@ export function Journey({ content }: { content: SiteContent }) {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="07">{journey.eyebrow}</Eyebrow>
+        <Eyebrow index="06">{journey.eyebrow}</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>

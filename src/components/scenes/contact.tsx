@@ -15,7 +15,7 @@ export function Contact({ content }: { content: SiteContent }) {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="10">Let's work together</Eyebrow>
+        <Eyebrow index="09">Let's work together</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>

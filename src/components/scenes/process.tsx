@@ -12,7 +12,7 @@ export function Process({ content }: { content: SiteContent }) {
       className="py-28 sm:py-36"
     >
       <Reveal>
-        <Eyebrow index="08">{process.eyebrow}</Eyebrow>
+        <Eyebrow index="07">{process.eyebrow}</Eyebrow>
       </Reveal>
 
       <Reveal delay={80}>
@@ -56,7 +56,7 @@ export function Process({ content }: { content: SiteContent }) {
 
       <Reveal delay={500}>
         <div className="mt-20 border-t border-white/10 pt-14">
-          <Eyebrow index="09">{process.vision.eyebrow}</Eyebrow>
+          <Eyebrow index="08">{process.vision.eyebrow}</Eyebrow>
           <Display className="mt-6 max-w-2xl" accent={process.vision.titleAccent}>
             {process.vision.title}
           </Display>

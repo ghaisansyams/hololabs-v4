@@ -476,32 +476,27 @@ export const process = {
 };
 
 /**
- * Scene — Our Clients. Logo diekstrak dari slide "OUR CLIENTS" compro asli
- * (dikirim klien 8 Okt 2026), latar putihnya dihapus agar menyatu dengan
- * tema gelap. File ada di public/clients/logo-01.png … logo-40.png, urutan
- * mengikuti slide aslinya (baris demi baris).
- */
-export const clients = [
-  "Toyota", "Daihatsu", "Telkomsel", "Asus", "BNI", "Ancol", "Dunhill", "Museum Geologi", "Revlon Professional", "ANRI",
-  "Motorola", "TATA", "Mitratel", "Samsung", "BTN", "SkyWorld", "BP Migas", "Museum Sejarah Jakarta", "BPJS Ketenagakerjaan", "Daikin",
-  "Bridgestone", "Garuda Indonesia", "XL", "Hypermart", "BRI", "Jakarta Aquarium & Safari", "PERURI", "Lembaga Manajemen Aset Negara", "The Glassavvy", "Jalin Realty",
-  "Astra", "Grebe", "AXIS", "Unilever", "DBS", "Sinarmas", "Trans Studio", "Sanofi", "MarkPlus Insight", "Bapenda",
-].map((name, i) => ({ name, src: `/clients/logo-${String(i + 1).padStart(2, "0")}.png` }));
-
-/**
- * Scene — Our Best Works. Sama sumbernya dengan clients di atas (slide
- * "OUR BEST WORKS"). File ada di public/works/logo-01.png … logo-09.png.
+ * Scene — Our Best Works.
+ *
+ * "Our Clients" (the logo grid) was removed entirely on the client's 8 Oct
+ * 2026 follow-up — the extracted logos read as blurry at display size.
+ * These Best Works logos are a second round of assets the client sent
+ * straight afterward: individual HD files, not slide screenshots, so each
+ * is named for its company rather than numbered — the numbered scheme is
+ * exactly what caused the earlier logo-mismatch bug (see git history),
+ * and a descriptive filename can't silently shift out of sync the way an
+ * index can if an image is ever added, removed, or reordered here.
  */
 export const bestWorks = [
-  { title: "Planetarium Dome Projection & Content", client: "Planetarium Jakarta", src: "/works/logo-01.png" },
-  { title: "Virtual DJ Gear & Car Projection Mapping", client: "Mercedes-Benz", src: "/works/logo-02.png" },
-  { title: "Soekarno-Hatta Int'l Airport FIDS & Wayfinding", client: "Angkasa Pura II", src: "/works/logo-03.png" },
-  { title: "All-New Kia Picanto Car Projection Mapping", client: "KIA", src: "/works/logo-04.png" },
-  { title: "Stage Mapping at IBM Launch Event", client: "IBM", src: "/works/logo-05.png" },
-  { title: "Animation & Projection Mapping for Brand Activation", client: "Aqua", src: "/works/logo-06.png" },
-  { title: "VR Driving Simulator at GIIAS", client: "Daihatsu & Honda", src: "/works/logo-07.png" },
-  { title: "Customer Experience Interactive Room", client: "Nestlé", src: "/works/logo-08.png" },
-  { title: "Interactive Exhibition Installation", client: "Tropenmuseum Netherlands", src: "/works/logo-09.png" },
+  { title: "Planetarium Dome Projection & Content", client: "Planetarium Jakarta", src: "/works/planetarium.png" },
+  { title: "Virtual DJ Gear & Car Projection Mapping", client: "Mercedes-Benz", src: "/works/mercedes.png" },
+  { title: "Soekarno-Hatta Int'l Airport FIDS & Wayfinding", client: "Angkasa Pura II", src: "/works/angkasa-pura.png" },
+  { title: "All-New Kia Picanto Car Projection Mapping", client: "KIA", src: "/works/kia.png" },
+  { title: "Stage Mapping at IBM Launch Event", client: "IBM", src: "/works/ibm.png" },
+  { title: "Animation & Projection Mapping for Brand Activation", client: "Aqua", src: "/works/aqua.png" },
+  { title: "VR Driving Simulator at GIIAS", client: "Daihatsu & Honda", src: "/works/honda.png" },
+  { title: "Customer Experience Interactive Room", client: "Nestlé", src: "/works/nestle.png" },
+  { title: "Interactive Exhibition Installation", client: "Tropenmuseum Netherlands", src: "/works/tropenmuseum.png" },
 ];
 
 /** Navigasi scene — nanti jadi tabel navigation_items. */
@@ -511,7 +506,6 @@ export const sceneNav = [
   { key: "dna", label: "DNA" },
   { key: "solutions", label: "Solutions" },
   { key: "ecosystem", label: "Ecosystem" },
-  { key: "clients", label: "Clients" },
   { key: "best-works", label: "Best Works" },
   { key: "journey", label: "Journey" },
   { key: "process", label: "Process" },

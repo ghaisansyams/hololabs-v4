@@ -83,6 +83,31 @@ body {
   border-radius: 2px;
 }
 
+/* Auto-scrolling logo strip — see components/scenes/best-works.tsx. The
+   track renders the list twice back-to-back and scrolls exactly -50%, so
+   the loop point is invisible. Pauses on hover/focus so a logo can be
+   read; the global prefers-reduced-motion block above already freezes it
+   for anyone who needs that. */
+.holo-marquee {
+  animation: holo-marquee-scroll 26s linear infinite;
+}
+.holo-marquee:hover,
+.holo-marquee:focus-within {
+  animation-play-state: paused;
+}
+@keyframes holo-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.holo-marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
 /* Scene terang — manifesto & penutup (PRD bagian 5). */
 .holo-light {
   background: var(--holo-paper);

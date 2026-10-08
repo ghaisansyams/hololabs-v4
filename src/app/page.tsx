@@ -8,7 +8,7 @@ import { Hero } from "@/components/scenes/hero";
 import { Dna, Integration } from "@/components/scenes/story";
 import { Solutions } from "@/components/scenes/solutions";
 import { Ecosystem } from "@/components/scenes/ecosystem";
-import { Clients, BestWorks } from "@/components/scenes/clients";
+import { BestWorks } from "@/components/scenes/best-works";
 import { Journey } from "@/components/scenes/journey";
 import { Process } from "@/components/scenes/process";
 import { Contact, Footer } from "@/components/scenes/contact";
@@ -83,7 +83,6 @@ export default async function Home() {
         {show("dna") && <Dna />}
         {show("solutions") && <Solutions />}
         {show("ecosystem") && <Ecosystem content={content} />}
-        {show("clients") && <Clients />}
         {show("best-works") && <BestWorks />}
         {show("journey") && <Journey content={content} />}
         {show("process") && <Process content={content} />}
