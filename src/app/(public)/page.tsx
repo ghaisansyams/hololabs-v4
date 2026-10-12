@@ -9,6 +9,10 @@ import { ServicesSection } from "@/components/home/services-section";
 import { ValueProps } from "@/components/home/value-props";
 import { siteConfig } from "@/data/site";
 
+// Rendered per request: content comes from the CMS and seat counts from
+// the live schedule, so a build-time snapshot would be stale immediately.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `${siteConfig.name} — ${siteConfig.tagline}`,
   description: siteConfig.description,

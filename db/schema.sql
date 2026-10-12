@@ -81,9 +81,9 @@ insert into packages (id, name, description, includes, price, sort_order) values
     array['Akses show 1,5 jam', 'Kursi tereservasi', '1 pilihan makanan (dimsum/tahu)', '1 pilihan minuman'], 150000, 2),
   ('premium', 'Premium F&B', 'Pengalaman lengkap: kursi terbaik dan sajian F&B tanpa batas selama sesi.',
     array['Akses show 1,5 jam', 'Kursi prioritas', 'Aneka makanan (dimsum, tahu, camilan lain)', 'Minuman bebas pilih & refill'], 250000, 3)
-on conflict (id) do update set
-  name = excluded.name, description = excluded.description,
-  includes = excluded.includes, price = excluded.price, sort_order = excluded.sort_order;
+-- Seed only: once a package exists it's owned by the admin panel
+-- (/admin/packages), and re-running this file must not revert its price.
+on conflict (id) do nothing;
 
 -- ------------------------------------------------------------------
 -- sessions (the bookable slots)
@@ -104,32 +104,11 @@ create table if not exists sessions (
 );
 create index if not exists sessions_date_idx on sessions (session_date, slot_index);
 
--- Seed the exhibition run: 5 days, 2 one-and-a-half-hour shows per day,
--- 18.00–21.00 WIB, 13 seats per show — per the client's WhatsApp revision
--- (7 Oct 2026): each show is a guided ~1.5h experience (seat booking → video
--- mapping story → interactive DJ performance → AI avatar chat → smart home
--- demo → 3D printing → pulang), which replaced the original 1-hour/3-slot
--- plan from the 16 Sept meeting notes. Adjust the date range here (and
--- re-run) once the real exhibition dates are confirmed with Hololabs;
--- nothing else in the schema depends on these values.
---
--- This is a destructive re-seed (old 1-hour slot_index 2 rows are dropped,
--- and slot 0/1 times are corrected in place) — safe only because no real
--- bookings exist yet against the old 3-slot layout. See the guard below.
-do $$
-begin
-  if exists (select 1 from bookings) then
-    raise exception 'Refusing to reshape sessions: % booking(s) already reference the old slot layout. Resolve manually.',
-      (select count(*) from bookings);
-  end if;
-end $$;
-
-delete from sessions where slot_index = 2;
-delete from bookings where session_id in (select id from sessions); -- no-op given the guard above; kept for safety
-
-update sessions set start_time = '18:00', end_time = '19:30' where slot_index = 0;
-update sessions set start_time = '19:30', end_time = '21:00' where slot_index = 1;
-
+-- Seed the exhibition run once: 5 days, 2 one-and-a-half-hour shows per
+-- day, 18.00–21.00 WIB, 13 seats per show (client's 7 Oct 2026 revision).
+-- Only runs while the table is empty: after that the schedule is owned by
+-- the admin panel (/admin/sessions), and re-running this file must never
+-- overwrite what the team has set there.
 insert into sessions (session_date, slot_index, start_time, end_time, capacity)
 select d::date, times.slot, times.start_time, times.end_time, 13
 from generate_series('2026-10-15'::date, '2026-10-19'::date, interval '1 day') as d
@@ -137,6 +116,7 @@ cross join (
   values (0, '18:00'::time, '19:30'::time),
          (1, '19:30'::time, '21:00'::time)
 ) as times(slot, start_time, end_time)
+where not exists (select 1 from sessions)
 on conflict (session_date, slot_index) do nothing;
 
 -- ------------------------------------------------------------------
@@ -454,5 +434,39 @@ begin
   if not found then
     raise exception 'NOT_ELIGIBLE' using errcode = 'P0008';
   end if;
+end;
+$$;
+
+-- ------------------------------------------------------------------
+-- CMS: editable website content, one row per section (see
+-- src/lib/cms/schema.ts for the section keys and fields). A missing row
+-- means "use the default copy shipped in code".
+-- ------------------------------------------------------------------
+
+create table if not exists cms_content (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+-- ------------------------------------------------------------------
+-- Session management from the admin panel (ERP)
+-- ------------------------------------------------------------------
+
+-- create_booking's auto-routing walks sessions in (session_date, slot_index)
+-- order, so slot_index must always follow start_time within a day. Called
+-- after every admin add/edit; two-phase to dodge the unique constraint
+-- while numbers shuffle.
+create or replace function renumber_session_slots(p_date date)
+returns void
+language plpgsql as $$
+begin
+  update sessions set slot_index = slot_index + 1000 where session_date = p_date;
+  update sessions s set slot_index = o.rn - 1
+  from (
+    select id, row_number() over (order by start_time, id) as rn
+    from sessions where session_date = p_date
+  ) o
+  where s.id = o.id;
 end;
 $$;

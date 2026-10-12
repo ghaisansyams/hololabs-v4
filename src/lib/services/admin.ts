@@ -53,6 +53,7 @@ export interface PackageRow {
   price: number;
   active: boolean;
   sortOrder: number;
+  includes: string[];
 }
 
 export interface CustomerRow {
@@ -172,7 +173,7 @@ export async function listSessions(): Promise<SessionRow[]> {
 
 export async function listAllPackages(): Promise<PackageRow[]> {
   const sql = getSql();
-  const rows = await sql`select id, name, description, price, active, sort_order from packages order by sort_order`;
+  const rows = await sql`select id, name, description, price, active, sort_order, includes from packages order by sort_order`;
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -180,6 +181,7 @@ export async function listAllPackages(): Promise<PackageRow[]> {
     price: Number(r.price),
     active: r.active,
     sortOrder: r.sort_order,
+    includes: r.includes ?? [],
   }));
 }
 

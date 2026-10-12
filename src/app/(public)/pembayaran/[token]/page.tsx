@@ -23,7 +23,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ token:
   }
 
   const qris = await qrDataUrl(buildQrisPayload(booking.bookingNumber, booking.amount));
-  const waLink = buildWhatsappConfirmationLink(booking.bookingNumber, booking.amount);
+  const waLink = await buildWhatsappConfirmationLink(booking.bookingNumber, booking.amount);
 
   return (
     <Container as="section" className="max-w-xl py-10 sm:py-14">

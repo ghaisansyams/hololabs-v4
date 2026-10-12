@@ -4,27 +4,28 @@ import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { TiltCard } from "@/components/ui/tilt-card";
-import { journeyDurationLabel, journeySteps } from "@/data/journey";
+import { getSiteContent } from "@/lib/cms";
 
-export function JourneySection() {
+export async function JourneySection() {
+  const { journey } = await getSiteContent();
   return (
     <section className="py-16 sm:py-20">
       <Container>
         <SectionHeading
-          eyebrow="Rundown show"
-          title="Satu show, tujuh tahap pengalaman"
-          description="Dari duduk sampai pulang, seluruh rangkaian berjalan dalam satu show berdurasi 1,5 jam."
+          eyebrow={journey.eyebrow}
+          title={journey.title}
+          description={journey.description}
           action={
             <Badge tone="accent" className="text-sm">
               <Clock className="size-3.5" aria-hidden />
-              {journeyDurationLabel}
+              {journey.durationLabel}
             </Badge>
           }
         />
 
         <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {journeySteps.map((step, index) => (
-            <Reveal key={step.title} delay={index * 60}>
+          {journey.steps.map((step, index) => (
+            <Reveal key={index} delay={index * 60}>
               <li className="h-full">
                 <TiltCard className="h-full" max={8}>
                   <div className="h-full rounded-card border border-line bg-surface p-5">

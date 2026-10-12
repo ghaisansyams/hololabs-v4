@@ -6,22 +6,32 @@ import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { packagesPreview } from "@/data/packages";
+import { getSiteContent } from "@/lib/cms";
+import { listPackages } from "@/lib/services/availability";
 import { formatRupiah } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
-export function PackagesSection() {
+/**
+ * Names, prices, and bullet points come from the `packages` table (edited
+ * under Paket F&B in the admin panel), so the price shown here is always
+ * the price charged at booking. The featured card is the middle package.
+ */
+export async function PackagesSection() {
+  const [{ packages: copy }, fromDb] = await Promise.all([getSiteContent(), listPackages()]);
+  const packages = fromDb.length > 0 ? fromDb : packagesPreview;
+  const featuredId = packages[Math.floor((packages.length - 1) / 2)]?.id;
   return (
     <section className="py-16 sm:py-20">
       <Container>
         <SectionHeading
-          eyebrow="Paket F&B"
-          title="Pilih paket sesuai rombonganmu"
-          description="Harga berlaku per kursi. Dipilih saat pemesanan, bersamaan dengan sesi dan jumlah kursi."
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          description={copy.description}
         />
 
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {packagesPreview.map((pkg, index) => {
-            const featured = pkg.id === "standard";
+          {packages.map((pkg, index) => {
+            const featured = packages.length > 1 && pkg.id === featuredId;
             return (
               <Reveal key={pkg.id} delay={index * 80}>
                 <TiltCard className="h-full" max={featured ? 9 : 7}>
@@ -35,7 +45,7 @@ export function PackagesSection() {
                   >
                     {featured ? (
                       <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-pill bg-gradient-to-r from-brand to-accent px-2.5 py-1 text-xs font-bold text-canvas">
-                        Paling dipilih
+                        {copy.featuredBadge}
                       </span>
                     ) : null}
                     <h3 className="text-lg font-extrabold text-ink">{pkg.name}</h3>

@@ -1,5 +1,6 @@
 import { getSql } from "@/lib/db/client";
-import { siteConfig } from "@/data/site";
+import { getSiteContent } from "@/lib/cms";
+import { toWhatsappE164 } from "@/lib/utils/phone";
 import { formatRupiah } from "@/lib/utils/format";
 
 /**
@@ -29,11 +30,13 @@ export function buildQrisPayload(bookingNumber: string, amount: number): string 
   return `DEMO-QRIS|HOLOMOC EXHIBITION|${bookingNumber}|IDR${amount}`;
 }
 
-export function buildWhatsappConfirmationLink(bookingNumber: string, amount: number): string {
+/** Uses the admin WhatsApp number set in the CMS (Kontak & footer). */
+export async function buildWhatsappConfirmationLink(bookingNumber: string, amount: number): Promise<string> {
+  const { contact } = await getSiteContent();
   const message = [
     `Halo Admin Hololabs, saya sudah membayar untuk booking ${bookingNumber}.`,
     `Total: ${formatRupiah(amount)}.`,
     "Berikut bukti pembayarannya 🙏",
   ].join(" ");
-  return `https://wa.me/${siteConfig.whatsappE164}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${toWhatsappE164(contact.whatsapp)}?text=${encodeURIComponent(message)}`;
 }

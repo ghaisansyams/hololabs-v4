@@ -8,15 +8,11 @@ import {
   ADMIN_COOKIE,
   SESSION_HOURS,
   createSessionToken,
-  isValidSessionToken,
   passwordMatches,
 } from "@/lib/admin/session";
 import { findBookingByNumber } from "@/lib/services/admin";
+import { requireAdmin } from "@/lib/admin/guard";
 
-async function requireAdmin(): Promise<void> {
-  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
-  if (!(await isValidSessionToken(token))) redirect("/admin/login");
-}
 
 export interface LoginState {
   error?: string;
@@ -106,12 +102,49 @@ export async function updatePackage(formData: FormData): Promise<void> {
   const description = String(formData.get("description") ?? "").trim();
   const price = Number(formData.get("price") ?? 0);
   const active = formData.get("active") === "on";
+  const includes = readIncludes(formData);
   if (!name || !Number.isFinite(price) || price < 0) return;
 
   const sql = getSql();
   await sql`
-    update packages set name = ${name}, description = ${description}, price = ${price}, active = ${active}
+    update packages
+    set name = ${name}, description = ${description}, price = ${price}, active = ${active},
+        includes = ${includes}::text[]
     where id = ${id}
+  `;
+  revalidatePath("/admin/packages");
+  revalidatePath("/pesan");
+  revalidatePath("/");
+}
+
+/** Bullet points, one per line in the form. */
+function readIncludes(formData: FormData): string[] {
+  return String(formData.get("includes") ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+export async function createPackage(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const price = Number(formData.get("price") ?? 0);
+  if (!name || !Number.isFinite(price) || price < 0) return;
+
+  // Package ids are stable slugs (bookings reference them); add a suffix
+  // if the name's slug is already taken.
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "paket";
+  const sql = getSql();
+  const taken = await sql`select id from packages where id = ${base} or id like ${base + "-%"}`;
+  const id = taken.length === 0 ? base : `${base}-${taken.length + 1}`;
+  await sql`
+    insert into packages (id, name, description, includes, price, sort_order, active)
+    values (
+      ${id}, ${name}, ${description}, ${readIncludes(formData)}::text[], ${price},
+      (select coalesce(max(sort_order), 0) + 1 from packages), true
+    )
   `;
   revalidatePath("/admin/packages");
   revalidatePath("/pesan");

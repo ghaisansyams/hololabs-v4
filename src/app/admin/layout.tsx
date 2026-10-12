@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LayoutDashboard, Ticket, CalendarDays, Package, Users, BarChart3, ScanLine, LogOut } from "lucide-react";
+import { LayoutDashboard, Ticket, CalendarDays, Package, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink } from "lucide-react";
 import { logout } from "./actions";
 import { Logo } from "@/components/brand/logo";
 
@@ -13,10 +13,11 @@ const nav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/bookings", label: "Booking", icon: Ticket },
   { href: "/admin/check-in", label: "Check-in", icon: ScanLine },
-  { href: "/admin/sessions", label: "Sesi", icon: CalendarDays },
+  { href: "/admin/sessions", label: "Jadwal & Sesi", icon: CalendarDays },
   { href: "/admin/packages", label: "Paket F&B", icon: Package },
   { href: "/admin/customers", label: "Pelanggan", icon: Users },
   { href: "/admin/reports", label: "Laporan", icon: BarChart3 },
+  { href: "/admin/konten", label: "Konten Website", icon: FileText },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {item.label}
               </Link>
             ))}
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised hover:text-ink"
+            >
+              <ExternalLink className="size-4" aria-hidden />
+              Lihat website
+            </a>
           </nav>
           <form action={logout} className="hidden lg:block">
             <button

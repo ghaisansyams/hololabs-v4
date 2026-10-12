@@ -4,9 +4,10 @@ import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { TiltCard } from "@/components/ui/tilt-card";
-import { siteConfig } from "@/data/site";
+import { getSiteContent } from "@/lib/cms";
 
-export function Hero() {
+export async function Hero() {
+  const { hero } = await getSiteContent();
   return (
     <section className="relative overflow-hidden pb-4 pt-8 sm:pt-14 lg:pb-16 lg:pt-20">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -27,54 +28,49 @@ export function Hero() {
             <Reveal>
               <span className="inline-flex items-center gap-2 rounded-pill border border-brand/30 bg-brand-soft px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-brand-ink">
                 <Sparkles className="size-3.5" aria-hidden />
-                Pemesanan resmi {siteConfig.shortName}
+                {hero.badge}
               </span>
             </Reveal>
 
             <Reveal delay={80}>
               <h1 className="mt-5 text-[2.1rem] leading-[1.08] font-extrabold text-ink sm:text-5xl lg:text-[3.4rem]">
-                Amankan kursimu di <span className="text-gradient">Hololabs</span>.
+                {hero.title} <span className="text-gradient">{hero.titleAccent}</span>
+                {hero.titleSuffix}
               </h1>
             </Reveal>
 
             <Reveal delay={150}>
               <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-muted sm:text-lg">
-                Satu show, 1,5 jam pengalaman penuh — dari video mapping, pertunjukan interaktif,
-                sampai ngobrol dengan AI avatar. Kalau show pilihanmu penuh, sistem otomatis
-                mengarahkan ke show berikutnya yang masih tersedia.
+                {hero.lead}
               </p>
             </Reveal>
 
             <Reveal delay={220}>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link href="/pesan" className={buttonStyles({ size: "lg", className: "w-full sm:w-auto" })}>
-                  Pesan Tiket
+                  {hero.ctaPrimary}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
                 <Link
                   href="/#jadwal"
                   className={buttonStyles({ variant: "secondary", size: "lg", className: "w-full sm:w-auto" })}
                 >
-                  Lihat Jadwal & Paket
+                  {hero.ctaSecondary}
                 </Link>
               </div>
             </Reveal>
 
             <Reveal delay={300}>
-              <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-line pt-6">
-                <div>
-                  <dd className="text-xl font-extrabold text-ink font-display">18.00–21.00</dd>
-                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">WIB / hari</dt>
-                </div>
-                <div>
-                  <dd className="text-xl font-extrabold text-ink font-display">2×1,5j</dd>
-                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Show / hari</dt>
-                </div>
-                <div>
-                  <dd className="text-xl font-extrabold text-ink font-display">13</dd>
-                  <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">Kursi / show</dt>
-                </div>
-              </dl>
+              {hero.stats.length > 0 ? (
+                <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-line pt-6">
+                  {hero.stats.map((stat) => (
+                    <div key={stat.label + stat.value}>
+                      <dd className="text-xl font-extrabold text-ink font-display">{stat.value}</dd>
+                      <dt className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted">{stat.label}</dt>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
             </Reveal>
           </div>
 
@@ -118,8 +114,7 @@ export function Hero() {
                     ))}
                   </div>
                   <p className="relative mt-5 text-xs leading-relaxed text-muted">
-                    Ilustrasi tampilan jadwal. Show 18.00 penuh — pemesan otomatis diarahkan ke show
-                    19.30 tanpa kehilangan urutan.
+                    {hero.previewNote}
                   </p>
                 </div>
               </TiltCard>
