@@ -34,10 +34,10 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Hero />
       <ValueProps />
+      <ServicesSection />
       <JourneySection />
       <ScheduleSection />
       <PackagesSection />
-      <ServicesSection />
       <HowItWorks />
       <CtaBanner />
     </>

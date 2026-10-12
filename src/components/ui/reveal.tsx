@@ -15,12 +15,15 @@ export function Reveal({
   delay = 0,
   className,
   as: Tag = "div",
+  variant = "up",
 }: {
   children: ReactNode;
   /** Stagger in milliseconds. */
   delay?: number;
   className?: string;
   as?: ElementType;
+  /** Entrance motion: rise, slide in from a side, zoom, or come into focus. */
+  variant?: "up" | "left" | "right" | "zoom" | "blur";
 }) {
   const ref = useRef<HTMLElement>(null);
   const [armed, setArmed] = useState(false);
@@ -65,6 +68,7 @@ export function Reveal({
       ref={ref}
       className={cn(armed && "reveal", className)}
       data-shown={shown ? "true" : "false"}
+      data-variant={variant}
       style={delay ? ({ "--reveal-delay": `${delay}ms` } as React.CSSProperties) : undefined}
     >
       {children}

@@ -33,7 +33,7 @@ export async function PackagesSection() {
           {packages.map((pkg, index) => {
             const featured = packages.length > 1 && pkg.id === featuredId;
             return (
-              <Reveal key={pkg.id} delay={index * 80}>
+              <Reveal key={pkg.id} variant="zoom" delay={index * 90}>
                 <TiltCard className="h-full" max={featured ? 9 : 7}>
                   <article
                     className={cn(

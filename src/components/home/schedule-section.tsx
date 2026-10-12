@@ -61,7 +61,7 @@ export async function ScheduleSection() {
         ) : (
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {days.map((day, index) => (
-              <Reveal key={day.date} delay={index * 60}>
+              <Reveal key={day.date} variant={index % 2 ? "right" : "left"} delay={index * 60}>
                 <TiltCard className="h-full" max={6}>
                   <div className="h-full rounded-card border border-line bg-surface p-5">
                     <div className="flex items-center gap-2 text-accent">

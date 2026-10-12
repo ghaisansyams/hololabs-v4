@@ -10,7 +10,7 @@ export async function CtaBanner() {
   return (
     <section className="pb-4 pt-6 sm:pb-8">
       <Container>
-        <Reveal>
+        <Reveal variant="zoom">
           <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-brand-dark via-surface to-accent-dark px-6 py-12 text-center sm:rounded-[2rem] sm:px-12 sm:py-16">
             <div aria-hidden className="pointer-events-none absolute inset-0 bg-canvas/40" />
             <div className="relative mx-auto max-w-2xl">

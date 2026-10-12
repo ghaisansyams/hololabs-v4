@@ -3,17 +3,28 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Badge } from "@/components/ui/badge";
-import { TiltCard } from "@/components/ui/tilt-card";
+import { JourneyTimeline } from "@/components/home/journey-timeline";
 import { getSiteContent } from "@/lib/cms";
 
 export async function JourneySection() {
   const { journey } = await getSiteContent();
+  const total = journey.steps.reduce((sum, step) => sum + (Number.parseInt(step.minutes, 10) || 0), 0);
+
   return (
-    <section className="py-16 sm:py-20">
+    <section id="timeline" className="relative overflow-hidden py-16 sm:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[36rem] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"
+      />
       <Container>
         <SectionHeading
+          stagger
           eyebrow={journey.eyebrow}
-          title={journey.title}
+          title={
+            <>
+              {journey.title} <span className="text-gradient">{journey.titleAccent}</span>
+            </>
+          }
           description={journey.description}
           action={
             <Badge tone="accent" className="text-sm">
@@ -23,23 +34,16 @@ export async function JourneySection() {
           }
         />
 
-        <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {journey.steps.map((step, index) => (
-            <Reveal key={index} delay={index * 60}>
-              <li className="h-full">
-                <TiltCard className="h-full" max={8}>
-                  <div className="h-full rounded-card border border-line bg-surface p-5">
-                    <span className="inline-flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-accent text-sm font-bold text-canvas font-display shadow-glow">
-                      {index + 1}
-                    </span>
-                    <h3 className="mt-4 text-sm font-extrabold text-ink">{step.title}</h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-muted">{step.description}</p>
-                  </div>
-                </TiltCard>
-              </li>
-            </Reveal>
-          ))}
-        </ol>
+        {total > 0 ? (
+          <Reveal variant="blur" delay={120}>
+            <p className="mt-10 font-display text-2xl font-extrabold text-ink sm:text-3xl">
+              <span className="tabular-nums">{total}</span> menit{" "}
+              <span className="text-gradient">{journey.tagline}</span>
+            </p>
+          </Reveal>
+        ) : null}
+
+        <JourneyTimeline steps={journey.steps} />
       </Container>
     </section>
   );

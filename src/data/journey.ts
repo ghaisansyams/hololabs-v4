@@ -1,43 +1,54 @@
 /**
- * The 7-step show journey, per the client's WhatsApp revision (Badar Spero,
- * 7 Oct 2026, "Road map Milestone"). Each show runs ~1.5 hours end to end —
- * this replaced the original "just book a seat + F&B" framing from the
- * 16 Sept meeting notes with a guided, staged experience.
+ * The show timeline, matching the Experience Journey on the Hololabs company
+ * profile (hololabs-web): six stages, ~90 minutes end to end. Supersedes the
+ * earlier 7-step list from the client's WhatsApp revision (7 Oct 2026),
+ * whose first step — booking — happens before the show and now lives in
+ * the "Alurnya" section instead.
  */
 export interface JourneyStep {
   title: string;
+  subtitle: string;
+  minutes: string;
   description: string;
 }
 
 export const journeySteps: JourneyStep[] = [
   {
-    title: "Booking kursi",
-    description: "Pesan kursi dan paket F&B secara online, lalu datang sesuai jadwal show yang dipilih.",
+    title: "Enter the Story",
+    subtitle: "Journey of Life — Immersive Video Mapping",
+    minutes: "15",
+    description: "Experience dimulai melalui immersive video mapping yang membawa audience mengikuti sebuah visual story.",
   },
   {
-    title: "Video mapping: Journey of Life",
-    description: "Menonton pertunjukan projection mapping yang menceritakan perjalanan hidup.",
+    title: "Feel the Beat",
+    subtitle: "Interactive DJ & Audio Reactive Performance",
+    minutes: "15",
+    description: "Musik menjadi trigger bagi visual. Audience tidak hanya menonton, mereka menjadi bagian dari performance.",
   },
   {
-    title: "Pertunjukan interaktif + DJ",
-    description: "Pengalaman interaktif dengan iringan musik langsung dari DJ.",
+    title: "Meet AI",
+    subtitle: "Doocoon AI — 3D Avatar Virtual Assistant",
+    minutes: "15",
+    description: "Pengunjung dapat berbicara langsung dengan 3D Avatar Virtual Assistant yang merespons audience.",
   },
   {
-    title: "Ngobrol dengan AI avatar",
-    description: "Berinteraksi dengan asisten virtual 3D berbasis AI (Doocoon AI).",
+    title: "Road to Smart Living",
+    subtitle: "Smart Home Technology Experience",
+    minutes: "20",
+    description: "Menjelajahi perkembangan teknologi rumah dari conventional living menuju connected dan intelligent living.",
   },
   {
-    title: "Menuju smart home",
-    description: "Melihat langsung teknologi rumah pintar masa depan.",
+    title: "Create Something",
+    subtitle: "Custom 3D Printing Experience",
+    minutes: "15",
+    description: "Dari dunia digital kembali ke dunia fisik. Ide digital berubah menjadi benda nyata.",
   },
   {
-    title: "Custom 3D printing",
-    description: "Membawa pulang karya 3D cetak yang dipersonalisasi.",
-  },
-  {
-    title: "Pulang",
-    description: "Show selesai — pengalaman 1,5 jam yang lengkap dari awal sampai akhir.",
+    title: "Closing",
+    subtitle: "Take the Experience Home",
+    minutes: "10",
+    description: "Go home with a new possibility.",
   },
 ];
 
-export const journeyDurationLabel = "1,5 jam per show";
+export const journeyDurationLabel = "±90 menit per show";

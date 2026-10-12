@@ -31,7 +31,7 @@ export async function ValueProps() {
           {valueProps.items.map((item, index) => {
             const Icon = icons[ICON_ORDER[index % ICON_ORDER.length]];
             return (
-              <Reveal key={index} delay={index * 70}>
+              <Reveal key={index} variant="blur" delay={index * 80}>
                 <TiltCard className="h-full" max={8}>
                   <article className="group h-full rounded-card border border-line bg-surface p-6 transition-[border-color,box-shadow] duration-300 hover:border-brand/30 hover:shadow-lift">
                     <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent text-canvas shadow-glow transition-transform duration-300 group-hover:scale-110">

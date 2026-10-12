@@ -1,6 +1,6 @@
 import { valueProps, howItWorks, siteConfig } from "@/data/site";
 import { journeySteps, journeyDurationLabel } from "@/data/journey";
-import { serviceCategories } from "@/data/services";
+import { facilities } from "@/data/facilities";
 
 /**
  * Editable website content (CMS).
@@ -80,13 +80,15 @@ export const sections = [
   },
   {
     key: "journey",
-    label: "Rundown show",
-    description: "Tahapan pengalaman dalam satu show.",
+    label: "Timeline show",
+    description: "Tahapan Experience Journey dalam satu show, lengkap dengan durasinya.",
     fields: [
       t("eyebrow", "Label section"),
       t("title", "Judul section"),
+      t("titleAccent", "Judul (bagian berwarna)", 80),
       ta("description", "Deskripsi section", 300),
       t("durationLabel", "Label durasi", 40),
+      t("tagline", "Kalimat setelah total menit", 100),
       {
         key: "steps",
         label: "Tahapan",
@@ -94,7 +96,12 @@ export const sections = [
         itemLabel: "Tahap",
         min: 1,
         max: 12,
-        fields: [t("title", "Nama tahap", 80), ta("description", "Penjelasan", 300)],
+        fields: [
+          t("title", "Nama tahap", 80),
+          t("subtitle", "Subjudul", 100),
+          t("minutes", "Durasi (menit)", 4),
+          ta("description", "Penjelasan", 300),
+        ],
       },
     ],
   },
@@ -122,22 +129,23 @@ export const sections = [
   },
   {
     key: "services",
-    label: "Tentang Hololabs",
-    description: "Lini layanan Hololabs.",
+    label: "Fasilitas Hololabs",
+    description: "Zona dan fasilitas yang bisa dinikmati pengunjung di dalam Hololabs.",
     fields: [
       t("eyebrow", "Label section"),
       t("title", "Judul section"),
       ta("description", "Deskripsi section", 300),
       {
-        key: "categories",
-        label: "Kategori layanan",
+        key: "facilities",
+        label: "Fasilitas",
         type: "list",
-        itemLabel: "Kategori",
+        itemLabel: "Fasilitas",
         min: 1,
         max: 12,
         fields: [
-          t("title", "Nama kategori", 60),
-          { key: "items", label: "Layanan", type: "tags", hint: "Satu layanan per baris." },
+          t("title", "Nama fasilitas", 60),
+          ta("description", "Penjelasan", 240),
+          { key: "highlights", label: "Sorotan", type: "tags", hint: "Satu sorotan per baris." },
         ],
       },
     ],
@@ -211,11 +219,13 @@ export const defaults = {
     items: valueProps.map(({ title, description }) => ({ title, description })),
   },
   journey: {
-    eyebrow: "Rundown show",
-    title: "Satu show, tujuh tahap pengalaman",
-    description: "Dari duduk sampai pulang, seluruh rangkaian berjalan dalam satu show berdurasi 1,5 jam.",
+    eyebrow: "Timeline show",
+    title: "Don't just see the technology.",
+    titleAccent: "Step inside it.",
+    description: "Satu show, enam tahap Experience Journey — dari visual story pertama sampai pulang membawa karya sendiri.",
     durationLabel: journeyDurationLabel,
-    steps: journeySteps.map(({ title, description }) => ({ title, description })),
+    tagline: "exploring what technology can become.",
+    steps: journeySteps.map((step) => ({ ...step })),
   },
   schedule: {
     eyebrow: "Jadwal",
@@ -230,10 +240,10 @@ export const defaults = {
     featuredBadge: "Paling dipilih",
   },
   services: {
-    eyebrow: "Tentang Hololabs",
-    title: "Teknologi di balik pengalamannya",
-    description: "Hololabs menghadirkan teknologi imersif lintas lini — exhibition ini adalah salah satu cara merasakannya langsung.",
-    categories: serviceCategories.map(({ title, items }) => ({ title, items: [...items] })),
+    eyebrow: "Fasilitas Hololabs",
+    title: "Apa saja yang ada di dalam Hololabs",
+    description: "Delapan zona teknologi imersif dalam satu tempat — semuanya kamu lewati dalam satu show.",
+    facilities: facilities.map(({ title, description, highlights }) => ({ title, description, highlights: [...highlights] })),
   },
   howItWorks: {
     eyebrow: "Alurnya",

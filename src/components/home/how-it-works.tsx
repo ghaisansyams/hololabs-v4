@@ -12,7 +12,7 @@ export async function HowItWorks() {
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {howItWorks.steps.map((step, index) => (
-            <Reveal key={index} delay={index * 70} className="relative">
+            <Reveal key={index} variant="zoom" delay={index * 90} className="relative">
               <div className="h-full rounded-card border border-line bg-surface p-6">
                 <span className="text-4xl font-extrabold text-line font-display">
                   {String(index + 1).padStart(2, "0")}
