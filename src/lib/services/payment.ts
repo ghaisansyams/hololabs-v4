@@ -1,19 +1,17 @@
 import { getSql } from "@/lib/db/client";
-import { getSiteContent } from "@/lib/cms";
-import { toWhatsappE164 } from "@/lib/utils/phone";
-import { formatRupiah } from "@/lib/utils/format";
 
 /**
- * QRIS is not yet wired to a real payment gateway — no merchant credentials
- * were available while building this (see the note at the top of
- * db/schema.sql). The payment page shows a QR code and the guest confirms
- * via WhatsApp; an admin verifies the transfer and flips the booking to PAID
- * by hand in Neon, the same manual-verification pattern Kelas Bermain uses
- * for bank transfers.
+ * Manual bank transfer — no payment gateway is wired yet (no merchant
+ * credentials were available while building this; see the note at the top
+ * of db/schema.sql). The payment page shows dummy BCA/Mandiri accounts; the
+ * guest confirms on the site itself ("Saya Sudah Transfer", which flips the
+ * booking to SUBMITTED) and an admin verifies the transfer and marks it
+ * PAID from /admin/bookings. Nothing here hands off to WhatsApp or any
+ * other institution's channel.
  *
- * To go live with real QRIS, swap `buildQrisPayload` for the payload your
- * PG (Xendit, Midtrans, etc.) gives you and wire its webhook to call
- * `set_payment_status` — nothing else here needs to change.
+ * To go live with a real payment gateway, swap this (and
+ * `submit_payment_proof`/`admin_mark_paid` in the schema) for the
+ * gateway's checkout + webhook — nothing else here needs to change.
  */
 
 export async function createPayment(args: {
@@ -25,18 +23,17 @@ export async function createPayment(args: {
   await sql`select * from create_payment(${args.bookingId}, ${args.amount}, ${args.expiresAt})`;
 }
 
-/** Demo QRIS payload — encodes a reference string, not a real merchant string. */
-export function buildQrisPayload(bookingNumber: string, amount: number): string {
-  return `DEMO-QRIS|HOLOMOC EXHIBITION|${bookingNumber}|IDR${amount}`;
-}
-
-/** Uses the admin WhatsApp number set in the CMS (Kontak & footer). */
-export async function buildWhatsappConfirmationLink(bookingNumber: string, amount: number): Promise<string> {
-  const { contact } = await getSiteContent();
-  const message = [
-    `Halo Admin Hololabs, saya sudah membayar untuk booking ${bookingNumber}.`,
-    `Total: ${formatRupiah(amount)}.`,
-    "Berikut bukti pembayarannya 🙏",
-  ].join(" ");
-  return `https://wa.me/${toWhatsappE164(contact.whatsapp)}?text=${encodeURIComponent(message)}`;
+/** Guest self-service: moves a PENDING booking to SUBMITTED ("menunggu konfirmasi"). */
+export async function submitPaymentProof(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const sql = getSql();
+  try {
+    await sql`select submit_payment_proof(${token}::uuid)`;
+    return { ok: true };
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "";
+    if (message.includes("NOT_ELIGIBLE")) {
+      return { ok: false, error: "Booking ini sudah ditransfer atau statusnya sudah berubah." };
+    }
+    return { ok: false, error: "Gagal menyimpan konfirmasi. Coba lagi sebentar lagi." };
+  }
 }

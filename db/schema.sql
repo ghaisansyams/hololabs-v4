@@ -22,15 +22,17 @@
 --     doesn't have N seats left, the system auto-routes them to the next
 --     session (later that day, then later days) that does — see
 --     `create_booking` below, which is the auto-routing rule from the notes.
---   - Payment is QRIS. No live payment-gateway integration is wired yet (no
---     merchant credentials were available while building this) — the
---     payment page shows a QRIS code and the guest confirms via WhatsApp,
---     same manual-verification pattern used elsewhere: an admin flips
---     `payments.status` to PAID by hand (via Neon's SQL Editor / Tables view)
---     after checking the transfer, exactly like Kelas Bermain's bank-transfer
---     flow. Swap in a real PG (Xendit/Midtrans QRIS) by replacing the
---     payment service and adding its webhook — the schema doesn't need to
---     change.
+--   - Payment is manual bank transfer (BCA/Mandiri, shown on the payment
+--     page). No live payment-gateway integration is wired yet (no merchant
+--     credentials were available while building this). The guest transfers
+--     and taps "Saya Sudah Transfer" on the site itself — `submit_payment_proof`
+--     below flips the booking to SUBMITTED (shown as "Menunggu konfirmasi",
+--     same yellow pending look as an unpaid booking) — then an admin checks
+--     the transfer in the bank account and confirms it from this project's
+--     own admin panel (`admin_mark_paid`), which flips it to PAID. Nothing
+--     here hands off to WhatsApp or any other institution's channel. Swap in
+--     a real PG (Xendit/Midtrans) later by replacing the payment service and
+--     adding its webhook — the schema doesn't need to change.
 
 create extension if not exists pgcrypto;
 
@@ -164,7 +166,9 @@ create index if not exists bookings_session_idx on bookings (session_id);
 create index if not exists bookings_customer_idx on bookings (customer_id);
 
 -- ------------------------------------------------------------------
--- payments (QRIS, manually verified for now — see header note)
+-- payments (bank transfer, manually verified for now — see header note)
+-- status: PENDING (belum transfer) | SUBMITTED (sudah transfer, menunggu
+-- konfirmasi admin) | PAID | EXPIRED | CANCELLED
 -- ------------------------------------------------------------------
 
 create table if not exists payments (
@@ -173,13 +177,15 @@ create table if not exists payments (
     next_yearly_number('payment', 'HLM-PAY', extract(year from now())::int),
   booking_id uuid not null references bookings (id) on delete cascade,
   amount numeric not null default 0,
-  method text not null default 'QRIS',
+  method text not null default 'TRANSFER',
   status text not null default 'PENDING',
-  provider text not null default 'QRIS (verifikasi manual)',
+  provider text not null default 'Transfer bank (verifikasi manual)',
   created_at timestamptz not null default now(),
   paid_at timestamptz,
-  expires_at timestamptz
+  expires_at timestamptz,
+  proof_submitted_at timestamptz
 );
+alter table payments add column if not exists proof_submitted_at timestamptz;
 create index if not exists payments_booking_idx on payments (booking_id);
 
 -- ------------------------------------------------------------------
@@ -329,28 +335,23 @@ language sql security definer set search_path = public as $$
   where b.access_token = p_token;
 $$;
 
--- Deliberately never called from any public-facing action. A guest must
--- never be able to mark their own QRIS payment PAID — verifying it is
--- admin's job: open Neon's SQL Editor/Tables view, confirm the QRIS proof
--- shared over WhatsApp, flip payments.status and bookings.payment_status to
--- PAID by hand. Stays defined for a future staff tool / real PG webhook, not
--- for today's public site.
-create or replace function set_payment_status(p_token uuid, p_status text)
+-- Guest self-service: "Saya Sudah Transfer" on the payment page. A guest can
+-- only move their own booking from PENDING to SUBMITTED (never to PAID —
+-- that stays admin-only, via `admin_mark_paid`), and only once.
+create or replace function submit_payment_proof(p_token uuid)
 returns void
 language plpgsql security definer set search_path = public as $$
 declare
   v_booking_id uuid;
 begin
-  select id into v_booking_id from bookings where access_token = p_token;
+  select id into v_booking_id from bookings
+    where access_token = p_token and payment_status = 'PENDING' and status <> 'CANCELLED';
   if v_booking_id is null then
-    raise exception 'NOT_FOUND' using errcode = 'P0002';
+    raise exception 'NOT_ELIGIBLE' using errcode = 'P0009';
   end if;
-  update payments set status = p_status, paid_at = case when p_status = 'PAID' then now() else paid_at end
+  update payments set status = 'SUBMITTED', proof_submitted_at = now()
     where booking_id = v_booking_id;
-  update bookings set
-    payment_status = p_status,
-    status = case when p_status = 'PAID' then 'CONFIRMED' else status end
-    where id = v_booking_id;
+  update bookings set payment_status = 'SUBMITTED' where id = v_booking_id;
 end;
 $$;
 

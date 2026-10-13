@@ -226,7 +226,7 @@ export function BookingWizard({
           {pending ? "Memproses…" : "Lanjut ke Pembayaran"}
         </Button>
         <p className="mt-3 text-center text-xs text-muted">
-          Pembayaran QRIS. Kursi belum terkunci sampai pembayaran diverifikasi admin.
+          Pembayaran transfer bank. Kursi belum terkunci sampai pembayaran diverifikasi admin.
         </p>
       </aside>
     </form>

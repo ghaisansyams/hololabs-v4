@@ -253,7 +253,7 @@ export const defaults = {
   cta: {
     badge: "Kuota 13 kursi per sesi",
     title: "Sesi favorit cepat penuh — amankan kursimu sekarang.",
-    text: "Pilih tanggal, pilih paket F&B, bayar dengan QRIS. E-tiket langsung aktif setelah pembayaran diverifikasi.",
+    text: "Pilih tanggal, pilih paket F&B, bayar dengan transfer bank. E-tiket langsung aktif setelah pembayaran diverifikasi.",
     ctaPrimary: "Pesan Tiket Sekarang",
     ctaSecondary: "Cek Status Tiket",
   },

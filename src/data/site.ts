@@ -23,7 +23,7 @@ export const siteConfig = {
   motto: "Reserve your seat. Save your spot.",
   tagline: "Reservasi kursi & paket F&B untuk exhibition Hololabs.",
   description:
-    "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan QRIS, dan datang dengan e-tiket.",
+    "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan transfer bank, dan datang dengan e-tiket.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://hololabs-id.vercel.app",
   locale: "id-ID",
   email: "hello@hololabs.id",
@@ -78,7 +78,7 @@ export const socialLinks: SocialLink[] = [
 export interface ValueProp {
   title: string;
   description: string;
-  icon: "clock" | "users" | "qr" | "route";
+  icon: "clock" | "users" | "bank" | "route";
 }
 
 export const valueProps: ValueProp[] = [
@@ -95,9 +95,9 @@ export const valueProps: ValueProp[] = [
     icon: "route",
   },
   {
-    title: "Bayar dengan QRIS",
-    description: "Scan, bayar, kirim konfirmasi lewat WhatsApp — tiket kamu aktif begitu admin memverifikasi.",
-    icon: "qr",
+    title: "Bayar transfer bank",
+    description: "Transfer ke rekening yang tertera, konfirmasi langsung di halaman pembayaran — tiket kamu aktif begitu admin memverifikasi.",
+    icon: "bank",
   },
   {
     title: "Satu show, pengalaman penuh",
@@ -116,8 +116,8 @@ export const howItWorks = [
     description: "Tentukan jumlah kursi dan paket makan-minum yang sesuai untuk rombonganmu.",
   },
   {
-    title: "Bayar via QRIS",
-    description: "Selesaikan pembayaran dengan QRIS, lalu kirim bukti lewat tombol WhatsApp yang muncul otomatis.",
+    title: "Bayar via transfer bank",
+    description: "Transfer ke rekening yang tertera, lalu tekan \"Saya Sudah Transfer\" di halaman pembayaran.",
   },
   {
     title: "Datang dengan e-tiket",

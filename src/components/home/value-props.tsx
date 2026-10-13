@@ -1,4 +1,4 @@
-import { Clock, QrCode, Route, Users, type LucideIcon } from "lucide-react";
+import { Banknote, Clock, Route, Users, type LucideIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -9,12 +9,12 @@ import { getSiteContent } from "@/lib/cms";
 const icons: Record<ValueProp["icon"], LucideIcon> = {
   clock: Clock,
   users: Users,
-  qr: QrCode,
+  bank: Banknote,
   route: Route,
 };
 
 // Icons follow card position; the CMS edits only the text.
-const ICON_ORDER: ValueProp["icon"][] = ["users", "route", "qr", "clock"];
+const ICON_ORDER: ValueProp["icon"][] = ["users", "route", "bank", "clock"];
 
 export async function ValueProps() {
   const { valueProps } = await getSiteContent();

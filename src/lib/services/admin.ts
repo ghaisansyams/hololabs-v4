@@ -4,7 +4,7 @@ import { getSql } from "@/lib/db/client";
 /* Read-side queries for the /admin area. Every date/time is selected as text
    (see db/schema.sql) so the UI never has to reason about driver parsing. */
 
-export type BookingFilter = "ALL" | "PENDING" | "PAID" | "CANCELLED" | "CHECKED_IN";
+export type BookingFilter = "ALL" | "PENDING" | "SUBMITTED" | "PAID" | "CANCELLED" | "CHECKED_IN";
 
 export interface AdminBookingRow {
   id: string;
@@ -107,6 +107,7 @@ export async function listBookings(filter: BookingFilter, query: string): Promis
     `${BOOKING_SELECT}
      where ($1 = 'ALL'
             or ($1 = 'PENDING' and b.payment_status = 'PENDING' and b.status <> 'CANCELLED')
+            or ($1 = 'SUBMITTED' and b.payment_status = 'SUBMITTED' and b.status <> 'CANCELLED')
             or ($1 = 'PAID' and b.payment_status = 'PAID')
             or ($1 = 'CANCELLED' and b.status = 'CANCELLED')
             or ($1 = 'CHECKED_IN' and b.checkin_status = 'CHECKED_IN'))

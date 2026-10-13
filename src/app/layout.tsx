@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "booking pameran",
     "reservasi kursi online",
     "tiket exhibition",
-    "qris booking",
+    "transfer bank booking",
   ],
   authors: [{ name: siteConfig.builtBy }],
   creator: siteConfig.builtBy,

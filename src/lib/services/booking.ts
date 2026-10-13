@@ -39,7 +39,7 @@ function mapBookingView(row: any): BookingView {
   };
 }
 
-/** Payment window: a QRIS code is only meaningful for a little while. */
+/** Payment window: a transfer confirmation is only meaningful for a little while. */
 const PAYMENT_WINDOW_MINUTES = 60;
 
 export async function createBooking(request: CreateBookingRequest): Promise<CreateBookingResult> {

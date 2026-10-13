@@ -32,7 +32,7 @@ export interface SessionAvailability {
 }
 
 export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
-export type PaymentStatus = "PENDING" | "PAID" | "EXPIRED" | "CANCELLED";
+export type PaymentStatus = "PENDING" | "SUBMITTED" | "PAID" | "EXPIRED" | "CANCELLED";
 export type CheckinStatus = "NOT_CHECKED_IN" | "CHECKED_IN";
 
 export interface BookingView {

@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 const FILTERS: { value: BookingFilter; label: string }[] = [
   { value: "ALL", label: "Semua" },
-  { value: "PENDING", label: "Belum bayar" },
+  { value: "PENDING", label: "Belum transfer" },
+  { value: "SUBMITTED", label: "Menunggu konfirmasi" },
   { value: "PAID", label: "Lunas" },
   { value: "CHECKED_IN", label: "Sudah check-in" },
   { value: "CANCELLED", label: "Dibatalkan" },
@@ -34,7 +35,7 @@ export default async function AdminBookingsPage({
     <>
       <AdminHeader
         title="Booking"
-        description="Verifikasi pembayaran QRIS, check-in, dan pembatalan. Pembatalan otomatis mengembalikan kursi ke sesi."
+        description="Verifikasi transfer, check-in, dan pembatalan. Pembatalan otomatis mengembalikan kursi ke sesi."
         action={
           <a
             href="/admin/export"
@@ -122,7 +123,13 @@ export default async function AdminBookingsPage({
                   <td className="px-4 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
                   <td className="px-4 py-3 space-y-1.5">
                     <StatusPill tone={paymentTone(b.paymentStatus)}>
-                      {cancelled ? "Dibatalkan" : b.paymentStatus === "PAID" ? "Lunas" : "Belum bayar"}
+                      {cancelled
+                        ? "Dibatalkan"
+                        : b.paymentStatus === "PAID"
+                          ? "Lunas"
+                          : b.paymentStatus === "SUBMITTED"
+                            ? "Menunggu konfirmasi"
+                            : "Belum transfer"}
                     </StatusPill>
                     {b.checkinStatus === "CHECKED_IN" ? <StatusPill tone="success">Check-in</StatusPill> : null}
                   </td>
@@ -132,7 +139,9 @@ export default async function AdminBookingsPage({
                         {b.paymentStatus !== "PAID" ? (
                           <form action={markBookingPaid}>
                             <input type="hidden" name="bookingId" value={b.id} />
-                            <ConfirmButton message={`Tandai ${b.bookingNumber} sebagai LUNAS?`}>Tandai lunas</ConfirmButton>
+                            <ConfirmButton message={`Tandai ${b.bookingNumber} sebagai LUNAS?`}>
+                              {b.paymentStatus === "SUBMITTED" ? "Konfirmasi pembayaran" : "Tandai lunas"}
+                            </ConfirmButton>
                           </form>
                         ) : null}
                         {b.paymentStatus === "PAID" && b.checkinStatus !== "CHECKED_IN" ? (
