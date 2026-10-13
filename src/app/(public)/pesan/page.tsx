@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { BookingWizard } from "@/components/booking/booking-wizard";
-import { MateriPreview } from "@/components/booking/materi-preview";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/data/site";
 import { groupByDay, listAvailability, listPackages } from "@/lib/services/availability";
@@ -32,7 +31,6 @@ export default async function PesanPage({
           Pilih tanggal, sesi, dan paket F&amp;B. Sisa kursi di bawah ini diambil langsung dari sistem.
         </p>
       </div>
-      <MateriPreview />
       <BookingWizard schedule={schedule} packages={packages} initialPackageId={initialPackageId} />
     </Container>
   );
