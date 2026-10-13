@@ -23,6 +23,9 @@ export interface AdminBookingRow {
   customerName: string;
   whatsapp: string;
   email: string;
+  paymentMethod: string | null;
+  proofDataUrl: string | null;
+  proofSubmittedAt: string | null;
 }
 
 export interface DashboardStats {
@@ -84,6 +87,9 @@ function toBookingRow(r: Record<string, unknown>): AdminBookingRow {
     customerName: r.full_name as string,
     whatsapp: r.whatsapp as string,
     email: r.email as string,
+    paymentMethod: (r.method as string) ?? null,
+    proofDataUrl: (r.proof_data_url as string) ?? null,
+    proofSubmittedAt: (r.proof_submitted_at as string) ?? null,
   };
 }
 
@@ -93,11 +99,13 @@ const BOOKING_SELECT = `
          b.created_at::text as created_at,
          s.session_date::text as session_date, s.start_time::text as start_time, s.end_time::text as end_time,
          pk.name as package_name,
-         c.full_name, c.whatsapp, c.email
+         c.full_name, c.whatsapp, c.email,
+         p.method, p.proof_data_url, p.proof_submitted_at::text as proof_submitted_at
   from bookings b
   join sessions s on s.id = b.session_id
   join packages pk on pk.id = b.package_id
   join customers c on c.id = b.customer_id
+  left join payments p on p.booking_id = b.id
 `;
 
 export async function listBookings(filter: BookingFilter, query: string): Promise<AdminBookingRow[]> {

@@ -183,9 +183,20 @@ create table if not exists payments (
   created_at timestamptz not null default now(),
   paid_at timestamptz,
   expires_at timestamptz,
-  proof_submitted_at timestamptz
+  proof_submitted_at timestamptz,
+  -- Guest-uploaded transfer screenshot, as a data: URL — small enough (capped
+  -- client- and server-side, see submitPaymentProof) that a plain column
+  -- beats standing up object storage for a demo flow.
+  proof_data_url text
 );
 alter table payments add column if not exists proof_submitted_at timestamptz;
+alter table payments add column if not exists proof_data_url text;
+-- The table may already have existed with the old QRIS defaults (the
+-- `create table if not exists` above only runs on a brand-new database).
+alter table payments alter column method set default 'TRANSFER';
+alter table payments alter column provider set default 'Transfer bank (verifikasi manual)';
+update payments set method = 'TRANSFER' where method = 'QRIS';
+update payments set provider = 'Transfer bank (verifikasi manual)' where provider = 'QRIS (verifikasi manual)';
 create index if not exists payments_booking_idx on payments (booking_id);
 
 -- ------------------------------------------------------------------
@@ -335,10 +346,11 @@ language sql security definer set search_path = public as $$
   where b.access_token = p_token;
 $$;
 
--- Guest self-service: "Saya Sudah Transfer" on the payment page. A guest can
--- only move their own booking from PENDING to SUBMITTED (never to PAID —
--- that stays admin-only, via `admin_mark_paid`), and only once.
-create or replace function submit_payment_proof(p_token uuid)
+-- Guest self-service: "Saya Sudah Transfer" on the payment page, with an
+-- optional transfer screenshot. A guest can only move their own booking
+-- from PENDING to SUBMITTED (never to PAID — that stays admin-only, via
+-- `admin_mark_paid`), and only once.
+create or replace function submit_payment_proof(p_token uuid, p_proof_data_url text default null)
 returns void
 language plpgsql security definer set search_path = public as $$
 declare
@@ -349,7 +361,8 @@ begin
   if v_booking_id is null then
     raise exception 'NOT_ELIGIBLE' using errcode = 'P0009';
   end if;
-  update payments set status = 'SUBMITTED', proof_submitted_at = now()
+  update payments set status = 'SUBMITTED', proof_submitted_at = now(),
+      proof_data_url = coalesce(p_proof_data_url, proof_data_url)
     where booking_id = v_booking_id;
   update bookings set payment_status = 'SUBMITTED' where id = v_booking_id;
 end;

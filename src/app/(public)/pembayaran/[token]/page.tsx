@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Clock3, Info, Landmark, Send } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { CopyButton } from "@/components/ui/copy-button";
+import { ProofUpload } from "@/components/booking/proof-upload";
 import { getBookingByToken } from "@/lib/services/booking";
 import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatRupiah, formatTimeRange } from "@/lib/utils/format";
@@ -31,8 +33,14 @@ export default async function PaymentPage({
 
   return (
     <Container as="section" className="max-w-xl py-10 sm:py-14">
-      <p className="text-xs font-bold uppercase tracking-wide text-accent">Booking {booking.bookingNumber}</p>
-      <h1 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Selesaikan pembayaran</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-accent">Booking</p>
+          <p className="mt-1 font-mono text-lg font-extrabold text-ink">{booking.bookingNumber}</p>
+        </div>
+        <CopyButton value={booking.bookingNumber} label="Salin kode" className="mt-1" />
+      </div>
+      <h1 className="mt-4 text-2xl font-extrabold text-ink sm:text-3xl">Selesaikan pembayaran</h1>
 
       {booking.autoRouted ? (
         <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning">
@@ -86,7 +94,7 @@ export default async function PaymentPage({
       </div>
 
       <div className="mt-6 rounded-card border border-line bg-surface p-6">
-        <span className="text-xs font-bold uppercase tracking-wide text-muted">Transfer ke salah satu rekening</span>
+        <span className="text-xs font-bold uppercase tracking-wide text-muted">Transfer ke salah satu rekening (m-banking)</span>
         <div className="mt-4 space-y-3">
           {paymentAccounts.map((account) => (
             <div
@@ -101,20 +109,22 @@ export default async function PaymentPage({
                 <p className="truncate font-mono text-base font-bold text-ink">{account.accountNumber}</p>
                 <p className="text-xs text-ink-soft">a.n. {account.accountName}</p>
               </div>
+              <CopyButton value={account.accountNumber} label="Salin" />
             </div>
           ))}
         </div>
         <p className="mt-4 text-xs leading-relaxed text-muted">
           Demo pembayaran — rekening di atas belum terhubung ke payment gateway resmi. Setelah
-          transfer sejumlah yang tertera, tekan tombol di bawah agar admin tahu untuk memeriksa dan
-          mengaktifkan tiketmu.
+          transfer sejumlah yang tertera, unggah bukti transfer (opsional) lalu tekan tombol di
+          bawah agar admin tahu untuk memeriksa dan mengaktifkan tiketmu.
         </p>
       </div>
 
       {!awaitingConfirmation ? (
-        <form action={confirmTransfer}>
+        <form action={confirmTransfer} className="mt-6">
           <input type="hidden" name="token" value={token} />
-          <button type="submit" className={buttonStyles({ size: "lg", className: "mt-6 w-full" })}>
+          <ProofUpload />
+          <button type="submit" className={buttonStyles({ size: "lg", className: "mt-3 w-full" })}>
             <Send className="size-4" aria-hidden />
             Saya Sudah Transfer
           </button>

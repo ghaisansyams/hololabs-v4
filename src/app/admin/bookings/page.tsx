@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminHeader, StatusPill, paymentTone } from "@/components/admin/page-header";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { BookingDetailModal } from "@/components/admin/booking-detail-modal";
 import { cancelBooking, checkInBooking, markBookingPaid } from "../actions";
 import { listBookings, type BookingFilter } from "@/lib/services/admin";
 import { formatDate } from "@/lib/utils/date";
@@ -134,8 +135,16 @@ export default async function AdminBookingsPage({
                     {b.checkinStatus === "CHECKED_IN" ? <StatusPill tone="success">Check-in</StatusPill> : null}
                   </td>
                   <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      <BookingDetailModal
+                        booking={b}
+                        markBookingPaid={markBookingPaid}
+                        checkInBooking={checkInBooking}
+                        cancelBooking={cancelBooking}
+                      />
+                    </div>
                     {!cancelled ? (
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {b.paymentStatus !== "PAID" ? (
                           <form action={markBookingPaid}>
                             <input type="hidden" name="bookingId" value={b.id} />

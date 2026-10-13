@@ -23,11 +23,17 @@ export async function createPayment(args: {
   await sql`select * from create_payment(${args.bookingId}, ${args.amount}, ${args.expiresAt})`;
 }
 
+/** A transfer screenshot is stored as a data: URL — capped well under Postgres's row limits. */
+export const MAX_PROOF_BYTES = 3 * 1024 * 1024;
+
 /** Guest self-service: moves a PENDING booking to SUBMITTED ("menunggu konfirmasi"). */
-export async function submitPaymentProof(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function submitPaymentProof(
+  token: string,
+  proofDataUrl?: string | null,
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const sql = getSql();
   try {
-    await sql`select submit_payment_proof(${token}::uuid)`;
+    await sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null})`;
     return { ok: true };
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "";
