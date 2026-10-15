@@ -222,9 +222,9 @@ export const defaults = {
     eyebrow: "Timeline show",
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
-    description: "Satu show, enam tahap Experience Journey — dari visual story pertama sampai pulang membawa karya sendiri.",
+    description: "Satu show, tujuh babak Road map Milestone — dari booking seat sampai pulang membawa karya custom 3D printing.",
     durationLabel: journeyDurationLabel,
-    tagline: "exploring what technology can become.",
+    tagline: "1,5 jam exploring what technology can become.",
     steps: journeySteps.map((step) => ({ ...step })),
   },
   schedule: {
