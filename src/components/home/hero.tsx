@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
+import { HeroParallax } from "@/components/home/hero-parallax";
 import { getSiteContent } from "@/lib/cms";
 import { siteConfig } from "@/data/site";
 
@@ -17,14 +17,7 @@ export async function Hero() {
   const { hero } = await getSiteContent();
   return (
     <section className="relative flex min-h-[88vh] items-center overflow-hidden py-24 sm:min-h-[92vh]">
-      <Image
-        src="/renders/ambiance-hall.jpg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-[65%_30%]"
-      />
+      <HeroParallax src="/renders/ambiance-hall.jpg" alt="" />
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-canvas-deep/70 via-canvas-deep/55 to-canvas" />
       <div aria-hidden className="absolute inset-0 bg-canvas-deep/25" />
 

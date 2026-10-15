@@ -30,7 +30,7 @@ export function FaqSection() {
           {faqItems.map((item, index) => {
             const expanded = open === index;
             return (
-              <div key={index}>
+              <Reveal key={index} as="div" variant={index % 2 ? "right" : "left"} delay={Math.min(index, 4) * 60}>
                 <button
                   type="button"
                   onClick={() => setOpen(expanded ? null : index)}
@@ -47,7 +47,7 @@ export function FaqSection() {
                     <p className="pb-5 text-sm leading-relaxed text-muted">{item.answer}</p>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>

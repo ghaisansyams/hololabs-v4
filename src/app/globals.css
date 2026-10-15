@@ -184,6 +184,18 @@
     transform-origin: top;
     transition: transform 120ms linear;
   }
+  .scroll-progress-fill {
+    transform: scaleX(var(--scroll-progress, 0));
+    transition: transform 120ms linear;
+  }
+
+  /* Hero background drift — see components/home/hero-parallax.tsx. */
+  .hero-parallax-layer {
+    transform: translate3d(0, var(--parallax-y, 0), 0) scale(1.12);
+    opacity: var(--parallax-opacity, 1);
+    transition: transform 80ms linear, opacity 80ms linear;
+    will-change: transform, opacity;
+  }
   .timeline-dot {
     transition:
       background-color 400ms ease,
@@ -314,6 +326,10 @@
   }
   .timeline-fill {
     transform: none;
+  }
+  .hero-parallax-layer {
+    transform: none;
+    opacity: 1;
   }
 }
 
