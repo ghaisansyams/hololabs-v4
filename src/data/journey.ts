@@ -1,9 +1,8 @@
 /**
- * The show timeline, matching the Experience Journey on the Hololabs company
- * profile (hololabs-web): six stages, ~90 minutes end to end. Supersedes the
- * earlier 7-step list from the client's WhatsApp revision (7 Oct 2026),
- * whose first step — booking — happens before the show and now lives in
- * the "Alurnya" section instead.
+ * The show roadmap, per the client's WhatsApp "Road map Milestone"
+ * (Badar Spero, Oct 2026): seven stages, 1,5 jam per show. The client gave
+ * no per-stage durations, so `minutes` stays empty and the timeline simply
+ * omits the duration pill.
  */
 export interface JourneyStep {
   title: string;
@@ -14,41 +13,47 @@ export interface JourneyStep {
 
 export const journeySteps: JourneyStep[] = [
   {
-    title: "Enter the Story",
-    subtitle: "Journey of Life — Immersive Video Mapping",
-    minutes: "15",
-    description: "Experience dimulai melalui immersive video mapping yang membawa audience mengikuti sebuah visual story.",
+    title: "Booking seat",
+    subtitle: "Reservasi sebelum datang",
+    minutes: "",
+    description: "Pilih jadwal show, reservasi seat, dan bersiap memasuki Hololabs.",
   },
   {
-    title: "Feel the Beat",
-    subtitle: "Interactive DJ & Audio Reactive Performance",
-    minutes: "15",
-    description: "Musik menjadi trigger bagi visual. Audience tidak hanya menonton, mereka menjadi bagian dari performance.",
+    title: "Nonton video mapping",
+    subtitle: "Journey of Life",
+    minutes: "",
+    description: "Menonton video mapping yang bercerita tentang journey of life — visual, projection, dan audio jadi satu opening experience.",
   },
   {
-    title: "Meet AI",
-    subtitle: "Doocoon AI — 3D Avatar Virtual Assistant",
-    minutes: "15",
-    description: "Pengunjung dapat berbicara langsung dengan 3D Avatar Virtual Assistant yang merespons audience.",
+    title: "Interactive performance",
+    subtitle: "With DJ backsound",
+    minutes: "",
+    description: "Pertunjukan interaktif dengan iringan DJ — audience tidak hanya menonton, mereka jadi bagian dari performance.",
   },
   {
-    title: "Road to Smart Living",
-    subtitle: "Smart Home Technology Experience",
-    minutes: "20",
-    description: "Menjelajahi perkembangan teknologi rumah dari conventional living menuju connected dan intelligent living.",
+    title: "Chit chat dengan AI",
+    subtitle: "3D Avatar Virtual Assistant — Doocoon AI",
+    minutes: "",
+    description: "Ngobrol langsung dengan Doocoon AI, 3D avatar virtual assistant yang bisa berkomunikasi dan merespons audience.",
   },
   {
-    title: "Create Something",
-    subtitle: "Custom 3D Printing Experience",
-    minutes: "15",
-    description: "Dari dunia digital kembali ke dunia fisik. Ide digital berubah menjadi benda nyata.",
+    title: "Road to smart home technology",
+    subtitle: "Smart home experience",
+    minutes: "",
+    description: "Menjelajahi perjalanan teknologi rumah dari conventional living menuju connected dan intelligent living.",
   },
   {
-    title: "Closing",
-    subtitle: "Take the Experience Home",
-    minutes: "10",
-    description: "Go home with a new possibility.",
+    title: "Custom 3D printing",
+    subtitle: "From digital idea to physical form",
+    minutes: "",
+    description: "Dari dunia digital kembali ke dunia fisik — lihat ide jadi benda nyata lewat custom 3D printing.",
+  },
+  {
+    title: "Pulang",
+    subtitle: "Take the experience home",
+    minutes: "",
+    description: "Show selesai — pulang membawa pengalaman 1,5 jam dan kemungkinan baru.",
   },
 ];
 
-export const journeyDurationLabel = "±90 menit per show";
+export const journeyDurationLabel = "1,5 jam per show";
