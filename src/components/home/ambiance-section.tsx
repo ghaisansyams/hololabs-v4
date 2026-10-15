@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
+import { CountUp } from "@/components/ui/count-up";
 import { getSiteContent } from "@/lib/cms";
 
 /**
@@ -30,7 +31,9 @@ export async function AmbianceSection() {
             <dl className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
               {ambiance.stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <dd className="text-2xl text-ink">{stat.value}</dd>
+                  <dd className="text-2xl text-ink">
+                    <CountUp value={stat.value} />
+                  </dd>
                   <dt className="mt-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted">
                     {stat.label}
                   </dt>

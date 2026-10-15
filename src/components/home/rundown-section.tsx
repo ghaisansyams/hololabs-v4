@@ -40,14 +40,12 @@ export async function RundownSection() {
           }
         />
 
-        {total > 0 ? (
-          <Reveal variant="blur" delay={120}>
-            <p className="mt-10 font-display text-2xl font-extrabold text-ink sm:text-3xl">
-              <span className="tabular-nums">{total}</span> menit{" "}
-              <span className="text-gradient">{rundown.tagline}</span>
-            </p>
-          </Reveal>
-        ) : null}
+        <Reveal variant="blur" delay={120}>
+          <p className="mt-10 font-display text-2xl font-extrabold text-ink sm:text-3xl">
+            {total > 0 ? <span className="tabular-nums">{total} menit </span> : null}
+            <span className="text-gradient">{rundown.tagline}</span>
+          </p>
+        </Reveal>
 
         <JourneyTimeline steps={rundown.steps} />
       </Container>

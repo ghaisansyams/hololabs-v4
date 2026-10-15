@@ -10,7 +10,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "Jam berapa show berlangsung?",
-    answer: "Dua show per hari, masing-masing berdurasi ±90 menit. Jadwal lengkap ada di bagian Rundown.",
+    answer: "Dua show per hari, masing-masing berdurasi 1,5 jam. Jadwal lengkap ada di bagian Rundown.",
   },
   {
     question: "Apakah Hololabs menerima reservasi?",
@@ -23,7 +23,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "Apa yang akan saya alami di dalam show?",
-    answer: "Satu Experience Journey ±90 menit melewati enam babak cerita — lihat detailnya di bagian Rundown.",
+    answer: "Satu Experience Journey 1,5 jam melewati tujuh babak cerita, dari video mapping sampai custom 3D printing — lihat detailnya di bagian Rundown.",
   },
   {
     question: "Bisa datang berombongan?",

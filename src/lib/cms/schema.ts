@@ -207,11 +207,11 @@ export const defaults = {
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
     titleSuffix: "",
-    lead: "Satu Experience Journey, ±90 menit — dari visual storytelling, panggung audio reactive, ngobrol dengan AI avatar, sampai membawa pulang karya 3D cetak sendiri.",
+    lead: "Satu Experience Journey, 1,5 jam — dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
     ctaPrimary: "Reservasi Sekarang",
     ctaSecondary: "Jelajahi Collection",
     stats: [
-      { value: "±90 min", label: "Experience Journey" },
+      { value: "1,5 jam", label: "Experience Journey" },
       { value: "8", label: "Zona imersif" },
       { value: "13", label: "Kursi / show" },
     ],
@@ -227,7 +227,7 @@ export const defaults = {
   collection: {
     eyebrow: "02 · Collection",
     title: "Hasil karya & konten imersif kami",
-    description: "Delapan lini karya Hololabs — masing-masing bisa berdiri sendiri, atau terhubung jadi satu pengalaman utuh.",
+    description: "Storytelling lewat teknologi: delapan lini bisnis jasa Hololabs — masing-masing bisa berdiri sendiri, atau terhubung jadi satu pengalaman utuh.",
     items: collectionItems.map(({ title, tagline, description, highlights }) => ({
       title,
       tagline,
@@ -238,16 +238,16 @@ export const defaults = {
   rundown: {
     eyebrow: "03 · Rundown",
     title: "Satu show,",
-    titleAccent: "enam babak cerita.",
-    description: "Bukan menu — ini alur cerita dan jadwal acara di dalam show, dari masuk sampai pulang membawa karya sendiri.",
+    titleAccent: "tujuh babak cerita.",
+    description: "Bukan menu — ini alur cerita dan jadwal acara di dalam show, dari booking seat sampai pulang.",
     durationLabel: journeyDurationLabel,
-    tagline: "exploring what technology can become.",
+    tagline: "1,5 jam exploring what technology can become.",
     steps: journeySteps.map((step) => ({ ...step })),
   },
   schedule: {
     eyebrow: "Jadwal",
     title: "Pilih tanggal & show",
-    description: "Satu show berdurasi ±90 menit. Sisa kursi tiap show dihitung langsung dari sistem.",
+    description: "Satu show berdurasi 1,5 jam. Sisa kursi tiap show dihitung langsung dari sistem.",
     cta: "Lihat kursi",
   },
   ourStory: {

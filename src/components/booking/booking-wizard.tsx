@@ -200,7 +200,7 @@ export function BookingWizard({
               <div className="mt-6">
                 <p className="text-sm font-bold text-ink">Ketentuan Reservasi</p>
                 <ol className="mt-2 list-decimal space-y-1.5 rounded-2xl border border-line bg-surface p-4 pl-9 text-xs leading-relaxed text-muted">
-                  <li>Satu Experience Journey berdurasi ±90 menit sejak sesi dimulai.</li>
+                  <li>Satu Experience Journey berdurasi 1,5 jam sejak sesi dimulai.</li>
                   <li>Kursi dialokasikan per show dan terbatas — datang 15 menit sebelum jadwal.</li>
                   <li>Jika sesi pilihanmu penuh, sistem otomatis memindahkan ke sesi berikutnya yang tersedia.</li>
                   <li>Kursi belum terkunci sampai pembayaran transfer bank diverifikasi admin.</li>
