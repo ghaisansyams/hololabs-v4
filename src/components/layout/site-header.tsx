@@ -71,36 +71,13 @@ export function SiteHeader() {
           <Logo />
         </Link>
 
-        <nav aria-label="Navigasi utama" className="hidden md:block">
-          <ul className="flex items-center gap-1">
-            {mainNav.map((link) => {
-              const active = isActive(pathname, link.href);
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative rounded-pill px-3.5 py-2 text-[0.9375rem] font-semibold transition-colors",
-                      active ? "text-accent" : "text-ink-soft hover:text-ink",
-                    )}
-                  >
-                    {link.label}
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-accent transition-transform duration-300",
-                        active ? "scale-x-100" : "scale-x-0",
-                      )}
-                    />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
         <div className="flex items-center gap-2">
+          <Link
+            href="/cek-tiket"
+            className={buttonStyles({ variant: "secondary", size: "sm", className: "hidden md:inline-flex" })}
+          >
+            Cek Tiket
+          </Link>
           <Link
             href="/pesan"
             className={buttonStyles({ size: "sm", className: "hidden md:inline-flex" })}

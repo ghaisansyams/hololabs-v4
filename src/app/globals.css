@@ -236,6 +236,68 @@
     }
   }
 
+  /* Founder / Experience Lead avatar — no real photo exists yet, so the
+     monogram card gets a slow, premium-feeling motion treatment instead:
+     a rotating conic-gradient aura, a soft breathing glow, and a shimmer
+     sweep across the initials. See components/home/people-section.tsx. */
+  .profile-aura {
+    position: absolute;
+    inset: -25%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgb(34 211 238 / 0.5) 60deg,
+      transparent 140deg,
+      rgb(168 85 247 / 0.55) 220deg,
+      transparent 300deg,
+      transparent 360deg
+    );
+    filter: blur(32px);
+    animation: profile-spin 16s linear infinite;
+  }
+  @keyframes profile-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .profile-glow {
+    animation: profile-pulse 4.5s ease-in-out infinite;
+  }
+  @keyframes profile-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+  .profile-shimmer-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-brand-ink) 20%,
+      var(--color-accent) 40%,
+      #ffffff 50%,
+      var(--color-accent) 60%,
+      var(--color-brand-ink) 80%
+    );
+    background-size: 220% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: profile-shimmer 6s ease-in-out infinite;
+  }
+  @keyframes profile-shimmer {
+    0% {
+      background-position: 180% 0;
+    }
+    100% {
+      background-position: -80% 0;
+    }
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;

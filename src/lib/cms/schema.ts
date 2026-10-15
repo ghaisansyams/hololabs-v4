@@ -121,7 +121,7 @@ export const defaults = {
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
     titleSuffix: "",
-    lead: "Satu Experience Journey, 1,5 jam — dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
+    lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
     ctaPrimary: "Reservasi Sekarang",
     ctaSecondary: "Lihat Jadwal Show",
   },
@@ -129,7 +129,7 @@ export const defaults = {
     eyebrow: "About Us",
     title: "Tentang Hololabs",
     bodyShort:
-      "Hololabs adalah creative technology lab yang mengubah teknologi — projection mapping, AI, VR, hingga 3D printing — menjadi satu pengalaman yang bisa dilihat, didengar, dan disentuh langsung.",
+      "Hololabs adalah creative technology lab yang mengubah teknologi, mulai dari projection mapping, AI, VR, hingga 3D printing, menjadi satu pengalaman yang bisa dilihat, didengar, dan disentuh langsung.",
     bodyLong:
       "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
     badges: [
@@ -143,12 +143,12 @@ export const defaults = {
     founderName: "Nama Founder",
     founderTitle: "Founder & Creative Director, Hololabs",
     founderBio:
-      "Data sementara — bio founder asli menyusul. Founder Hololabs membangun lab ini dari ketertarikan pada titik temu teknologi dan pengalaman manusia: bagaimana projection, AI, dan desain ruang bisa berhenti jadi alat, dan mulai jadi cerita yang dialami langsung oleh pengunjung.",
+      "Data sementara, bio founder asli menyusul. Founder Hololabs membangun lab ini dari ketertarikan pada titik temu teknologi dan pengalaman manusia: bagaimana projection, AI, dan desain ruang bisa berhenti jadi alat, dan mulai jadi cerita yang dialami langsung oleh pengunjung.",
     leadEyebrow: "Meet Our Experience Lead",
     leadName: "Nama Experience Lead",
     leadTitle: "Lead Technologist, Hololabs",
     leadBio:
-      "Data sementara — bio asli menyusul. Memimpin tim teknis di balik tiap babak Experience Journey, dari kalibrasi projection mapping sampai memastikan Doocoon AI merespons setiap pengunjung dengan natural.",
+      "Data sementara, bio asli menyusul. Memimpin tim teknis di balik tiap babak Experience Journey, dari kalibrasi projection mapping sampai memastikan Doocoon AI merespons setiap pengunjung dengan natural.",
   },
   schedule: {
     eyebrow: "Jadwal",
