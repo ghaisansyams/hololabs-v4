@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { Field, TextInput, Select, Checkbox } from "@/components/forms/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DateCalendar } from "@/components/booking/date-calendar";
 import type { DaySchedule } from "@/lib/services/availability";
 import type { Package } from "@/lib/types";
 import { formatDate, formatWeekday } from "@/lib/utils/date";
@@ -277,7 +278,7 @@ function DetailsScreen({
     <div>
       <h3 className="text-2xl text-ink sm:text-3xl">Lengkapi Informasi Reservasi</h3>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 max-w-xs">
         <Field label="Paket" htmlFor="package-select" required>
           <Select id="package-select" value={packageId} onChange={(e) => setPackageId(e.target.value)}>
             <option value="" disabled>
@@ -290,18 +291,15 @@ function DetailsScreen({
             ))}
           </Select>
         </Field>
-        <Field label="Tanggal" htmlFor="date-select" required>
-          <Select id="date-select" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}>
-            <option value="" disabled>
-              Pilih tanggal
-            </option>
-            {schedule.map((d) => (
-              <option key={d.date} value={d.date}>
-                {formatWeekday(d.date)}, {formatDate(d.date)}
-              </option>
-            ))}
-          </Select>
-        </Field>
+      </div>
+
+      <div className="mt-6">
+        <p className="text-sm font-semibold text-ink">
+          Tanggal <span className="ml-0.5 text-accent">*</span>
+        </p>
+        <div className="mt-1.5 max-w-xs">
+          <DateCalendar availableDates={schedule.map((d) => d.date)} value={selectedDate} onChange={setSelectedDate} />
+        </div>
       </div>
 
       {packageId && day ? (
