@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { HeroParallax } from "@/components/home/hero-parallax";
@@ -9,9 +6,11 @@ import { siteConfig } from "@/data/site";
 
 /**
  * Full-bleed, centered hero — styled after meatguysteakhouse.com: a dark
- * photographic background, a short uppercase badge line, a big serif
- * headline, and two centered CTAs. No render exists for the hero yet, so
- * this reuses the company-profile image already shown in Ambiance.
+ * photographic background, a short uppercase badge line, and a big serif
+ * headline. No render exists for the hero yet, so this reuses the
+ * company-profile image already shown in Ambiance. CTAs were removed per
+ * the client's request; Reservasi/Jadwal are still reachable from the
+ * header and the rest of the page.
  */
 export async function Hero() {
   const { hero } = await getSiteContent();
@@ -39,18 +38,6 @@ export async function Hero() {
           <p className="mx-auto mt-6 max-w-xl text-[0.9375rem] leading-relaxed text-ink-soft sm:text-base">
             {hero.lead}
           </p>
-        </Reveal>
-
-        <Reveal delay={250}>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/pesan" className={buttonStyles({ size: "lg" })}>
-              {hero.ctaPrimary}
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-            <Link href="/#jadwal" className={buttonStyles({ variant: "secondary", size: "lg" })}>
-              {hero.ctaSecondary}
-            </Link>
-          </div>
         </Reveal>
       </Container>
     </section>

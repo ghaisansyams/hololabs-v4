@@ -42,15 +42,13 @@ export const sections = [
   {
     key: "hero",
     label: "Hero (bagian paling atas)",
-    description: "Judul besar, kalimat pembuka, dan dua tombol.",
+    description: "Judul besar dan kalimat pembuka.",
     fields: [
       t("badge", "Label kecil di atas judul"),
       t("title", "Judul (bagian putih)"),
       t("titleAccent", "Judul (bagian berwarna gradien)"),
       t("titleSuffix", "Judul (akhiran, mis. titik)", 20),
       ta("lead", "Kalimat pembuka"),
-      t("ctaPrimary", "Teks tombol utama", 40),
-      t("ctaSecondary", "Teks tombol kedua", 40),
     ],
   },
   {
@@ -122,8 +120,6 @@ export const defaults = {
     titleAccent: "Step inside it.",
     titleSuffix: "",
     lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
-    ctaPrimary: "Reservasi Sekarang",
-    ctaSecondary: "Lihat Jadwal Show",
   },
   about: {
     eyebrow: "About Us",
