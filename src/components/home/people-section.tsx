@@ -17,10 +17,11 @@ function initials(name: string): string {
 /**
  * Founder and a second key profile ("meat master" equivalent) — mirrors
  * meatguysteakhouse.com's two alternating photo/bio blocks. No real photos
- * exist yet, so each profile gets an animated monogram card (rotating aura,
- * breathing glow, shimmering initials) instead of a fabricated photo; name
- * and bio are placeholder copy pending the client's real data (editable
- * from Admin -> Konten Website -> Founder & Tim).
+ * exist yet, so each profile gets a plain monogram card instead of a
+ * fabricated photo; the only motion is the scroll-triggered Reveal, same
+ * as every other section. Name and bio are placeholder copy pending the
+ * client's real data (editable from Admin -> Konten Website -> Founder &
+ * Tim).
  */
 export async function PeopleSection() {
   const { people } = await getSiteContent();
@@ -71,12 +72,8 @@ function Profile({
     <div className={cn("mt-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-14", reverse && "lg:[&>*:first-child]:order-2")}>
       <Reveal variant={reverse ? "right" : "left"} delay={delay}>
         <TiltCard max={6}>
-          <div className="relative mx-auto aspect-[4/5] max-w-sm overflow-hidden rounded-card border border-line bg-canvas-deep motion-safe:animate-float-slow">
-            <span aria-hidden className="profile-aura absolute inset-0" />
-            <div className="glass absolute inset-5 flex items-center justify-center rounded-[1.25rem]">
-              <span aria-hidden className="profile-glow absolute size-28 rounded-full bg-accent/30 blur-2xl" />
-              <span className="profile-shimmer-text relative font-display text-6xl font-bold">{initials(name)}</span>
-            </div>
+          <div className="relative mx-auto flex aspect-[4/5] max-w-sm items-center justify-center overflow-hidden rounded-card border border-line bg-gradient-to-br from-surface via-surface to-brand/15">
+            <span className="font-display text-6xl font-bold text-gradient">{initials(name)}</span>
           </div>
         </TiltCard>
       </Reveal>
