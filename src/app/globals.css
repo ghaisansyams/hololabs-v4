@@ -236,6 +236,31 @@
     }
   }
 
+  /* Our Best Works logo strip — an auto-scrolling marquee (two back-to-back
+     copies of the list, one keyframe looping the pair) instead of a static
+     grid, matching hololabs-web. Pauses on hover/focus so a logo can
+     actually be read; prefers-reduced-motion freezes it like every other
+     animation on the site (see that media query below). */
+  .holo-marquee {
+    animation: holo-marquee-scroll 26s linear infinite;
+  }
+  .holo-marquee:hover,
+  .holo-marquee:focus-within {
+    animation-play-state: paused;
+  }
+  @keyframes holo-marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .holo-marquee-mask {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;

@@ -3,7 +3,6 @@ import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 import { CountUp } from "@/components/ui/count-up";
-import { TiltCard } from "@/components/ui/tilt-card";
 import { bestWorks } from "@/data/best-works";
 import { getSiteContent } from "@/lib/cms";
 
@@ -75,10 +74,13 @@ export async function AboutSection() {
         </div>
 
         <Reveal delay={200}>
-          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-3 gap-3 sm:grid-cols-5">
-            {bestWorks.map((work) => (
-              <TiltCard key={work.client} max={6}>
-                <div className="flex h-20 items-center justify-center rounded-2xl border border-line bg-surface p-4 grayscale transition-all duration-300 hover:grayscale-0">
+          <div className="holo-marquee-mask mt-12">
+            <div className="holo-marquee flex w-max items-center gap-4 py-2">
+              {[...bestWorks, ...bestWorks].map((work, index) => (
+                <div
+                  key={`${work.client}-${index}`}
+                  className="flex h-20 w-40 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface p-4"
+                >
                   <Image
                     src={work.logo}
                     alt={work.client}
@@ -87,8 +89,8 @@ export async function AboutSection() {
                     className="h-auto max-h-10 w-auto max-w-full object-contain"
                   />
                 </div>
-              </TiltCard>
-            ))}
+              ))}
+            </div>
           </div>
         </Reveal>
       </Container>

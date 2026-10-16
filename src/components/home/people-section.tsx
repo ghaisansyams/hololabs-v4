@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
@@ -5,23 +6,13 @@ import { TiltCard } from "@/components/ui/tilt-card";
 import { getSiteContent } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-}
-
 /**
  * Founder and a second key profile ("meat master" equivalent) — mirrors
- * meatguysteakhouse.com's two alternating photo/bio blocks. No real photos
- * exist yet, so each profile gets a plain monogram card instead of a
- * fabricated photo; the only motion is the scroll-triggered Reveal, same
- * as every other section. Name and bio are placeholder copy pending the
- * client's real data (editable from Admin -> Konten Website -> Founder &
- * Tim).
+ * meatguysteakhouse.com's two alternating photo/bio blocks. Real photos
+ * supplied by the client; name, title and bio are still placeholder copy
+ * pending the client's real data (editable from Admin -> Konten Website ->
+ * Founder & Tim). The only motion is the scroll-triggered Reveal, same as
+ * every other section.
  */
 export async function PeopleSection() {
   const { people } = await getSiteContent();
@@ -37,6 +28,7 @@ export async function PeopleSection() {
 
         <Profile
           reverse={false}
+          photo="/people/founder.jpg"
           name={people.founderName}
           title={people.founderTitle}
           bio={people.founderBio}
@@ -49,7 +41,14 @@ export async function PeopleSection() {
           </Reveal>
         </div>
 
-        <Profile reverse name={people.leadName} title={people.leadTitle} bio={people.leadBio} delay={0} />
+        <Profile
+          reverse
+          photo="/people/lead.jpg"
+          name={people.leadName}
+          title={people.leadTitle}
+          bio={people.leadBio}
+          delay={0}
+        />
       </Container>
     </section>
   );
@@ -57,12 +56,14 @@ export async function PeopleSection() {
 
 function Profile({
   reverse,
+  photo,
   name,
   title,
   bio,
   delay,
 }: {
   reverse: boolean;
+  photo: string;
   name: string;
   title: string;
   bio: string;
@@ -72,8 +73,8 @@ function Profile({
     <div className={cn("mt-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-14", reverse && "lg:[&>*:first-child]:order-2")}>
       <Reveal variant={reverse ? "right" : "left"} delay={delay}>
         <TiltCard max={6}>
-          <div className="relative mx-auto flex aspect-[4/5] max-w-sm items-center justify-center overflow-hidden rounded-card border border-line bg-gradient-to-br from-surface via-surface to-brand/15">
-            <span className="font-display text-6xl font-bold text-gradient">{initials(name)}</span>
+          <div className="relative mx-auto aspect-[4/5] max-w-sm overflow-hidden rounded-card border border-line">
+            <Image src={photo} alt={name} fill sizes="(min-width: 1024px) 24rem, 90vw" className="object-cover" />
           </div>
         </TiltCard>
       </Reveal>
