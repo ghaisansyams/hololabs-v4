@@ -58,21 +58,12 @@ export const sections = [
   {
     key: "about",
     label: "About Us",
-    description: "Pengenalan singkat Hololabs — dua paragraf dan tiga angka ringkas.",
+    description: "Pengenalan singkat Hololabs — dua paragraf.",
     fields: [
       t("eyebrow", "Label section"),
       t("title", "Judul section"),
       ta("bodyShort", "Paragraf pertama", 400),
       ta("bodyLong", "Paragraf kedua", 500),
-      {
-        key: "badges",
-        label: "Angka ringkas",
-        type: "list",
-        itemLabel: "Angka",
-        min: 0,
-        max: 4,
-        fields: [t("value", "Angka / teks besar", 30), t("label", "Keterangan", 50)],
-      },
     ],
   },
   {
@@ -224,11 +215,6 @@ export const defaults = {
       "Hololabs adalah creative technology lab yang mengubah teknologi, mulai dari projection mapping, AI, VR, hingga 3D printing, menjadi satu pengalaman yang bisa dilihat, didengar, dan disentuh langsung.",
     bodyLong:
       "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
-    badges: [
-      { value: "1,5 jam", label: "Experience Journey" },
-      { value: "8", label: "Lini teknologi" },
-      { value: "1–50", label: "Orang / sesi" },
-    ],
   },
   people: {
     eyebrow: "Our People",

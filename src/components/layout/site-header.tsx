@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -112,38 +113,48 @@ export function SiteHeader() {
         hidden={!open}
         className="fixed inset-0 top-16 z-40 overflow-y-auto bg-canvas-deep/98 supports-[backdrop-filter]:backdrop-blur-2xl lg:top-[4.5rem]"
       >
-        <Container className="flex min-h-full flex-col justify-start py-12 sm:py-16">
-          <nav aria-label="Navigasi utama">
-            <ul className="flex flex-col gap-1">
-              {mainNav.map((link, index) => {
-                const active = isActive(pathname, link.href);
-                return (
-                  <li
-                    key={link.href}
-                    className={cn(open && "motion-safe:animate-fade-up")}
-                    style={{ animationDelay: `${index * 45}ms` }}
-                  >
-                    <Link
-                      href={link.href}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "flex min-h-16 items-center justify-between border-b border-line text-2xl transition-colors sm:text-3xl",
-                        active ? "text-accent" : "text-ink hover:text-accent",
-                      )}
+        <div className="grid min-h-full lg:grid-cols-2">
+          {/* Dummy image panel, matching the reference's menu layout — no
+              render exists specifically for this yet, so it reuses the
+              same company-profile shot used elsewhere on the site. */}
+          <div className="relative hidden lg:block">
+            <Image src="/renders/ambiance-hall.jpg" alt="" fill sizes="50vw" className="object-cover" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent to-canvas-deep/40" />
+          </div>
+
+          <Container className="flex flex-col justify-start py-12 sm:py-16 lg:max-w-none lg:px-16">
+            <nav aria-label="Navigasi utama">
+              <ul className="flex flex-col gap-1">
+                {mainNav.map((link, index) => {
+                  const active = isActive(pathname, link.href);
+                  return (
+                    <li
+                      key={link.href}
+                      className={cn(open && "motion-safe:animate-fade-up")}
+                      style={{ animationDelay: `${index * 45}ms` }}
                     >
-                      {link.label}
-                      {active ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-accent" /> : null}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-          <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8 w-full sm:w-auto" })}>
-            <Ticket className="size-4" aria-hidden />
-            Reservasi
-          </Link>
-        </Container>
+                      <Link
+                        href={link.href}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex min-h-16 items-center justify-between border-b border-line text-2xl transition-colors sm:text-3xl",
+                          active ? "text-accent" : "text-ink hover:text-accent",
+                        )}
+                      >
+                        {link.label}
+                        {active ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-accent" /> : null}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8 w-full sm:w-auto" })}>
+              <Ticket className="size-4" aria-hidden />
+              Reservasi
+            </Link>
+          </Container>
+        </div>
       </div>
     </>
   );
