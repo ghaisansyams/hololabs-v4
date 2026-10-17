@@ -48,6 +48,7 @@ export interface NavLink {
 // homepage, then scroll", which felt like the menu was lying about taking
 // you somewhere new.
 export const mainNav: NavLink[] = [
+  { href: "/", label: "Beranda" },
   { href: "/ambiance", label: "Ambiance" },
   { href: "/collection", label: "Collection" },
   { href: "/rundown", label: "Rundown" },
