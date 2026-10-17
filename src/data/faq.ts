@@ -6,7 +6,7 @@ export interface FaqItem {
 export const faqItems: FaqItem[] = [
   {
     question: "Di mana lokasi Hololabs?",
-    answer: "Alamat venue akan diumumkan di WhatsApp dan Instagram resmi Hololabs menjelang hari show.",
+    answer: "Lihat peta dan rute lengkapnya di bagian Lokasi pada halaman depan.",
   },
   {
     question: "Jam berapa show berlangsung?",

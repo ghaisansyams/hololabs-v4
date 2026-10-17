@@ -41,10 +41,24 @@ export interface NavLink {
 }
 
 // Meat Guy-style header: logo + a Reservasi button + a hamburger that opens
-// a full-screen menu (see SiteHeader) — the menu is where Ambiance,
-// Collection, Rundown and Our Story live, each its own page, plus the
-// homepage's own anchors and Cek Tiket.
+// a full-screen menu (see SiteHeader). The menu only lists pages that are
+// real navigation — Ambiance, Collection, Rundown, Our Story and Cek
+// Tiket each have their own route. About Us/Lokasi/FAQ stay off this list
+// on purpose: from any other page they'd just be "go back to the
+// homepage, then scroll", which felt like the menu was lying about taking
+// you somewhere new.
 export const mainNav: NavLink[] = [
+  { href: "/ambiance", label: "Ambiance" },
+  { href: "/collection", label: "Collection" },
+  { href: "/rundown", label: "Rundown" },
+  { href: "/our-story", label: "Our Story" },
+  { href: "/cek-tiket", label: "Cek Tiket" },
+];
+
+// The footer keeps the fuller sitemap-style list (mirrors the reference's
+// "Pages" footer column) — a footer listing in-page anchors is a normal
+// pattern, unlike a "menu" that implies real navigation.
+export const footerNav: NavLink[] = [
   { href: "/ambiance", label: "Ambiance" },
   { href: "/collection", label: "Collection" },
   { href: "/rundown", label: "Rundown" },
@@ -54,10 +68,6 @@ export const mainNav: NavLink[] = [
   { href: "/#faq", label: "FAQ" },
   { href: "/cek-tiket", label: "Cek Tiket" },
 ];
-
-// The footer keeps the same sitemap-style list (mirrors the reference's
-// "Pages" footer column).
-export const footerNav: NavLink[] = mainNav;
 
 export interface SocialLink {
   label: string;

@@ -7,9 +7,8 @@ import { DummyMapCard } from "@/components/home/dummy-map-card";
  * "Lokasi" — replaces the homepage's live Jadwal grid, per the client's
  * request to follow meatguysteakhouse.com more closely: the reference's
  * homepage shows opening hours + a map, not a seat-availability grid
- * (that lives in the reservation flow itself, at /pesan). No address
- * exists yet, so the map is a dummy card (see DummyMapCard) that opens a
- * Google Maps search when clicked.
+ * (that lives in the reservation flow itself, at /pesan). The map card
+ * (see DummyMapCard) opens the client's real Google Maps location.
  */
 export function LocationSection() {
   return (
@@ -20,7 +19,7 @@ export function LocationSection() {
           align="center"
           eyebrow="Lokasi"
           title="Temukan Hololabs"
-          description="Alamat lengkap akan diumumkan menjelang hari show. Reservasi tetap bisa dilakukan sekarang — tanggal dan sesi dipilih saat reservasi."
+          description="Klik peta di bawah untuk rute lengkap ke lokasi. Tanggal dan sesi dipilih saat reservasi."
           className="mx-auto max-w-2xl"
         />
 

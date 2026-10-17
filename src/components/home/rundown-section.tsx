@@ -10,7 +10,7 @@ import { getSiteContent } from "@/lib/cms";
 /**
  * "Rundown" — deliberately not called "Menu" (per the revision notes):
  * the alur cerita (story beats of one show), on its own dedicated page
- * (reached from the header menu), ending in the same dummy map card used
+ * (reached from the header menu), ending in the same map card used
  * on the homepage's Lokasi section.
  */
 export async function RundownSection() {
