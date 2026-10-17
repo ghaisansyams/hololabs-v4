@@ -4,11 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, Ticket, X } from "lucide-react";
+import { ArrowUpRight, Menu, Ticket, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { mainNav } from "@/data/site";
+import { mainNav, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils/cn";
 
 function isActive(pathname: string, href: string): boolean {
@@ -119,40 +119,66 @@ export function SiteHeader() {
               same company-profile shot used elsewhere on the site. */}
           <div className="relative hidden lg:block">
             <Image src="/renders/ambiance-hall.jpg" alt="" fill sizes="50vw" className="object-cover" />
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent to-canvas-deep/40" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep via-canvas-deep/10 to-transparent" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent to-canvas-deep/50" />
+            <div className="absolute bottom-10 left-10 right-10">
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-accent">{siteConfig.name}</p>
+              <p className="mt-2 font-display text-2xl text-ink">A Creative Technology Lab</p>
+            </div>
           </div>
 
-          <Container className="flex flex-col justify-start py-12 sm:py-16 lg:max-w-none lg:px-16">
-            <nav aria-label="Navigasi utama">
-              <ul className="flex flex-col gap-1">
-                {mainNav.map((link, index) => {
-                  const active = isActive(pathname, link.href);
-                  return (
-                    <li
-                      key={link.href}
-                      className={cn(open && "motion-safe:animate-fade-up")}
-                      style={{ animationDelay: `${index * 45}ms` }}
-                    >
-                      <Link
-                        href={link.href}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "flex min-h-16 items-center justify-between border-b border-line text-2xl transition-colors sm:text-3xl",
-                          active ? "text-accent" : "text-ink hover:text-accent",
-                        )}
+          <Container className="flex min-h-full flex-col py-10 lg:max-w-none lg:px-16 lg:py-16">
+            <div className="my-auto">
+              <nav aria-label="Navigasi utama">
+                <ul>
+                  {mainNav.map((link, index) => {
+                    const active = isActive(pathname, link.href);
+                    return (
+                      <li
+                        key={link.href}
+                        className={cn("border-b border-line", open && "motion-safe:animate-fade-up")}
+                        style={{ animationDelay: `${index * 40}ms` }}
                       >
-                        {link.label}
-                        {active ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-accent" /> : null}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-            <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8 w-full sm:w-auto" })}>
-              <Ticket className="size-4" aria-hidden />
-              Reservasi
-            </Link>
+                        <Link
+                          href={link.href}
+                          aria-current={active ? "page" : undefined}
+                          className="group flex items-center gap-4 py-3.5 sm:py-4"
+                        >
+                          <span
+                            className={cn(
+                              "font-display text-xs tabular-nums transition-colors",
+                              active ? "text-accent" : "text-muted group-hover:text-accent",
+                            )}
+                          >
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span
+                            className={cn(
+                              "font-display flex-1 text-xl transition-colors sm:text-2xl",
+                              active ? "text-accent" : "text-ink group-hover:text-accent",
+                            )}
+                          >
+                            {link.label}
+                          </span>
+                          <ArrowUpRight
+                            className={cn(
+                              "size-4 shrink-0 text-accent opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100",
+                              active && "opacity-100",
+                            )}
+                            aria-hidden
+                          />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-10 w-full sm:w-auto" })}>
+                <Ticket className="size-4" aria-hidden />
+                Reservasi
+              </Link>
+            </div>
           </Container>
         </div>
       </div>
