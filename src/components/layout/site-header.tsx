@@ -173,11 +173,6 @@ export function SiteHeader() {
                   })}
                 </ul>
               </nav>
-
-              <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-10 w-full sm:w-auto" })}>
-                <Ticket className="size-4" aria-hidden />
-                Reservasi
-              </Link>
             </div>
           </Container>
         </div>
