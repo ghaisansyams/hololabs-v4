@@ -50,7 +50,7 @@ export const mainNav: NavLink[] = [
   { href: "/rundown", label: "Rundown" },
   { href: "/our-story", label: "Our Story" },
   { href: "/#about", label: "About Us" },
-  { href: "/#jadwal", label: "Jadwal" },
+  { href: "/#lokasi", label: "Lokasi" },
   { href: "/#faq", label: "FAQ" },
   { href: "/cek-tiket", label: "Cek Tiket" },
 ];

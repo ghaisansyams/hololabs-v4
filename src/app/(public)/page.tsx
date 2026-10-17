@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
 import { AboutSection } from "@/components/home/about-section";
 import { PeopleSection } from "@/components/home/people-section";
-import { ScheduleSection } from "@/components/home/schedule-section";
+import { LocationSection } from "@/components/home/location-section";
 import { ReservationCta } from "@/components/home/reservation-cta";
 import { ContactSection } from "@/components/home/contact-section";
 import { FaqSection } from "@/components/home/faq-section";
@@ -21,8 +21,10 @@ export const metadata: Metadata = {
 /**
  * Homepage structure mirrors meatguysteakhouse.com exactly, per the
  * client's request: Hero → About Us → Founder profile → second profile →
- * Jadwal (hours equivalent) → standalone Reservation CTA → Contact → FAQ →
- * Footer. Reservation itself still lives at /pesan, unchanged from v3.
+ * Lokasi (hours/map equivalent) → standalone Reservation CTA → Contact →
+ * FAQ → Footer. Reservation itself still lives at /pesan, unchanged from
+ * v3 — Lokasi replaced the earlier live Jadwal grid, which duplicated what
+ * the reservation flow already shows.
  */
 export default function HomePage() {
   const jsonLd = {
@@ -40,7 +42,7 @@ export default function HomePage() {
       <Hero />
       <AboutSection />
       <PeopleSection />
-      <ScheduleSection />
+      <LocationSection />
       <ReservationCta />
       <ContactSection />
       <FaqSection />

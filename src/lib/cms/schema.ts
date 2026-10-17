@@ -82,17 +82,6 @@ export const sections = [
     ],
   },
   {
-    key: "schedule",
-    label: "Jadwal Show",
-    description: "Judul jadwal. Tanggal & jam show diatur di menu Sesi.",
-    fields: [
-      t("eyebrow", "Label section"),
-      t("title", "Judul section"),
-      ta("description", "Deskripsi section", 300),
-      t("cta", "Teks tombol", 40),
-    ],
-  },
-  {
     key: "ambiance",
     label: "Ambiance (halaman terpisah)",
     description: "Pengenalan tempat & suasana saja — bukan konten imersif (itu ada di Collection). Dibuka dari menu header.",
@@ -227,12 +216,6 @@ export const defaults = {
     leadTitle: "Lead Technologist, Hololabs",
     leadBio:
       "Data sementara, bio asli menyusul. Memimpin tim teknis di balik tiap babak Experience Journey, dari kalibrasi projection mapping sampai memastikan Doocoon AI merespons setiap pengunjung dengan natural.",
-  },
-  schedule: {
-    eyebrow: "Jadwal",
-    title: "Pilih tanggal & show",
-    description: "Satu show berdurasi 1,5 jam. Sisa kursi tiap show dihitung langsung dari sistem.",
-    cta: "Lihat kursi",
   },
   ambiance: {
     eyebrow: "Ambiance",

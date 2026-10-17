@@ -10,7 +10,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "Jam berapa show berlangsung?",
-    answer: "Dua show per hari, masing-masing berdurasi 1,5 jam. Jadwal lengkap ada di bagian Jadwal.",
+    answer: "Dua show per hari, masing-masing berdurasi 1,5 jam. Tanggal dan sesi yang tersedia bisa dilihat langsung saat reservasi.",
   },
   {
     question: "Apakah Hololabs menerima reservasi?",
