@@ -40,22 +40,24 @@ export interface NavLink {
   label: string;
 }
 
-// Minimal, Meat Guy-style nav: the page is a single narrative read top to
-// bottom, so the header only needs to get someone to the reservation screen
-// or let them check a ticket they already booked.
-// Minimal, Meat Guy-style header: the page is a single narrative read top
-// to bottom, so the header nav only needs one way out to check a ticket
-// already booked — the dedicated "Reservasi" button covers the rest.
-export const mainNav: NavLink[] = [{ href: "/cek-tiket", label: "Cek Tiket" }];
-
-// The footer gets the fuller sitemap-style list instead (mirrors the
-// reference's "Pages" footer column).
-export const footerNav: NavLink[] = [
+// Meat Guy-style header: logo + a Reservasi button + a hamburger that opens
+// a full-screen menu (see SiteHeader) — the menu is where Ambiance,
+// Collection, Rundown and Our Story live, each its own page, plus the
+// homepage's own anchors and Cek Tiket.
+export const mainNav: NavLink[] = [
+  { href: "/ambiance", label: "Ambiance" },
+  { href: "/collection", label: "Collection" },
+  { href: "/rundown", label: "Rundown" },
+  { href: "/our-story", label: "Our Story" },
   { href: "/#about", label: "About Us" },
   { href: "/#jadwal", label: "Jadwal" },
   { href: "/#faq", label: "FAQ" },
   { href: "/cek-tiket", label: "Cek Tiket" },
 ];
+
+// The footer keeps the same sitemap-style list (mirrors the reference's
+// "Pages" footer column).
+export const footerNav: NavLink[] = mainNav;
 
 export interface SocialLink {
   label: string;

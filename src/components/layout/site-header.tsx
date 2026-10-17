@@ -16,6 +16,14 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/**
+ * Logo + a Reservasi button + a hamburger, mirroring
+ * meatguysteakhouse.com's header. The hamburger opens a full-screen menu
+ * (on every breakpoint, not just mobile) listing every page that doesn't
+ * have its own always-visible entry point — Ambiance, Collection, Rundown,
+ * Our Story each got their own route (see src/app/(public)/*), so picking
+ * one is a real navigation, not a scroll back to the homepage.
+ */
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -51,6 +59,13 @@ export function SiteHeader() {
   }, [open]);
 
   return (
+    // Fragment, not a single <header>: Firefox treats `position: sticky`
+    // as establishing a containing block for `position: fixed`
+    // descendants (most engines don't), which collapsed the full-screen
+    // overlay to zero height when it lived inside the sticky header. As a
+    // sibling instead, its `fixed` positioning is relative to the
+    // viewport everywhere.
+    <>
     <header
       className={cn(
         "sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
@@ -72,16 +87,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/cek-tiket"
-            className={buttonStyles({ variant: "secondary", size: "sm", className: "hidden md:inline-flex" })}
-          >
-            Cek Tiket
-          </Link>
-          <Link
-            href="/pesan"
-            className={buttonStyles({ size: "sm", className: "hidden md:inline-flex" })}
-          >
+          <Link href="/pesan" className={buttonStyles({ size: "sm" })}>
             <Ticket className="size-4" aria-hidden />
             Reservasi
           </Link>
@@ -91,49 +97,54 @@ export function SiteHeader() {
             type="button"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
-            aria-controls="menu-mobile"
+            aria-controls="menu-overlay"
             aria-label={open ? "Tutup menu" : "Buka menu"}
-            className="inline-flex size-11 items-center justify-center rounded-xl border border-line bg-surface text-ink transition-colors hover:bg-surface-raised md:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-xl border border-line bg-surface text-ink transition-colors hover:bg-surface-raised"
           >
             {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
           </button>
         </div>
       </Container>
+    </header>
 
-      <div id="menu-mobile" hidden={!open} className="border-t border-line bg-canvas md:hidden">
-        <Container className="flex flex-col gap-2 py-5">
-          <nav aria-label="Navigasi utama (seluler)">
+      <div
+        id="menu-overlay"
+        hidden={!open}
+        className="fixed inset-0 top-16 z-40 overflow-y-auto bg-canvas-deep/98 supports-[backdrop-filter]:backdrop-blur-2xl lg:top-[4.5rem]"
+      >
+        <Container className="flex min-h-full flex-col justify-start py-12 sm:py-16">
+          <nav aria-label="Navigasi utama">
             <ul className="flex flex-col gap-1">
               {mainNav.map((link, index) => {
                 const active = isActive(pathname, link.href);
                 return (
                   <li
                     key={link.href}
-                    className="motion-safe:animate-fade-up"
+                    className={cn(open && "motion-safe:animate-fade-up")}
                     style={{ animationDelay: `${index * 45}ms` }}
                   >
                     <Link
                       href={link.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex min-h-13 items-center justify-between rounded-xl px-4 text-base font-semibold transition-colors",
-                        active ? "bg-brand-soft text-brand-ink" : "text-ink hover:bg-surface-raised",
+                        "flex min-h-16 items-center justify-between border-b border-line text-2xl transition-colors sm:text-3xl",
+                        active ? "text-accent" : "text-ink hover:text-accent",
                       )}
                     >
                       {link.label}
-                      {active ? <span aria-hidden className="size-2 rounded-full bg-accent" /> : null}
+                      {active ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-accent" /> : null}
                     </Link>
                   </li>
                 );
               })}
             </ul>
           </nav>
-          <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-2 w-full" })}>
+          <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8 w-full sm:w-auto" })}>
             <Ticket className="size-4" aria-hidden />
             Reservasi
           </Link>
         </Container>
       </div>
-    </header>
+    </>
   );
 }
