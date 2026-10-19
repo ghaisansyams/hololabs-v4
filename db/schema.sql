@@ -1,9 +1,10 @@
--- Hololabs Exhibition — Booking Engine shared database (Neon Postgres)
+-- Hololabs Exhibition — Booking Engine shared database (plain Postgres)
 --
--- Run this once against the Neon project's database — either paste this
--- whole file into Neon's SQL Editor (Console → your project → SQL Editor)
--- and run it, or `psql "$DATABASE_URL" -f db/schema.sql`. Safe to re-run:
--- everything is IF NOT EXISTS / CREATE OR REPLACE.
+-- Run this once against your Postgres database — `psql "$DATABASE_URL" -f
+-- db/schema.sql`, or paste the whole file into whatever SQL console your
+-- host provides. Safe to re-run: everything is IF NOT EXISTS / CREATE OR
+-- REPLACE. Works against any plain Postgres server; Neon is also fine if
+-- that's what you're pointing DATABASE_URL at (see src/lib/db/client.ts).
 --
 -- Security model: every query in this app runs server-side only (Next.js
 -- Server Components and Server Actions — see src/lib/db/client.ts), using
