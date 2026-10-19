@@ -58,7 +58,7 @@ export function BookingWizard({
       <div className="flex min-h-dvh items-center justify-center px-6">
         <EmptyState
           title="Sistem pemesanan belum terhubung"
-          description="Database belum dikonfigurasi. Jalankan db/schema.sql di Neon, lalu isi DATABASE_URL di .env.local / Vercel."
+          description="Database belum dikonfigurasi. Jalankan db/schema.sql ke Postgres-mu, lalu isi DATABASE_URL di .env.local (atau environment hosting)."
           action={
             <Link href="/" className="text-sm font-semibold text-accent hover:underline">
               Kembali ke beranda
