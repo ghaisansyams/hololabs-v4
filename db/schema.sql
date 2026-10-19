@@ -3,8 +3,7 @@
 -- Run this once against your Postgres database — `psql "$DATABASE_URL" -f
 -- db/schema.sql`, or paste the whole file into whatever SQL console your
 -- host provides. Safe to re-run: everything is IF NOT EXISTS / CREATE OR
--- REPLACE. Works against any plain Postgres server; Neon is also fine if
--- that's what you're pointing DATABASE_URL at (see src/lib/db/client.ts).
+-- REPLACE.
 --
 -- Security model: every query in this app runs server-side only (Next.js
 -- Server Components and Server Actions — see src/lib/db/client.ts), using
