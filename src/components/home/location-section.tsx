@@ -12,7 +12,7 @@ import { DummyMapCard } from "@/components/home/dummy-map-card";
  */
 export function LocationSection() {
   return (
-    <section id="lokasi" className="pb-6 pt-14 sm:pb-8 sm:pt-20">
+    <section id="lokasi" className="pb-0 pt-8 sm:pt-10">
       <Container>
         <SectionHeading
           stagger

@@ -15,7 +15,7 @@ export function FaqSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="border-t border-line bg-canvas-deep py-20 sm:py-28">
+    <section id="faq" className="border-t border-line bg-canvas-deep py-10 sm:py-12">
       <Container className="max-w-2xl">
         <div className="text-center">
           <Reveal>

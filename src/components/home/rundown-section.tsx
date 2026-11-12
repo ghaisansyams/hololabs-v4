@@ -18,7 +18,7 @@ export async function RundownSection() {
   const total = rundown.steps.reduce((sum, step) => sum + (Number.parseInt(step.minutes, 10) || 0), 0);
 
   return (
-    <section id="rundown" className="relative overflow-hidden py-16 sm:py-24">
+    <section id="rundown" className="relative overflow-hidden py-12 sm:py-16">
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[36rem] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"

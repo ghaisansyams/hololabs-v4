@@ -30,7 +30,7 @@ export async function CollectionSection() {
   const list = collection.items;
 
   return (
-    <section id="collection" className="relative overflow-hidden py-16 sm:py-24">
+    <section id="collection" className="relative overflow-hidden py-12 sm:py-16">
       <div
         aria-hidden
         className="pointer-events-none absolute right-0 top-0 -z-10 size-[32rem] -translate-y-1/3 translate-x-1/4 rounded-full bg-accent/10 blur-3xl"

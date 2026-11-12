@@ -27,7 +27,7 @@ export async function SiteFooter() {
   ].filter((link) => !!link);
 
   return (
-    <footer className="mt-24 border-t border-line bg-canvas-deep/60">
+    <footer className="border-t border-line bg-canvas-deep/60">
       <Container className="py-14 lg:py-16">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5 lg:col-span-4">

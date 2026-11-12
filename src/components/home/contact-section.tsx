@@ -26,7 +26,7 @@ export async function ContactSection() {
   ].filter((l): l is { label: string; href: string; icon: keyof typeof icons } => Boolean(l));
 
   return (
-    <section className="border-t border-line py-12 sm:py-14">
+    <section className="border-t border-line py-8 sm:py-10">
       <Container className="text-center">
         <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted">{contact.scheduleInfo}</p>

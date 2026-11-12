@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CekTiketPage() {
   return (
-    <Container as="section" className="max-w-lg py-10 sm:py-14">
+    <Container as="section" className="max-w-lg py-12 sm:py-16">
       <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Cek & Check-in Tiket</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
         Untuk petugas di lokasi: masukkan nomor booking dan nomor WhatsApp pemesan untuk memvalidasi

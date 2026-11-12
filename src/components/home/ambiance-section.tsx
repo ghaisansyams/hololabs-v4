@@ -17,7 +17,7 @@ export async function AmbianceSection() {
   const { ambiance } = await getSiteContent();
 
   return (
-    <section id="ambiance" className="py-20 sm:py-28">
+    <section id="ambiance" className="py-12 sm:py-16">
       <Container className="max-w-3xl text-center">
         <Reveal>
           <Eyebrow className="justify-center">{ambiance.eyebrow}</Eyebrow>

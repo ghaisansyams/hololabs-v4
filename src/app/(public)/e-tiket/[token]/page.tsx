@@ -24,7 +24,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
   const qr = await qrDataUrl(booking.bookingNumber);
 
   return (
-    <Container as="section" className="max-w-xl py-10 sm:py-14">
+    <Container as="section" className="max-w-xl py-12 sm:py-16">
       <div className="print-area mx-auto overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-lift">
         <div className="flex items-center justify-between bg-gradient-to-r from-brand-dark to-accent-dark px-6 py-5">
           <LogoMark className="size-9" />

@@ -15,7 +15,7 @@ export async function AboutSection() {
   const { about } = await getSiteContent();
 
   return (
-    <section id="about" className="py-14 sm:py-20">
+    <section id="about" className="py-8 sm:py-10">
       <Container className="max-w-3xl text-center">
         <Reveal>
           <Eyebrow className="justify-center">{about.eyebrow}</Eyebrow>
@@ -35,7 +35,7 @@ export async function AboutSection() {
         </Reveal>
       </Container>
 
-      <Container className="mt-14 sm:mt-20">
+      <Container className="mt-16 sm:mt-20">
         <div className="text-center">
           <Reveal>
             <Eyebrow className="justify-center">Our Best Works</Eyebrow>

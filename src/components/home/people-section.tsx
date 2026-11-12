@@ -17,8 +17,8 @@ export async function PeopleSection() {
   const { people } = await getSiteContent();
 
   return (
-    <section id="people" className="py-14 sm:py-20">
-      <Container className="space-y-14 sm:space-y-20">
+    <section id="people" className="py-8 sm:py-10">
+      <Container className="space-y-16 sm:space-y-20">
         <Profile
           heading={people.founderHeading}
           subtitle={people.founderSubtitle}

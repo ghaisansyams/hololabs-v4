@@ -32,7 +32,7 @@ export default async function PaymentPage({
   const awaitingConfirmation = booking.paymentStatus === "SUBMITTED";
 
   return (
-    <Container as="section" className="max-w-xl py-10 sm:py-14">
+    <Container as="section" className="max-w-xl py-12 sm:py-16">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-accent">Booking</p>

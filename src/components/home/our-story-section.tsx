@@ -15,7 +15,7 @@ export async function OurStorySection() {
   const { ourStory } = await getSiteContent();
 
   return (
-    <section id="our-story" className="py-16 sm:py-24">
+    <section id="our-story" className="py-12 sm:py-16">
       <Container>
         <SectionHeading
           stagger
