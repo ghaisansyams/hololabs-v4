@@ -43,10 +43,7 @@ row-locking auto-routing, `admin_mark_paid`, ...) stay as SQL functions in
 a local one for development, a VPS you run yourself, or a managed instance
 from whatever host you deploy to. Every database call happens server-side
 only (Server Components / Server Actions), so `DATABASE_URL` is a plain
-connection string, never a public/anon key. This is a different setup from
-Spero's other booking microsite (`kelas-bermain`), which is Supabase-backed
-and reachable straight from the browser via RLS + an anon key — that model
-doesn't apply here.
+connection string, never a public/anon key.
 
 ## Local setup
 

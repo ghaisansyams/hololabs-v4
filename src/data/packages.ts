@@ -2,10 +2,10 @@ import type { Package } from "@/lib/types";
 
 /**
  * Marketing-page copy of the F&B package catalogue — mirrors the seed rows
- * in supabase/schema.sql exactly, so the landing page reads well even before
+ * in db/schema.sql exactly, so the landing page reads well even before
  * a database is wired up. The booking flow itself always reads the live
  * `packages` table (see lib/services/availability.ts), never this file, so
- * an admin changing a price in Supabase can never drift from what a guest
+ * an admin changing a price in the admin panel can never drift from what a guest
  * actually pays.
  */
 export const packagesPreview: Package[] = [

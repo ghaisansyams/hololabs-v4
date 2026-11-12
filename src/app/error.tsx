@@ -14,7 +14,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Replace with a real reporter (Sentry, Vercel Monitoring) when available.
+    // Replace with a real reporter (for example Sentry) when available.
     console.error(error);
   }, [error]);
 

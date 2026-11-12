@@ -1,7 +1,7 @@
 /**
  * Domain model for the Hololabs booking engine.
  *
- * Mirrors supabase/schema.sql table-for-table. A "session" is one bookable
+ * Mirrors db/schema.sql table-for-table. A "session" is one bookable
  * one-hour slot (max 13 seats); a "package" is an F&B bundle priced per
  * seat; a "booking" ties a customer to one session + package + seat count.
  */

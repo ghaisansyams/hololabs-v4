@@ -8,12 +8,10 @@
 -- Security model: every query in this app runs server-side only (Next.js
 -- Server Components and Server Actions — see src/lib/db/client.ts), using
 -- the single connection string from `DATABASE_URL`. That string is the only
--- secret; there is no separate anon/public key and no RLS, unlike a
--- Supabase-backed sibling project (Kelas Bermain) where the database is
--- reachable straight from the browser. Functions stay SECURITY DEFINER
--- mostly out of habit — harmless here since the connection role already
--- owns everything, but it keeps this schema portable back to Supabase later
--- if that's ever needed.
+-- secret; there is no separate anon/public key and no RLS, because the
+-- database is never reachable from the browser. Functions stay SECURITY
+-- DEFINER mostly out of habit — harmless here since the connection role
+-- already owns everything.
 --
 -- Domain, per the 16 Sept 2026 meeting notes (Spero x Hololabs):
 --   - One exhibition, several days, 3 one-hour slots per day (18.00–21.00 WIB).
