@@ -71,7 +71,7 @@ export async function AboutSection() {
                       alt={work.client}
                       width={200}
                       height={80}
-                      className="h-auto max-h-16 w-auto max-w-full object-contain"
+                      className="h-auto max-h-[4.5rem] w-auto max-w-full object-contain"
                     />
                   </div>
                 ))}
