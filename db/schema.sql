@@ -106,14 +106,16 @@ create table if not exists sessions (
 );
 create index if not exists sessions_date_idx on sessions (session_date, slot_index);
 
--- Seed the exhibition run once: 5 days, 2 one-and-a-half-hour shows per
--- day, 18.00–21.00 WIB, 13 seats per show (client's 7 Oct 2026 revision).
+-- Seed a first run once: the 5 days starting tomorrow, 2 one-and-a-half-hour
+-- shows per day, 18.00–21.00 WIB, 13 seats per show (client's 7 Oct 2026
+-- revision). Starting from "tomorrow" keeps a fresh install bookable; set the
+-- real exhibition dates from /admin/sessions.
 -- Only runs while the table is empty: after that the schedule is owned by
 -- the admin panel (/admin/sessions), and re-running this file must never
 -- overwrite what the team has set there.
 insert into sessions (session_date, slot_index, start_time, end_time, capacity)
 select d::date, times.slot, times.start_time, times.end_time, 13
-from generate_series('2026-10-15'::date, '2026-10-19'::date, interval '1 day') as d
+from generate_series(current_date + 1, current_date + 5, interval '1 day') as d
 cross join (
   values (0, '18:00'::time, '19:30'::time),
          (1, '19:30'::time, '21:00'::time)
