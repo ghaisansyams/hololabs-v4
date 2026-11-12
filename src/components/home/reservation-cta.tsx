@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/container";
  */
 export function ReservationCta() {
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-6 sm:py-8">
       <Container className="flex justify-center">
         <Reveal variant="zoom">
           <Link
