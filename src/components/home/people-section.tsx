@@ -84,14 +84,17 @@ function Profile({
         </div>
       </Reveal>
 
-      <div className="mt-8 grid items-center gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-12">
+      <div
+        className={cn(
+          "mt-8 grid items-center gap-6 sm:mt-10 lg:gap-12",
+          // The photo is pinned to the outer edge of the container (left for
+          // the founder, right for the second profile), flush with the text
+          // block's own edge; the text takes whatever width is left.
+          reverse ? "lg:grid-cols-[1fr_500px]" : "lg:grid-cols-[500px_1fr]",
+        )}
+      >
         <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "lg:order-2")}>
-          <div
-            className={cn(
-              "relative mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center border border-line bg-surface",
-              reverse ? "lg:ml-0" : "lg:mr-0",
-            )}
-          >
+          <div className="relative mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center border border-line bg-surface lg:mx-0">
             <Image
               src="/hololabs-mark.png"
               alt={name}
