@@ -10,11 +10,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   if (!isDatabaseConfigured() || !/^[0-9a-f-]{36}$/i.test(id)) return new Response("Not found", { status: 404 });
 
-  const [row] = await getDb()
-    .select({ data: schema.cmsMedia.data, contentType: schema.cmsMedia.contentType })
-    .from(schema.cmsMedia)
-    .where(eq(schema.cmsMedia.id, id))
-    .limit(1);
+  let row;
+  try {
+    [row] = await getDb()
+      .select({ data: schema.cmsMedia.data, contentType: schema.cmsMedia.contentType })
+      .from(schema.cmsMedia)
+      .where(eq(schema.cmsMedia.id, id))
+      .limit(1);
+  } catch {
+    // Database unreachable: answer cleanly instead of with a stack trace.
+    return new Response("Layanan sedang tidak tersedia.", { status: 503, headers: { "Retry-After": "30" } });
+  }
   if (!row) return new Response("Not found", { status: 404 });
 
   return new Response(new Uint8Array(row.data), {
