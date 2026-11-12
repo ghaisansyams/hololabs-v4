@@ -3,6 +3,9 @@ import { ambianceStats } from "@/data/ambiance";
 import { collectionItems } from "@/data/collection";
 import { journeySteps, journeyDurationLabel } from "@/data/journey";
 import { storyIntro, philosophy, dnaTraits, manifesto } from "@/data/story";
+import { bestWorks } from "@/data/best-works";
+import { faqItems } from "@/data/faq";
+import { mainNav } from "@/data/site";
 
 /**
  * Editable website content (CMS) — Hololabs v4.
@@ -19,7 +22,12 @@ import { storyIntro, philosophy, dnaTraits, manifesto } from "@/data/story";
  * exactly what the site shows before an admin edits anything.
  */
 
-export type TextField = { key: string; label: string; type: "text" | "textarea"; max?: number };
+/**
+ * `image` holds a URL path ("/media/<id>" for an upload, or one of the
+ * images shipped in /public); `url` holds a link ("/path", "#anchor" or
+ * "https://..."). Both are validated in sanitizeSection.
+ */
+export type TextField = { key: string; label: string; type: "text" | "textarea" | "image" | "url"; max?: number; hint?: string };
 export type TagsField = { key: string; label: string; type: "tags"; hint?: string };
 export type ListField = {
   key: string;
@@ -41,13 +49,48 @@ export interface SectionDef {
 
 const t = (key: string, label: string, max = 160): TextField => ({ key, label, type: "text", max });
 const ta = (key: string, label: string, max = 600): TextField => ({ key, label, type: "textarea", max });
+const img = (key: string, label: string, hint?: string): TextField => ({ key, label, type: "image", max: 200, hint });
+const url = (key: string, label: string, hint?: string): TextField => ({ key, label, type: "url", max: 300, hint });
 
 export const sections = [
+  {
+    key: "brand",
+    label: "Logo & identitas situs",
+    description: "Logo di header, footer, admin, dan halaman pemesanan, plus judul dan deskripsi yang muncul di Google.",
+    fields: [
+      img("logoLockup", "Logo lengkap (ikon + tulisan)", "Dipakai di header, footer, admin. PNG transparan, rasio mendatar."),
+      img("logoMark", "Logo ikon saja", "Dipakai di e-tiket dan halaman 404. PNG transparan."),
+      t("siteName", "Nama situs", 40),
+      t("seoTitle", "Judul di Google & tab browser", 120),
+      ta("seoDescription", "Deskripsi di Google", 300),
+    ],
+  },
+  {
+    key: "navigation",
+    label: "Menu & tombol",
+    description: "Teks tombol Reservasi, isi menu hamburger (juga dipakai di footer), dan gambar panel menu.",
+    fields: [
+      t("reservationLabel", "Teks tombol Reservasi", 30),
+      {
+        key: "menuItems",
+        label: "Isi menu",
+        type: "list",
+        itemLabel: "Menu",
+        min: 1,
+        max: 10,
+        fields: [t("label", "Nama menu", 30), url("href", "Tujuan link", "Mis. /ambiance atau /#faq")],
+      },
+      img("menuImage", "Gambar panel menu (kiri)"),
+      t("menuEyebrow", "Label kecil di panel menu", 40),
+      t("menuTagline", "Kalimat di panel menu", 80),
+    ],
+  },
   {
     key: "hero",
     label: "Hero (bagian paling atas)",
     description: "Judul besar dan kalimat pembuka.",
     fields: [
+      img("backgroundImage", "Gambar latar hero"),
       t("badge", "Label kecil di atas judul"),
       t("title", "Judul (bagian putih)"),
       t("titleAccent", "Judul (bagian berwarna gradien)"),
@@ -67,6 +110,24 @@ export const sections = [
     ],
   },
   {
+    key: "bestWorks",
+    label: "Our Best Works",
+    description: "Daftar proyek klien dan logo yang berjalan sebagai marquee di bawah About Us.",
+    fields: [
+      t("eyebrow", "Label section"),
+      t("title", "Judul section"),
+      {
+        key: "items",
+        label: "Proyek",
+        type: "list",
+        itemLabel: "Proyek",
+        min: 0,
+        max: 24,
+        fields: [t("title", "Nama proyek", 100), t("client", "Nama klien", 60), img("logo", "Logo klien", "Kosongkan kalau tidak ada logo.")],
+      },
+    ],
+  },
+  {
     key: "people",
     label: "Founder & Tim",
     description:
@@ -76,11 +137,13 @@ export const sections = [
       t("founderSubtitle", "Subjudul founder", 120),
       t("founderName", "Nama founder", 60),
       t("founderTitle", "Jabatan founder", 80),
+      img("founderPhoto", "Foto founder", "Foto persegi paling pas. Bawaan: logo Hololabs."),
       ta("founderBio", "Bio founder", 2400),
       t("leadHeading", "Judul bagian profil kedua", 60),
       t("leadSubtitle", "Subjudul profil kedua", 120),
       t("leadName", "Nama", 60),
       t("leadTitle", "Jabatan", 80),
+      img("leadPhoto", "Foto profil kedua", "Foto persegi paling pas. Bawaan: logo Hololabs."),
       ta("leadBio", "Bio", 2400),
     ],
   },
@@ -92,6 +155,9 @@ export const sections = [
       t("eyebrow", "Label section"),
       t("title", "Judul section"),
       ta("description", "Deskripsi suasana/tempat", 400),
+      img("image", "Gambar suasana"),
+      t("imageAlt", "Deskripsi gambar (untuk pembaca layar)", 200),
+      t("imageCaption", "Keterangan di atas gambar", 120),
       {
         key: "stats",
         label: "Angka suasana",
@@ -162,6 +228,8 @@ export const sections = [
       t("eyebrow", "Label section"),
       ta("statement", "Pernyataan utama", 160),
       ta("lead", "Paragraf pembuka", 500),
+      img("image", "Gambar Our Story", "Ditampilkan di atas latar putih."),
+      t("imageAlt", "Deskripsi gambar (untuk pembaca layar)", 200),
       ta("philosophyQuote", "Kutipan filosofi", 160),
       ta("philosophyBody", "Paragraf filosofi", 500),
       {
@@ -177,6 +245,40 @@ export const sections = [
     ],
   },
   {
+    key: "location",
+    label: "Lokasi",
+    description: "Judul, gambar peta, dan link Google Maps di bagian Lokasi halaman depan.",
+    fields: [
+      t("eyebrow", "Label section"),
+      t("title", "Judul section"),
+      ta("description", "Deskripsi section", 240),
+      img("mapImage", "Gambar peta"),
+      url("mapLink", "Link Google Maps", "Tempel link dari Google Maps (https://…)."),
+      t("mapBadge", "Label di atas gambar peta", 30),
+      t("cardTitle", "Judul kartu peta", 60),
+      t("cardSubtitle", "Keterangan kartu peta", 100),
+      t("cardCta", "Teks tombol di kartu peta", 40),
+    ],
+  },
+  {
+    key: "faq",
+    label: "FAQ",
+    description: "Pertanyaan yang sering diajukan. Jawaban pertama tampil terbuka.",
+    fields: [
+      t("eyebrow", "Label section"),
+      t("title", "Judul section"),
+      {
+        key: "items",
+        label: "Pertanyaan",
+        type: "list",
+        itemLabel: "Pertanyaan",
+        min: 0,
+        max: 20,
+        fields: [t("question", "Pertanyaan", 160), ta("answer", "Jawaban", 600)],
+      },
+    ],
+  },
+  {
     key: "contact",
     label: "Kontak & footer",
     description: "Nomor WhatsApp admin (dipakai juga untuk tombol konfirmasi pembayaran), email, Instagram, dan teks footer.",
@@ -186,6 +288,10 @@ export const sections = [
       t("instagram", "Instagram (tanpa @)", 60),
       ta("footerText", "Deskripsi di footer", 400),
       t("scheduleInfo", "Info jadwal di footer", 120),
+      t("footerNavTitle", "Judul kolom menu di footer", 40),
+      t("footerScheduleTitle", "Judul kolom info sesi di footer", 40),
+      t("footerWhatsappNote", "Kalimat sebelum nomor WhatsApp di footer", 120),
+      t("footerCopyright", "Nama di baris hak cipta", 60),
     ],
   },
 ] as const satisfies readonly SectionDef[];
@@ -193,7 +299,22 @@ export const sections = [
 export type SectionKey = (typeof sections)[number]["key"];
 
 export const defaults = {
+  brand: {
+    logoLockup: "/hololabs-lockup.png",
+    logoMark: "/hololabs-mark.png",
+    siteName: siteConfig.name,
+    seoTitle: `${siteConfig.name} — ${siteConfig.tagline}`,
+    seoDescription: String(siteConfig.description),
+  },
+  navigation: {
+    reservationLabel: "Reservasi",
+    menuItems: mainNav.map(({ label, href }) => ({ label, href })),
+    menuImage: "/renders/ambiance-hall.jpg",
+    menuEyebrow: siteConfig.name,
+    menuTagline: "A Creative Technology Lab",
+  },
   hero: {
+    backgroundImage: "/renders/ambiance-hall.jpg",
     badge: `${siteConfig.shortName} · A Creative Technology Lab`,
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
@@ -208,7 +329,14 @@ export const defaults = {
     bodyLong:
       "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
   },
+  bestWorks: {
+    eyebrow: "Our Best Works",
+    title: "Proyek yang sudah kami kerjakan",
+    items: bestWorks.map(({ title, client, logo }) => ({ title, client, logo })),
+  },
   people: {
+    founderPhoto: "/hololabs-mark.png",
+    leadPhoto: "/hololabs-mark.png",
     founderHeading: "Meet Our Founder",
     founderSubtitle: "The visionary behind Hololabs",
     founderName: "Nama Founder",
@@ -231,6 +359,9 @@ export const defaults = {
     ].join("\n\n"),
   },
   ambiance: {
+    image: "/renders/ambiance-hall.jpg",
+    imageAlt: "Render suasana ruang Hololabs — koridor imersif dengan dinding LED",
+    imageCaption: "Ilustrasi render — belum foto venue asli.",
     eyebrow: "Ambiance",
     title: "Satu ruang, banyak dimensi pengalaman.",
     description:
@@ -258,6 +389,8 @@ export const defaults = {
     steps: journeySteps.map((step) => ({ ...step })),
   },
   ourStory: {
+    image: "/renders/story-glass-logo.jpg",
+    imageAlt: "Logo Hololabs dalam bentuk kaca 3D, simbol pertemuan dunia fisik dan digital",
     eyebrow: storyIntro.eyebrow,
     statement: storyIntro.statement,
     lead: storyIntro.lead,
@@ -266,7 +399,27 @@ export const defaults = {
     traits: dnaTraits.map(({ title, description }) => ({ title, description })),
     manifesto: [...manifesto],
   },
+  location: {
+    eyebrow: "Lokasi",
+    title: "Temukan Hololabs",
+    description: "Klik peta di bawah untuk rute lengkap ke lokasi. Tanggal dan sesi dipilih saat reservasi.",
+    mapImage: "/renders/map.jpg",
+    mapLink: "https://maps.app.goo.gl/UJTHbjNEDMiDtwdx7",
+    mapBadge: "Open in Maps",
+    cardTitle: "Lokasi Hololabs",
+    cardSubtitle: "Klik untuk buka rute di Google Maps.",
+    cardCta: "Buka di Google Maps",
+  },
+  faq: {
+    eyebrow: "FAQ",
+    title: "Pertanyaan yang sering ditanyakan",
+    items: faqItems.map(({ question, answer }) => ({ question, answer })),
+  },
   contact: {
+    footerNavTitle: "Jelajahi",
+    footerScheduleTitle: "Informasi Sesi",
+    footerWhatsappNote: "Konfirmasi pembayaran & pertanyaan lain lewat WhatsApp:",
+    footerCopyright: siteConfig.name,
     whatsapp: String(siteConfig.whatsapp),
     email: String(siteConfig.email),
     instagram: "hololabs.exhibition",
