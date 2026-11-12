@@ -93,7 +93,7 @@ export function BookingWizard({
       </div>
 
       <div className="mt-10 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">Reservasi</p>
+        <h1 className="font-sans text-xs font-bold uppercase tracking-[0.22em] text-accent">Reservasi</h1>
       </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[22rem_1fr]">
@@ -157,7 +157,6 @@ export function BookingWizard({
             <form action={formAction}>
               <input type="hidden" name="sessionId" value={sessionId} />
               <input type="hidden" name="packageId" value={packageId} />
-              <input type="hidden" name="unitPrice" value={selectedPackage?.price ?? 0} />
               <input type="hidden" name="seats" value={seats} />
 
               <button

@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { rows } from "@/lib/db/client";
+import { and, eq, sql } from "drizzle-orm";
+import { dbErrorMessage, getDb, rows, schema } from "@/lib/db/client";
 import type { ContactFormValues } from "@/lib/utils/validation";
 import type { BookingView, BookingStatus, CheckinStatus, PaymentStatus } from "@/lib/types";
 import { createPayment } from "./payment";
@@ -8,7 +8,6 @@ export interface CreateBookingRequest {
   sessionId: string;
   packageId: string;
   seats: number;
-  unitPrice: number;
   contact: ContactFormValues;
 }
 
@@ -44,7 +43,7 @@ function mapBookingView(row: any): BookingView {
 const PAYMENT_WINDOW_MINUTES = 60;
 
 export async function createBooking(request: CreateBookingRequest): Promise<CreateBookingResult> {
-  const { contact, sessionId, packageId, seats, unitPrice } = request;
+  const { contact, sessionId, packageId, seats } = request;
 
   let customer;
   try {
@@ -58,14 +57,22 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
     return { ok: false, error: "Gagal menyimpan data pemesan. Coba lagi sebentar lagi." };
   }
 
-  const amount = unitPrice * seats;
+  // The price always comes from the database, never from the form: a request
+  // could otherwise carry any unit price it likes.
+  const [pkg] = await getDb()
+    .select({ price: schema.packages.price })
+    .from(schema.packages)
+    .where(and(eq(schema.packages.id, packageId), eq(schema.packages.active, true)))
+    .limit(1);
+  if (!pkg) return { ok: false, error: "Paket yang dipilih tidak tersedia. Pilih paket lain." };
+  const amount = Number(pkg.price) * seats;
   let booking;
   try {
     [booking] = await rows<{ id: string; access_token: string; auto_routed: boolean }>(
       sql`select * from create_booking(${customer.id}::uuid, ${sessionId}::uuid, ${packageId}, ${seats}::int, ${amount}::numeric)`,
     );
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "";
+    const message = dbErrorMessage(cause);
     if (message.includes("NO_AVAILABILITY")) {
       return {
         ok: false,
@@ -117,7 +124,7 @@ export async function checkInBooking(bookingNumber: string, whatsapp: string): P
       alreadyCheckedIn: row.already_checked_in,
     };
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "";
+    const message = dbErrorMessage(cause);
     if (message.includes("NOT_FOUND")) {
       return { ok: false, error: "Nomor booking tidak ditemukan." };
     }

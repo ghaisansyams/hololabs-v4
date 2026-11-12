@@ -13,7 +13,6 @@ export async function submitBooking(_prev: BookingFormState, formData: FormData)
   const sessionId = String(formData.get("sessionId") ?? "");
   const packageId = String(formData.get("packageId") ?? "");
   const seats = Number(formData.get("seats") ?? 0);
-  const unitPrice = Number(formData.get("unitPrice") ?? 0);
 
   const contact: ContactFormValues = {
     fullName: String(formData.get("fullName") ?? ""),
@@ -36,7 +35,7 @@ export async function submitBooking(_prev: BookingFormState, formData: FormData)
     return { fieldErrors };
   }
 
-  const result = await createBooking({ sessionId, packageId, seats, unitPrice, contact });
+  const result = await createBooking({ sessionId, packageId, seats, contact });
   if (!result.ok) {
     return { error: result.error };
   }
