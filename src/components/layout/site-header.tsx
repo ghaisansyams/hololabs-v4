@@ -44,8 +44,13 @@ export function SiteHeader() {
 
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Lock scrolling on <html>, not <body>. <html> has `overflow-x: clip`
+    // (see globals.css), so Firefox doesn't hand a body `overflow: hidden`
+    // up to the viewport; the body became its own scroll container, the
+    // sticky header scrolled away and the page showed through the overlay.
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
@@ -54,7 +59,7 @@ export function SiteHeader() {
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previous;
+      root.style.overflow = previous;
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
@@ -70,7 +75,9 @@ export function SiteHeader() {
     <header
       className={cn(
         "sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
-        scrolled || open
+        open
+          ? "border-b border-line bg-canvas-deep"
+          : scrolled
           ? "border-b border-line bg-canvas/95 supports-[backdrop-filter]:bg-canvas/75 supports-[backdrop-filter]:backdrop-blur-xl"
           : "border-b border-transparent bg-canvas/70 supports-[backdrop-filter]:bg-canvas/40 supports-[backdrop-filter]:backdrop-blur-md",
       )}
@@ -111,7 +118,7 @@ export function SiteHeader() {
       <div
         id="menu-overlay"
         hidden={!open}
-        className="fixed inset-0 top-16 z-40 overflow-y-auto bg-canvas-deep/98 supports-[backdrop-filter]:backdrop-blur-2xl lg:top-[4.5rem]"
+        className="fixed inset-0 top-16 z-40 overflow-y-auto bg-canvas-deep lg:top-[4.5rem]"
       >
         <div className="grid min-h-full lg:grid-cols-2">
           {/* Dummy image panel, matching the reference's menu layout — no
