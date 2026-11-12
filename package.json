@@ -15,7 +15,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.46.0",
-    "next": "15.5.25",
+    "next": "^15.5.29",
     "pg": "^8.23.1",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
@@ -33,7 +33,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "15.5.25",
+    "eslint-config-next": "^15.5.29",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5"
