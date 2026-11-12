@@ -68,15 +68,33 @@ work:
    into your hosting provider's environment variables for production).
 4. Also set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` (see
    `.env.example`) — required for `/admin`.
-5. Adjust the exhibition date range in `db/schema.sql`'s seed insert once
-   real dates are confirmed, then re-run the seed portion (or manage
-   sessions from `/admin/sessions` instead).
+5. Seed the starting data (see below), then set the real exhibition dates
+   from `/admin/sessions`.
+
+### Seeding data
+
+`db/seed.ts` (Drizzle) is the data seeder. It reads `DATABASE_URL` from
+`.env.local` or the environment, and is safe to re-run: packages and
+sessions that already exist are left untouched.
+
+```bash
+npm run db:seed                   # 3 packages + the next 5 days of shows
+npm run db:seed -- --days=10      # ...the next 10 days instead
+npm run db:seed -- --demo         # + 8 demo customers/bookings in every status
+npm run db:seed -- --clean-demo   # remove the demo data (seats and numbers restored)
+```
+
+The demo bookings (pending, waiting for confirmation, paid, checked in,
+cancelled) go through the same SQL functions as the website, so `/admin`
+shows realistic numbers. They are tagged with a `@demo.hololabs.local` email
+so `--clean-demo` only removes them, never real bookings.
 
 ## Structure
 
 - `db/schema.sql` — the database's source of truth: tables and every SQL function the app calls.
 - `src/lib/db/schema.ts` — the Drizzle table definitions, mirroring `db/schema.sql` (change both together).
 - `src/lib/db/client.ts` — the one place that opens a database connection (the Drizzle instance).
+- `db/seed.ts` — the data seeder (`npm run db:seed`).
 - `drizzle.config.ts` — tooling only (`npm run db:studio`); don't `drizzle-kit push` onto this database.
 - `src/lib/services/` — the only code that talks to the database.
 - `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`.
