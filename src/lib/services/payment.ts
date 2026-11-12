@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { rows } from "@/lib/db/client";
+import { dbErrorMessage, rows } from "@/lib/db/client";
 
 /**
  * Manual bank transfer — no payment gateway is wired yet (no merchant
@@ -35,7 +35,7 @@ export async function submitPaymentProof(
     await rows(sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null}::text)`);
     return { ok: true };
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "";
+    const message = dbErrorMessage(cause);
     if (message.includes("NOT_ELIGIBLE")) {
       return { ok: false, error: "Booking ini sudah ditransfer atau statusnya sudah berubah." };
     }

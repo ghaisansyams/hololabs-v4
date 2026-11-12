@@ -48,3 +48,18 @@ export function getDb(): Db {
 export async function rows<T = Record<string, unknown>>(query: SQL): Promise<T[]> {
   return (await getDb().execute(query)).rows as T[];
 }
+
+/**
+ * The text of a database error including whatever it wraps. Drizzle reports a
+ * failed query as "Failed query: ..." and keeps the actual Postgres error
+ * (e.g. `CONTACT_MISMATCH`, raised by our SQL functions) in `cause`, so
+ * matching on `error.message` alone never sees it.
+ */
+export function dbErrorMessage(error: unknown): string {
+  const parts: string[] = [];
+  for (let current: unknown = error, depth = 0; current instanceof Error && depth < 5; depth++) {
+    parts.push(current.message);
+    current = current.cause;
+  }
+  return parts.join(" | ");
+}
