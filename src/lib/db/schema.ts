@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  customType,
   date,
   index,
   integer,
@@ -22,6 +23,12 @@ import {
  * express. Update both together. Dates/times use `mode: "string"` so the UI
  * always gets plain "YYYY-MM-DD" / "HH:MM:SS" strings.
  */
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const packages = pgTable("packages", {
   id: text("id").primaryKey(),
@@ -105,6 +112,15 @@ export const cmsContent = pgTable("cms_content", {
   key: text("key").primaryKey(),
   value: jsonb("value").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+});
+
+export const cmsMedia = pgTable("cms_media", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  filename: text("filename").notNull().default(""),
+  contentType: text("content_type").notNull(),
+  size: integer("size").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
 });
 
 export const numberCounters = pgTable(

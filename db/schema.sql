@@ -465,6 +465,19 @@ create table if not exists cms_content (
   updated_at timestamptz not null default now()
 );
 
+-- Images uploaded from the admin panel (logo, hero, photos, ...). Stored in
+-- the database itself so the site needs no writable disk or object storage
+-- on the host; served by src/app/media/[id]/route.ts. The CMS only keeps the
+-- "/media/<id>" URL in cms_content.
+create table if not exists cms_media (
+  id uuid primary key default gen_random_uuid(),
+  filename text not null default '',
+  content_type text not null,
+  size int not null,
+  data bytea not null,
+  created_at timestamptz not null default now()
+);
+
 -- ------------------------------------------------------------------
 -- Session management from the admin panel (ERP)
 -- ------------------------------------------------------------------
