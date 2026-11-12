@@ -89,9 +89,9 @@ export function SiteHeader() {
         Lompat ke konten
       </a>
 
-      <Container className="flex h-16 items-center justify-between gap-4 lg:h-[4.5rem]">
+      <Container className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
         <Link href="/" aria-label="Hololabs — beranda" className="shrink-0">
-          <Logo />
+          <Logo className="h-12 sm:h-14" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export function SiteHeader() {
       <div
         id="menu-overlay"
         hidden={!open}
-        className="fixed inset-0 top-16 z-40 overflow-y-auto bg-canvas-deep lg:top-[4.5rem]"
+        className="fixed inset-0 top-[4.5rem] z-40 overflow-y-auto bg-canvas-deep lg:top-20"
       >
         <div className="grid min-h-full lg:grid-cols-2">
           {/* Dummy image panel, matching the reference's menu layout — no
