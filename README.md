@@ -97,7 +97,8 @@ so `--clean-demo` only removes them, never real bookings.
 - `db/seed.ts` — the data seeder (`npm run db:seed`).
 - `drizzle.config.ts` — tooling only (`npm run db:studio`); don't `drizzle-kit push` onto this database.
 - `src/lib/services/` — the only code that talks to the database.
-- `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`.
+- `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`. Every public text, image, link and menu item is a field here (logo, hero, About/Best Works, people, Ambiance, Our Story, Lokasi, FAQ, menu, footer, SEO title). Only the fonts and the favicon (`src/app/icon.png`) live in code.
+- `src/app/admin/api/media` + `src/app/media/[id]` — image upload (admin only) and serving. Uploads are stored in the `cms_media` table (PNG/JPG/WebP/GIF, up to 5 MB), so no writable disk is needed on the host. If you already have a database, re-run `db/schema.sql` to add that table.
 - `src/app/pesan` — the full-screen reservation flow (own layout, no site header/footer).
 - `src/app/(public)/pembayaran/[token]` — bank-transfer payment + proof upload.
 - `src/app/(public)/e-tiket/[token]` — the e-ticket, shown once paid.
