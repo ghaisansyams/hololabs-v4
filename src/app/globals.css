@@ -244,7 +244,7 @@
      actually be read; prefers-reduced-motion freezes it like every other
      animation on the site (see that media query below). */
   .holo-marquee {
-    animation: holo-marquee-scroll 26s linear infinite;
+    animation: holo-marquee-scroll 34s linear infinite;
   }
   .holo-marquee:hover,
   .holo-marquee:focus-within {

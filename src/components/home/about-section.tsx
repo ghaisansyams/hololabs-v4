@@ -62,14 +62,14 @@ export async function AboutSection() {
               {[...bestWorks, ...bestWorks].map((work, index) => (
                 <div
                   key={`${work.client}-${index}`}
-                  className="flex h-20 w-40 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface p-4"
+                  className="flex h-28 w-56 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface p-5"
                 >
                   <Image
                     src={work.logo}
                     alt={work.client}
-                    width={120}
-                    height={48}
-                    className="h-auto max-h-10 w-auto max-w-full object-contain"
+                    width={200}
+                    height={80}
+                    className="h-auto max-h-16 w-auto max-w-full object-contain"
                   />
                 </div>
               ))}
