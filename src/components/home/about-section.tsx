@@ -56,7 +56,7 @@ export async function AboutSection() {
         </div>
 
         <Reveal delay={200}>
-          <div className="holo-marquee-mask mt-12">
+          <div className="holo-marquee-mask mt-12 overflow-hidden">
             <div className="holo-marquee flex w-max items-center gap-4 py-2">
               {[...bestWorks, ...bestWorks].map((work, index) => (
                 <div
