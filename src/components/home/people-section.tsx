@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils/cn";
  * alternating blocks: a centred heading with a one-line subtitle, then a
  * square photo beside the name, role and a few justified paragraphs with
  * bold highlights. Everything is square-cornered and tightly spaced.
- * Real photos supplied by the client; the copy is lorem ipsum until real
- * bios arrive (editable from Admin -> Konten Website -> Founder & Tim).
+ * The portrait slot shows the Hololabs icon until real photos and bios arrive;
+ * the copy is lorem ipsum for now (editable from Admin -> Konten Website -> Founder & Tim).
  */
 export async function PeopleSection() {
   const { people } = await getSiteContent();
@@ -20,7 +20,6 @@ export async function PeopleSection() {
     <section id="people" className="py-14 sm:py-20">
       <Container className="space-y-14 sm:space-y-20">
         <Profile
-          photo="/people/founder.jpg"
           heading={people.founderHeading}
           subtitle={people.founderSubtitle}
           name={people.founderName}
@@ -29,7 +28,6 @@ export async function PeopleSection() {
         />
         <Profile
           reverse
-          photo="/people/lead.jpg"
           heading={people.leadHeading}
           subtitle={people.leadSubtitle}
           name={people.leadName}
@@ -64,7 +62,6 @@ function renderBio(bio: string): ReactNode[] {
 
 function Profile({
   reverse = false,
-  photo,
   heading,
   subtitle,
   name,
@@ -72,7 +69,6 @@ function Profile({
   bio,
 }: {
   reverse?: boolean;
-  photo: string;
   heading: string;
   subtitle: string;
   name: string;
@@ -90,13 +86,19 @@ function Profile({
 
       <div className="mt-8 grid items-center gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-12">
         <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "lg:order-2")}>
-          <div className={cn("relative mx-auto aspect-square w-full max-w-[500px] overflow-hidden", reverse ? "lg:ml-0" : "lg:mr-0")}>
+          <div
+            className={cn(
+              "relative mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center border border-line bg-surface",
+              reverse ? "lg:ml-0" : "lg:mr-0",
+            )}
+          >
             <Image
-              src={photo}
+              src="/hololabs-mark.png"
               alt={name}
-              fill
-              sizes="(min-width: 1024px) 500px, 90vw"
-              className="object-cover object-top"
+              width={715}
+              height={586}
+              sizes="(min-width: 1024px) 280px, 55vw"
+              className="h-auto w-[56%] object-contain"
             />
           </div>
         </Reveal>
