@@ -34,8 +34,12 @@ underneath is Spero's own.
 ## Stack
 
 Next.js 15 (App Router) + React 19 + Tailwind v4, plain **Postgres** for the
-shared database — no managed-provider SDK, just the standard wire protocol
-via `pg` (see `src/lib/db/client.ts`). Works against any Postgres server:
+shared database, accessed with **Drizzle ORM** on top of node-postgres (`pg`) —
+no managed-provider SDK, just the standard wire protocol (see
+`src/lib/db/client.ts`). Simple reads/writes use Drizzle's typed query
+builder; the booking steps that must be atomic (`create_booking` with its
+row-locking auto-routing, `admin_mark_paid`, ...) stay as SQL functions in
+`db/schema.sql` and are called through `db.execute(sql\`...\`)`. Works against any Postgres server:
 a local one for development, a VPS you run yourself, or a managed instance
 from whatever host you deploy to. Every database call happens server-side
 only (Server Components / Server Actions), so `DATABASE_URL` is a plain
@@ -70,8 +74,10 @@ work:
 
 ## Structure
 
-- `db/schema.sql` — tables and every SQL function the app calls.
-- `src/lib/db/client.ts` — the one place that opens a database connection.
+- `db/schema.sql` — the database's source of truth: tables and every SQL function the app calls.
+- `src/lib/db/schema.ts` — the Drizzle table definitions, mirroring `db/schema.sql` (change both together).
+- `src/lib/db/client.ts` — the one place that opens a database connection (the Drizzle instance).
+- `drizzle.config.ts` — tooling only (`npm run db:studio`); don't `drizzle-kit push` onto this database.
 - `src/lib/services/` — the only code that talks to the database.
 - `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`.
 - `src/app/pesan` — the full-screen reservation flow (own layout, no site header/footer).
