@@ -62,6 +62,10 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
+  // Pinch-zoom is locked on purpose, per the client: the page is designed
+  // for a fixed mobile layout and zooming exposed horizontal overflow.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
