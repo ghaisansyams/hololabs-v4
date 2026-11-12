@@ -13,7 +13,7 @@ export default async function KontenPage() {
     <>
       <AdminHeader
         title="Konten Website"
-        description="Edit teks setiap bagian halaman depan. Perubahan langsung tampil di website setelah disimpan."
+        description="Edit teks dan gambar setiap bagian website. Perubahan langsung tampil di website setelah disimpan."
         action={
           <a
             href="/"

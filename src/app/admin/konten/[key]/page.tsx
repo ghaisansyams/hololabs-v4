@@ -4,7 +4,7 @@ import { AdminHeader } from "@/components/admin/page-header";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ContentEditor } from "@/components/admin/content-editor";
 import { getSiteContent, listEditedSections } from "@/lib/cms";
-import { sectionDef, type SiteContent } from "@/lib/cms/schema";
+import { defaults, sectionDef, type SiteContent } from "@/lib/cms/schema";
 import { resetContent } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,12 @@ export default async function EditKontenPage({ params }: { params: Promise<{ key
       </div>
       <div className="max-w-3xl">
         {/* key on edited timestamp: after a reset the form remounts with defaults. */}
-        <ContentEditor key={edited.get(key) ?? "default"} section={section} initialValues={values} />
+        <ContentEditor
+          key={edited.get(key) ?? "default"}
+          section={section}
+          initialValues={values}
+          defaultValues={defaults[key as keyof SiteContent] as unknown as typeof values}
+        />
       </div>
     </>
   );
