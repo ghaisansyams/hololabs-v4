@@ -25,8 +25,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="border-b border-line bg-canvas-deep/80 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:shrink-0 lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-4 px-5 py-4 lg:flex-col lg:items-stretch lg:gap-8 lg:py-6">
-          <Link href="/admin" aria-label="Dashboard admin">
-            <Logo />
+          <Link href="/admin" aria-label="Dashboard admin" className="shrink-0">
+            <Logo className="h-12 sm:h-14 lg:h-24" />
           </Link>
           <nav aria-label="Navigasi admin" className="no-scrollbar flex gap-1 overflow-x-auto lg:flex-col">
             {nav.map((item) => (
