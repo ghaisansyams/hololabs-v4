@@ -11,3 +11,8 @@ export async function requireAdmin(): Promise<void> {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!(await isValidSessionToken(token))) redirect("/admin/login");
 }
+
+/** For route handlers, which should answer 401 rather than redirect. */
+export async function isAdmin(): Promise<boolean> {
+  return isValidSessionToken((await cookies()).get(ADMIN_COOKIE)?.value);
+}
