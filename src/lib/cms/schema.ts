@@ -69,16 +69,19 @@ export const sections = [
   {
     key: "people",
     label: "Founder & Tim",
-    description: "Profil founder dan satu tokoh kunci lain — data sementara (dummy), silakan ganti dengan data asli.",
+    description:
+      "Profil founder dan satu tokoh kunci lain — data sementara (lorem ipsum), silakan ganti dengan data asli. Di kolom bio: pisahkan paragraf dengan baris kosong, dan beri tanda **dua bintang** di sekitar kata yang ingin ditebalkan.",
     fields: [
-      t("eyebrow", "Label section"),
+      t("founderHeading", "Judul bagian founder", 60),
+      t("founderSubtitle", "Subjudul founder", 120),
       t("founderName", "Nama founder", 60),
       t("founderTitle", "Jabatan founder", 80),
-      ta("founderBio", "Bio founder", 600),
-      t("leadEyebrow", "Label profil kedua", 60),
+      ta("founderBio", "Bio founder", 2400),
+      t("leadHeading", "Judul bagian profil kedua", 60),
+      t("leadSubtitle", "Subjudul profil kedua", 120),
       t("leadName", "Nama", 60),
       t("leadTitle", "Jabatan", 80),
-      ta("leadBio", "Bio", 600),
+      ta("leadBio", "Bio", 2400),
     ],
   },
   {
@@ -206,16 +209,26 @@ export const defaults = {
       "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
   },
   people: {
-    eyebrow: "Our People",
+    founderHeading: "Meet Our Founder",
+    founderSubtitle: "The visionary behind Hololabs",
     founderName: "Nama Founder",
-    founderTitle: "Founder & Creative Director, Hololabs",
-    founderBio:
-      "Data sementara, bio founder asli menyusul. Founder Hololabs membangun lab ini dari ketertarikan pada titik temu teknologi dan pengalaman manusia: bagaimana projection, AI, dan desain ruang bisa berhenti jadi alat, dan mulai jadi cerita yang dialami langsung oleh pengunjung.",
-    leadEyebrow: "Meet Our Experience Lead",
+    founderTitle: "Founder & Creative Director",
+    founderBio: [
+      "Lorem ipsum dolor sit amet, **consectetur adipiscing elit**, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. **Excepteur sint occaecat** cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et **quasi architecto beatae vitae dicta sunt explicabo**.",
+      "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.",
+    ].join("\n\n"),
+    leadHeading: "Meet Our Experience Lead",
+    leadSubtitle: "Expert craftsmanship in every experience",
     leadName: "Nama Experience Lead",
-    leadTitle: "Lead Technologist, Hololabs",
-    leadBio:
-      "Data sementara, bio asli menyusul. Memimpin tim teknis di balik tiap babak Experience Journey, dari kalibrasi projection mapping sampai memastikan Doocoon AI merespons setiap pengunjung dengan natural.",
+    leadTitle: "Lead Technologist",
+    leadBio: [
+      "Lorem ipsum dolor sit amet, **consectetur adipiscing elit**, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. **Excepteur sint occaecat** cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. **Quis autem vel eum iure reprehenderit** qui in ea voluptate velit esse quam nihil molestiae consequatur.",
+      "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.",
+    ].join("\n\n"),
   },
   ambiance: {
     eyebrow: "Ambiance",
