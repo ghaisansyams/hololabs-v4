@@ -56,20 +56,6 @@ export const mainNav: NavLink[] = [
   { href: "/cek-tiket", label: "Cek Tiket" },
 ];
 
-// The footer keeps the fuller sitemap-style list (mirrors the reference's
-// "Pages" footer column) — a footer listing in-page anchors is a normal
-// pattern, unlike a "menu" that implies real navigation.
-export const footerNav: NavLink[] = [
-  { href: "/ambiance", label: "Ambiance" },
-  { href: "/collection", label: "Collection" },
-  { href: "/rundown", label: "Rundown" },
-  { href: "/our-story", label: "Our Story" },
-  { href: "/#about", label: "About Us" },
-  { href: "/#lokasi", label: "Lokasi" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/cek-tiket", label: "Cek Tiket" },
-];
-
 export interface SocialLink {
   label: string;
   handle: string;

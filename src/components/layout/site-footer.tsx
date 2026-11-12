@@ -4,7 +4,7 @@ import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/ui/container";
 import { InstagramIcon } from "@/components/layout/instagram-icon";
 import { WhatsappIcon } from "@/components/layout/whatsapp-icon";
-import { footerNav, siteConfig } from "@/data/site";
+import { mainNav, siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 import { cn } from "@/lib/utils/cn";
@@ -31,7 +31,7 @@ export async function SiteFooter() {
       <Container className="py-14 lg:py-16">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5 lg:col-span-4">
-            <Logo />
+            <Logo className="h-20 sm:h-24" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">{contact.footerText}</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {socialLinks.map((social) => {
@@ -57,7 +57,7 @@ export async function SiteFooter() {
           <nav className="md:col-span-3 lg:col-span-2" aria-label="Navigasi footer">
             <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">Jelajahi</h2>
             <ul className="mt-4 flex flex-col gap-2.5">
-              {footerNav.map((link) => (
+              {mainNav.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-muted transition-colors hover:text-accent">
                     {link.label}
