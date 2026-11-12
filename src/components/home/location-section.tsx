@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { DummyMapCard } from "@/components/home/dummy-map-card";
+import { getSiteContent } from "@/lib/cms";
 
 /**
  * "Lokasi" — replaces the homepage's live Jadwal grid, per the client's
@@ -10,16 +11,17 @@ import { DummyMapCard } from "@/components/home/dummy-map-card";
  * (that lives in the reservation flow itself, at /pesan). The map card
  * (see DummyMapCard) opens the client's real Google Maps location.
  */
-export function LocationSection() {
+export async function LocationSection() {
+  const { location } = await getSiteContent();
   return (
     <section id="lokasi" className="pb-0 pt-8 sm:pt-10">
       <Container>
         <SectionHeading
           stagger
           align="center"
-          eyebrow="Lokasi"
-          title="Temukan Hololabs"
-          description="Klik peta di bawah untuk rute lengkap ke lokasi. Tanggal dan sesi dipilih saat reservasi."
+          eyebrow={location.eyebrow}
+          title={location.title}
+          description={location.description}
           className="mx-auto max-w-2xl"
         />
 

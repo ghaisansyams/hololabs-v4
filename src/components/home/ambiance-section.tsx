@@ -53,16 +53,16 @@ export async function AmbianceSection() {
       <Reveal delay={240}>
         <div className="relative mx-auto mt-14 h-72 max-w-5xl overflow-hidden rounded-card border border-line sm:h-[28rem]">
           <Image
-            src="/renders/ambiance-hall.jpg"
-            alt="Render suasana ruang Hololabs — koridor imersif dengan dinding LED"
+            src={ambiance.image}
+            alt={ambiance.imageAlt}
             fill
             sizes="(min-width: 1024px) 1024px, 100vw"
             className="object-cover"
           />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep/60 via-transparent to-transparent" />
-          <p className="absolute bottom-4 left-4 text-xs font-medium text-ink-soft/80">
-            Ilustrasi render — belum foto venue asli.
-          </p>
+          {ambiance.imageCaption ? (
+            <p className="absolute bottom-4 left-4 text-xs font-medium text-ink-soft/80">{ambiance.imageCaption}</p>
+          ) : null}
         </div>
       </Reveal>
     </section>

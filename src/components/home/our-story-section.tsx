@@ -31,8 +31,8 @@ export async function OurStorySection() {
             <TiltCard max={6}>
               <div className="relative overflow-hidden rounded-card border border-line bg-white p-8 sm:p-10">
                 <Image
-                  src="/renders/story-glass-logo.jpg"
-                  alt="Logo Hololabs dalam bentuk kaca 3D, simbol pertemuan dunia fisik dan digital"
+                  src={ourStory.image}
+                  alt={ourStory.imageAlt}
                   width={900}
                   height={650}
                   className="h-auto w-full"

@@ -7,16 +7,20 @@ import { ReservationCta } from "@/components/home/reservation-cta";
 import { ContactSection } from "@/components/home/contact-section";
 import { FaqSection } from "@/components/home/faq-section";
 import { siteConfig } from "@/data/site";
+import { getSiteContent } from "@/lib/cms";
 
 // Rendered per request: content comes from the CMS and seat counts from
 // the live schedule, so a build-time snapshot would be stale immediately.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: `${siteConfig.name} — ${siteConfig.tagline}`,
-  description: siteConfig.description,
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { brand } = await getSiteContent();
+  return {
+    title: { absolute: brand.seoTitle },
+    description: brand.seoDescription,
+    alternates: { canonical: "/" },
+  };
+}
 
 /**
  * Homepage structure mirrors meatguysteakhouse.com exactly, per the
@@ -26,14 +30,15 @@ export const metadata: Metadata = {
  * v3 — Lokasi replaced the earlier live Jadwal grid, which duplicated what
  * the reservation flow already shows.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const { brand } = await getSiteContent();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
-    name: siteConfig.name,
-    description: siteConfig.description,
+    name: brand.siteName,
+    description: brand.seoDescription,
     url: siteConfig.url,
-    organizer: { "@type": "Organization", name: "Hololabs" },
+    organizer: { "@type": "Organization", name: brand.siteName },
   };
 
   return (

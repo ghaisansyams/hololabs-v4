@@ -5,6 +5,8 @@ import { Reveal } from "@/components/ui/reveal";
 import { getSiteContent } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
 
+const PLACEHOLDER = "/hololabs-mark.png";
+
 /**
  * Founder and a second key profile — mirrors meatguysteakhouse.com's two
  * alternating blocks: a centred heading with a one-line subtitle, then a
@@ -20,6 +22,7 @@ export async function PeopleSection() {
     <section id="people" className="py-8 sm:py-10">
       <Container className="space-y-16 sm:space-y-20">
         <Profile
+          photo={people.founderPhoto}
           heading={people.founderHeading}
           subtitle={people.founderSubtitle}
           name={people.founderName}
@@ -28,6 +31,7 @@ export async function PeopleSection() {
         />
         <Profile
           reverse
+          photo={people.leadPhoto}
           heading={people.leadHeading}
           subtitle={people.leadSubtitle}
           name={people.leadName}
@@ -62,6 +66,7 @@ function renderBio(bio: string): ReactNode[] {
 
 function Profile({
   reverse = false,
+  photo,
   heading,
   subtitle,
   name,
@@ -69,6 +74,7 @@ function Profile({
   bio,
 }: {
   reverse?: boolean;
+  photo: string;
   heading: string;
   subtitle: string;
   name: string;
@@ -95,14 +101,26 @@ function Profile({
       >
         <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "lg:order-2")}>
           <div className="relative mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center border border-line bg-surface lg:mx-0">
-            <Image
-              src="/hololabs-mark.png"
-              alt={name}
-              width={715}
-              height={586}
-              sizes="(min-width: 1024px) 280px, 55vw"
-              className="h-auto w-[56%] object-contain"
-            />
+            {/* The built-in placeholder is the logo, shown small and centred;
+                an uploaded photo fills the square. */}
+            {photo === PLACEHOLDER ? (
+              <Image
+                src={photo}
+                alt={name}
+                width={715}
+                height={586}
+                sizes="(min-width: 1024px) 280px, 55vw"
+                className="h-auto w-[56%] object-contain"
+              />
+            ) : (
+              <Image
+                src={photo}
+                alt={name}
+                fill
+                sizes="(min-width: 1024px) 500px, 90vw"
+                className="object-cover object-top"
+              />
+            )}
           </div>
         </Reveal>
 
