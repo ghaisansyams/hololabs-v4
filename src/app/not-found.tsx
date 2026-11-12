@@ -5,9 +5,10 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { mainNav } from "@/data/site";
+import { getSiteContent } from "@/lib/cms";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { navigation } = await getSiteContent();
   return (
     <>
       <SiteHeader />
@@ -41,7 +42,7 @@ export default function NotFound() {
 
         <nav aria-label="Navigasi alternatif" className="mt-10 border-t border-line pt-6">
           <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-            {mainNav.map((link) => (
+            {navigation.menuItems.filter((link) => link.label && link.href).map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="text-sm font-semibold text-muted transition-colors hover:text-accent">
                   {link.label}

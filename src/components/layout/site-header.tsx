@@ -8,7 +8,7 @@ import { ArrowUpRight, Menu, Ticket, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { mainNav, siteConfig } from "@/data/site";
+import { useChrome } from "@/components/layout/chrome-context";
 import { cn } from "@/lib/utils/cn";
 
 function isActive(pathname: string, href: string): boolean {
@@ -27,6 +27,7 @@ function isActive(pathname: string, href: string): boolean {
  */
 export function SiteHeader() {
   const pathname = usePathname();
+  const { menuItems, reservationLabel, menuImage, menuEyebrow, menuTagline } = useChrome();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -97,7 +98,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Link href="/pesan" className={buttonStyles({ size: "sm" })}>
             <Ticket className="size-4" aria-hidden />
-            Reservasi
+            {reservationLabel}
           </Link>
 
           <button
@@ -125,12 +126,12 @@ export function SiteHeader() {
               render exists specifically for this yet, so it reuses the
               same company-profile shot used elsewhere on the site. */}
           <div className="relative hidden lg:block">
-            <Image src="/renders/ambiance-hall.jpg" alt="" fill sizes="50vw" className="object-cover" />
+            <Image src={menuImage} alt="" fill sizes="50vw" className="object-cover" />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep via-canvas-deep/10 to-transparent" />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent to-canvas-deep/50" />
             <div className="absolute bottom-10 left-10 right-10">
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-accent">{siteConfig.name}</p>
-              <p className="mt-2 font-display text-2xl text-ink">A Creative Technology Lab</p>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-accent">{menuEyebrow}</p>
+              <p className="mt-2 font-display text-2xl text-ink">{menuTagline}</p>
             </div>
           </div>
 
@@ -138,7 +139,7 @@ export function SiteHeader() {
             <div className="my-auto">
               <nav aria-label="Navigasi utama">
                 <ul>
-                  {mainNav.map((link, index) => {
+                  {menuItems.map((link, index) => {
                     const active = isActive(pathname, link.href);
                     return (
                       <li

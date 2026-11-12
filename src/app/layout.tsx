@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { ChromeProvider } from "@/components/layout/chrome-context";
 import { siteConfig } from "@/data/site";
+import { getSiteContent } from "@/lib/cms";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -19,43 +21,46 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
-    template: `%s · ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  keywords: [
-    "hololabs exhibition",
-    "booking pameran",
-    "reservasi kursi online",
-    "tiket exhibition",
-    "transfer bank booking",
-  ],
-  authors: [{ name: siteConfig.builtBy }],
-  creator: siteConfig.builtBy,
-  alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    locale: "id_ID",
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { brand } = await getSiteContent();
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: brand.seoTitle,
+      template: `%s · ${brand.siteName}`,
+    },
+    description: brand.seoDescription,
+    applicationName: brand.siteName,
+    keywords: [
+      "hololabs exhibition",
+      "booking pameran",
+      "reservasi kursi online",
+      "tiket exhibition",
+      "transfer bank booking",
+    ],
+    authors: [{ name: siteConfig.builtBy }],
+    creator: siteConfig.builtBy,
+    alternates: { canonical: "/" },
+    openGraph: {
+      type: "website",
+      locale: "id_ID",
+      url: siteConfig.url,
+      siteName: brand.siteName,
+      title: brand.seoTitle,
+      description: brand.seoDescription,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brand.seoTitle,
+      description: brand.seoDescription,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#050308",
@@ -69,14 +74,30 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { brand, navigation } = await getSiteContent();
   return (
     <html
       lang="id"
       data-scroll-behavior="smooth"
       className={`${jakarta.variable} ${playfair.variable}`}
     >
-      <body className="flex min-h-dvh flex-col">{children}</body>
+      <body className="flex min-h-dvh flex-col">
+        <ChromeProvider
+          value={{
+            logoLockup: brand.logoLockup,
+            logoMark: brand.logoMark,
+            siteName: brand.siteName,
+            reservationLabel: navigation.reservationLabel,
+            menuItems: navigation.menuItems.filter((item) => item.label && item.href),
+            menuImage: navigation.menuImage,
+            menuEyebrow: navigation.menuEyebrow,
+            menuTagline: navigation.menuTagline,
+          }}
+        >
+          {children}
+        </ChromeProvider>
+      </body>
     </html>
   );
 }

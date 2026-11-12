@@ -4,7 +4,6 @@ import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/ui/container";
 import { InstagramIcon } from "@/components/layout/instagram-icon";
 import { WhatsappIcon } from "@/components/layout/whatsapp-icon";
-import { mainNav, siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 import { cn } from "@/lib/utils/cn";
@@ -13,7 +12,8 @@ const socialIcons = { instagram: InstagramIcon, mail: Mail, whatsapp: WhatsappIc
 
 export async function SiteFooter() {
   const year = new Date().getFullYear();
-  const { contact } = await getSiteContent();
+  const { contact, navigation } = await getSiteContent();
+  const menuItems = navigation.menuItems.filter((item) => item.label && item.href);
   const whatsappHref = `https://wa.me/${toWhatsappE164(contact.whatsapp)}`;
   const socialLinks = [
     contact.whatsapp && { label: "WhatsApp Admin", handle: contact.whatsapp, href: whatsappHref, icon: "whatsapp" as const },
@@ -55,9 +55,9 @@ export async function SiteFooter() {
           </div>
 
           <nav className="md:col-span-3 lg:col-span-2" aria-label="Navigasi footer">
-            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">Jelajahi</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">{contact.footerNavTitle}</h2>
             <ul className="mt-4 flex flex-col gap-2.5">
-              {mainNav.map((link) => (
+              {menuItems.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-muted transition-colors hover:text-accent">
                     {link.label}
@@ -68,13 +68,13 @@ export async function SiteFooter() {
           </nav>
 
           <div className="md:col-span-12 lg:col-span-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">Informasi Sesi</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">{contact.footerScheduleTitle}</h2>
             <div className="mt-4 space-y-2 text-sm text-muted">
               <p>
                 {contact.scheduleInfo}
               </p>
               <p className="leading-relaxed">
-                Konfirmasi pembayaran & pertanyaan lain lewat WhatsApp:{" "}
+                {contact.footerWhatsappNote}{" "}
                 <a href={whatsappHref} className="font-semibold text-accent hover:underline">
                   {contact.whatsapp}
                 </a>
@@ -85,7 +85,7 @@ export async function SiteFooter() {
 
         <div className="mt-12 border-t border-line pt-6 text-xs text-muted">
           <p>
-            © {year} {siteConfig.name}.
+            © {year} {contact.footerCopyright}.
           </p>
         </div>
       </Container>

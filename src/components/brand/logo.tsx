@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useChrome } from "@/components/layout/chrome-context";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -15,10 +18,11 @@ import { cn } from "@/lib/utils/cn";
 
 /** Compact square mark — icon-only, for places a full wordmark doesn't fit. */
 export function LogoMark({ className }: { className?: string }) {
+  const { logoMark, siteName } = useChrome();
   return (
     <Image
-      src="/hololabs-mark.png"
-      alt="Hololabs"
+      src={logoMark}
+      alt={siteName}
       width={715}
       height={586}
       className={cn("h-9 w-auto object-contain", className)}
@@ -29,10 +33,11 @@ export function LogoMark({ className }: { className?: string }) {
 
 /** Full lockup: mark + "HOLOLABS" wordmark. */
 export function Logo({ className }: { className?: string }) {
+  const { logoLockup, siteName } = useChrome();
   return (
     <Image
-      src="/hololabs-lockup.png"
-      alt="Hololabs"
+      src={logoLockup}
+      alt={siteName}
       width={1269}
       height={756}
       priority
