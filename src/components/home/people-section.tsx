@@ -1,91 +1,116 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
-import { Eyebrow } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
-import { TiltCard } from "@/components/ui/tilt-card";
 import { getSiteContent } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * Founder and a second key profile ("meat master" equivalent) — mirrors
- * meatguysteakhouse.com's two alternating photo/bio blocks. Real photos
- * supplied by the client; name, title and bio are still placeholder copy
- * pending the client's real data (editable from Admin -> Konten Website ->
- * Founder & Tim). The only motion is the scroll-triggered Reveal, same as
- * every other section.
+ * Founder and a second key profile — mirrors meatguysteakhouse.com's two
+ * alternating blocks: a centred heading with a one-line subtitle, then a
+ * square photo beside the name, role and a few justified paragraphs with
+ * bold highlights. Everything is square-cornered and tightly spaced.
+ * Real photos supplied by the client; the copy is lorem ipsum until real
+ * bios arrive (editable from Admin -> Konten Website -> Founder & Tim).
  */
 export async function PeopleSection() {
   const { people } = await getSiteContent();
 
   return (
-    <section id="people" className="py-20 sm:py-28">
-      <Container>
-        <div className="text-center">
-          <Reveal>
-            <Eyebrow className="justify-center">{people.eyebrow}</Eyebrow>
-          </Reveal>
-        </div>
-
+    <section id="people" className="py-14 sm:py-20">
+      <Container className="space-y-14 sm:space-y-20">
         <Profile
-          reverse={false}
           photo="/people/founder.jpg"
+          heading={people.founderHeading}
+          subtitle={people.founderSubtitle}
           name={people.founderName}
           title={people.founderTitle}
           bio={people.founderBio}
-          delay={0}
         />
-
-        <div className="mt-16 text-center sm:mt-24">
-          <Reveal>
-            <p className="text-2xl text-ink sm:text-3xl">{people.leadEyebrow}</p>
-          </Reveal>
-        </div>
-
         <Profile
           reverse
           photo="/people/lead.jpg"
+          heading={people.leadHeading}
+          subtitle={people.leadSubtitle}
           name={people.leadName}
           title={people.leadTitle}
           bio={people.leadBio}
-          delay={0}
         />
       </Container>
     </section>
   );
 }
 
+/** Paragraphs split on blank lines; **word** is rendered bold. */
+function renderBio(bio: string): ReactNode[] {
+  return bio
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((paragraph, i) => (
+      <p key={i}>
+        {paragraph.split(/\*\*(.+?)\*\*/g).map((part, j) =>
+          j % 2 === 1 ? (
+            <strong key={j} className="font-bold text-ink">
+              {part}
+            </strong>
+          ) : (
+            part
+          ),
+        )}
+      </p>
+    ));
+}
+
 function Profile({
-  reverse,
+  reverse = false,
   photo,
+  heading,
+  subtitle,
   name,
   title,
   bio,
-  delay,
 }: {
-  reverse: boolean;
+  reverse?: boolean;
   photo: string;
+  heading: string;
+  subtitle: string;
   name: string;
   title: string;
   bio: string;
-  delay: number;
 }) {
   return (
-    <div className={cn("mt-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-14", reverse && "lg:[&>*:first-child]:order-2")}>
-      <Reveal variant={reverse ? "right" : "left"} delay={delay}>
-        <TiltCard max={6}>
-          <div className="relative mx-auto aspect-[4/5] max-w-sm overflow-hidden rounded-card border border-line">
-            <Image src={photo} alt={name} fill sizes="(min-width: 1024px) 24rem, 90vw" className="object-cover" />
-          </div>
-        </TiltCard>
-      </Reveal>
-
-      <Reveal variant={reverse ? "left" : "right"} delay={delay + 60}>
-        <div>
-          <h3 className="text-2xl text-ink sm:text-3xl">{name}</h3>
-          <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-accent">{title}</p>
-          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">{bio}</p>
+    <div>
+      <Reveal>
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-accent sm:text-4xl">{heading}</h2>
+          {subtitle ? <p className="mt-2 text-sm text-ink-soft sm:text-base">{subtitle}</p> : null}
         </div>
       </Reveal>
+
+      <div className="mt-8 grid items-center gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-12">
+        <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "lg:order-2")}>
+          <div className={cn("relative mx-auto aspect-square w-full max-w-[500px] overflow-hidden", reverse ? "lg:ml-0" : "lg:mr-0")}>
+            <Image
+              src={photo}
+              alt={name}
+              fill
+              sizes="(min-width: 1024px) 500px, 90vw"
+              className="object-cover object-top"
+            />
+          </div>
+        </Reveal>
+
+        <Reveal variant={reverse ? "left" : "right"} delay={60} className={cn(reverse && "lg:order-1")}>
+          <div>
+            <h3 className="text-2xl font-bold text-accent sm:text-3xl">{name}</h3>
+            <p className="mt-1 text-base font-bold text-ink">{title}</p>
+            <div className="mt-4 space-y-3 text-sm sm:text-justify leading-relaxed text-ink-soft sm:text-base">
+              {renderBio(bio)}
+            </div>
+          </div>
+        </Reveal>
+      </div>
     </div>
   );
 }
