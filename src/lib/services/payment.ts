@@ -1,4 +1,5 @@
-import { getSql } from "@/lib/db/client";
+import { sql } from "drizzle-orm";
+import { rows } from "@/lib/db/client";
 
 /**
  * Manual bank transfer — no payment gateway is wired yet (no merchant
@@ -19,8 +20,7 @@ export async function createPayment(args: {
   amount: number;
   expiresAt: string;
 }): Promise<void> {
-  const sql = getSql();
-  await sql`select * from create_payment(${args.bookingId}, ${args.amount}, ${args.expiresAt})`;
+  await rows(sql`select * from create_payment(${args.bookingId}::uuid, ${args.amount}::numeric, ${args.expiresAt}::timestamptz)`);
 }
 
 /** A transfer screenshot is stored as a data: URL — capped well under Postgres's row limits. */
@@ -31,9 +31,8 @@ export async function submitPaymentProof(
   token: string,
   proofDataUrl?: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const sql = getSql();
   try {
-    await sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null})`;
+    await rows(sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null}::text)`);
     return { ok: true };
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "";

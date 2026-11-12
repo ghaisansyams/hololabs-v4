@@ -1,4 +1,5 @@
-import { getSql, isDatabaseConfigured } from "@/lib/db/client";
+import { asc, eq, sql } from "drizzle-orm";
+import { getDb, isDatabaseConfigured, rows, schema } from "@/lib/db/client";
 import type { Package, SessionAvailability } from "@/lib/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,25 +16,11 @@ function mapSession(row: any): SessionAvailability {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapPackage(row: any): Package {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    includes: row.includes ?? [],
-    price: Number(row.price),
-    sortOrder: row.sort_order,
-  };
-}
-
 /** Every bookable session from today onward, grouped by nobody — the caller groups by date. */
 export async function listAvailability(): Promise<SessionAvailability[]> {
   if (!isDatabaseConfigured()) return [];
   try {
-    const sql = getSql();
-    const rows = await sql`select * from list_availability()`;
-    return (rows as unknown[]).map(mapSession);
+    return (await rows(sql`select * from list_availability()`)).map(mapSession);
   } catch {
     return [];
   }
@@ -42,9 +29,16 @@ export async function listAvailability(): Promise<SessionAvailability[]> {
 export async function listPackages(): Promise<Package[]> {
   if (!isDatabaseConfigured()) return [];
   try {
-    const sql = getSql();
-    const rows = await sql`select * from packages where active = true order by sort_order asc`;
-    return (rows as unknown[]).map(mapPackage);
+    const { packages } = schema;
+    const list = await getDb().select().from(packages).where(eq(packages.active, true)).orderBy(asc(packages.sortOrder));
+    return list.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      includes: p.includes,
+      price: Number(p.price),
+      sortOrder: p.sortOrder,
+    }));
   } catch {
     return [];
   }

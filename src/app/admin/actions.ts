@@ -3,7 +3,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getSql } from "@/lib/db/client";
+import { eq, like, or, sql } from "drizzle-orm";
+import { getDb, rows, schema } from "@/lib/db/client";
 import {
   ADMIN_COOKIE,
   SESSION_HOURS,
@@ -42,8 +43,7 @@ export async function logout(): Promise<void> {
 export async function markBookingPaid(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
-  const sql = getSql();
-  await sql`select admin_mark_paid(${id}::uuid)`;
+  await rows(sql`select admin_mark_paid(${id}::uuid)`);
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
 }
@@ -51,8 +51,7 @@ export async function markBookingPaid(formData: FormData): Promise<void> {
 export async function cancelBooking(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
-  const sql = getSql();
-  await sql`select admin_cancel_booking(${id}::uuid)`;
+  await rows(sql`select admin_cancel_booking(${id}::uuid)`);
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/sessions");
@@ -61,8 +60,7 @@ export async function cancelBooking(formData: FormData): Promise<void> {
 export async function checkInBooking(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
-  const sql = getSql();
-  await sql`select admin_check_in(${id}::uuid)`;
+  await rows(sql`select admin_check_in(${id}::uuid)`);
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
 }
@@ -84,7 +82,7 @@ export async function checkInByNumber(
   if (booking.paymentStatus !== "PAID") return { error: "Booking ini belum lunas — verifikasi pembayaran dulu." };
 
   try {
-    await getSql()`select admin_check_in(${booking.id}::uuid)`;
+    await rows(sql`select admin_check_in(${booking.id}::uuid)`);
   } catch {
     return { error: "Gagal check-in. Coba lagi." };
   }
@@ -105,13 +103,10 @@ export async function updatePackage(formData: FormData): Promise<void> {
   const includes = readIncludes(formData);
   if (!name || !Number.isFinite(price) || price < 0) return;
 
-  const sql = getSql();
-  await sql`
-    update packages
-    set name = ${name}, description = ${description}, price = ${price}, active = ${active},
-        includes = ${includes}::text[]
-    where id = ${id}
-  `;
+  await getDb()
+    .update(schema.packages)
+    .set({ name, description, price: String(price), active, includes })
+    .where(eq(schema.packages.id, id));
   revalidatePath("/admin/packages");
   revalidatePath("/pesan");
   revalidatePath("/");
@@ -136,16 +131,22 @@ export async function createPackage(formData: FormData): Promise<void> {
   // Package ids are stable slugs (bookings reference them); add a suffix
   // if the name's slug is already taken.
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "paket";
-  const sql = getSql();
-  const taken = await sql`select id from packages where id = ${base} or id like ${base + "-%"}`;
+  const { packages } = schema;
+  const db = getDb();
+  const taken = await db
+    .select({ id: packages.id })
+    .from(packages)
+    .where(or(eq(packages.id, base), like(packages.id, `${base}-%`)));
   const id = taken.length === 0 ? base : `${base}-${taken.length + 1}`;
-  await sql`
-    insert into packages (id, name, description, includes, price, sort_order, active)
-    values (
-      ${id}, ${name}, ${description}, ${readIncludes(formData)}::text[], ${price},
-      (select coalesce(max(sort_order), 0) + 1 from packages), true
-    )
-  `;
+  await db.insert(packages).values({
+    id,
+    name,
+    description,
+    includes: readIncludes(formData),
+    price: String(price),
+    sortOrder: sql`(select coalesce(max(sort_order), 0) + 1 from packages)`,
+    active: true,
+  });
   revalidatePath("/admin/packages");
   revalidatePath("/pesan");
   revalidatePath("/");

@@ -1,71 +1,50 @@
+import { drizzle } from "drizzle-orm/node-postgres";
+import type { SQL } from "drizzle-orm";
 import { Pool, types } from "pg";
+import * as schema from "./schema";
 
 /**
- * Single Postgres connection for the booking engine.
+ * The one database handle for the app: Drizzle ORM over node-postgres,
+ * against plain Postgres (`DATABASE_URL`). Simple reads/writes use the typed
+ * query builder; the atomic operations that live in SQL functions
+ * (create_booking and friends, see db/schema.sql) are called with
+ * `db.execute(sql\`select ...\`)`, since they rely on row locking an ORM
+ * call can't express.
  *
- * Plain Postgres, over the standard wire protocol — no managed-provider
- * SDK, so this runs against anything that speaks Postgres: a VPS you
- * install it on yourself, a managed instance from your host, or any other
- * plain server.
- *
- * Every call site is server-only — a Server Component or a Server Action —
- * so `DATABASE_URL` never reaches the browser.
+ * Every call site is server-only, so `DATABASE_URL` never reaches the
+ * browser. Created lazily so the site still renders without a database.
  */
 import "server-only";
 
-type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-export interface Sql {
-  (strings: TemplateStringsArray, ...values: unknown[]): Promise<Row[]>;
-  query(text: string, params?: unknown[]): Promise<Row[]>;
-}
-
-const connectionString = process.env.DATABASE_URL;
-
-let sqlClient: Sql | null = null;
+export { schema };
 
 export function isDatabaseConfigured(): boolean {
-  return Boolean(connectionString);
+  return Boolean(process.env.DATABASE_URL);
 }
 
-function isLocalHost(hostname: string): boolean {
-  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
-}
-
-// Some date/time columns are also cast to text in the SQL itself (see
-// db/schema.sql); this parser swap covers the rest, so every caller always
-// gets plain strings back regardless of which column it reads.
+// date/time/timestamp columns come back as plain strings ("2026-11-12",
+// "18:00:00"), never JS Dates — that's what the UI and the SQL functions use.
 for (const oid of [1082, 1083, 1114, 1184]) types.setTypeParser(oid, (value) => value);
 
-function pgSql(url: string): Sql {
-  const hostname = new URL(url).hostname;
-  // Managed/remote Postgres almost always requires TLS, and frequently with
-  // a certificate chain Node doesn't already trust (self-signed, or a
-  // provider-specific CA) — `rejectUnauthorized: false` keeps the
-  // connection encrypted without needing that CA bundle wired in here.
-  // Localhost (for local dev) needs neither.
-  const ssl = isLocalHost(hostname) ? undefined : { rejectUnauthorized: false };
-  const pool = new Pool({ connectionString: url, max: 5, ssl });
-  const run = async (text: string, params: unknown[] = []) => (await pool.query(text, params)).rows;
-  const sql = ((strings: TemplateStringsArray, ...values: unknown[]) => {
-    let text = strings[0];
-    values.forEach((_, i) => {
-      text += `$${i + 1}${strings[i + 1]}`;
-    });
-    return run(text, values);
-  }) as Sql;
-  sql.query = run;
-  return sql;
+const isLocalHost = (h: string) => h === "localhost" || h === "127.0.0.1" || h === "::1";
+
+function create() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("Database belum dikonfigurasi. Isi DATABASE_URL di .env.local (lihat .env.example).");
+  // Remote Postgres usually requires TLS, often with a CA Node doesn't trust;
+  // `rejectUnauthorized: false` keeps it encrypted without bundling that CA.
+  const ssl = isLocalHost(new URL(url).hostname) ? undefined : { rejectUnauthorized: false };
+  return drizzle(new Pool({ connectionString: url, max: 5, ssl }), { schema });
 }
 
-/** Tagged-template query function: `sql\`select * from x where id = ${id}\``. */
-export function getSql(): Sql {
-  if (sqlClient) return sqlClient;
-  if (!connectionString) {
-    throw new Error(
-      "Database belum dikonfigurasi. Isi DATABASE_URL di .env.local (lihat .env.example).",
-    );
-  }
-  sqlClient = pgSql(connectionString);
-  return sqlClient;
+type Db = ReturnType<typeof create>;
+const globalForDb = globalThis as unknown as { __db?: Db };
+
+export function getDb(): Db {
+  return (globalForDb.__db ??= create());
+}
+
+/** Runs a raw `sql\`...\`` statement (SQL function calls, joins/aggregates) and returns its rows. */
+export async function rows<T = Record<string, unknown>>(query: SQL): Promise<T[]> {
+  return (await getDb().execute(query)).rows as T[];
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { getSql, isDatabaseConfigured } from "@/lib/db/client";
+import { getDb, isDatabaseConfigured, schema } from "@/lib/db/client";
 import { defaults, sectionDef, type FieldDef, type SiteContent } from "./schema";
 
 /**
@@ -13,7 +13,7 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const content = structuredClone(defaults);
   if (!isDatabaseConfigured()) return content;
   try {
-    const rows = await getSql()`select key, value from cms_content`;
+    const rows = await getDb().select({ key: schema.cmsContent.key, value: schema.cmsContent.value }).from(schema.cmsContent);
     for (const row of rows) {
       const key = row.key as keyof SiteContent;
       if (key in content && row.value && typeof row.value === "object") {
@@ -28,8 +28,10 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
 
 /** Admin-only: which sections have been edited, and when. */
 export async function listEditedSections(): Promise<Map<string, string>> {
-  const rows = await getSql()`select key, updated_at::text as updated_at from cms_content`;
-  return new Map(rows.map((r) => [r.key as string, r.updated_at as string]));
+  const rows = await getDb()
+    .select({ key: schema.cmsContent.key, updatedAt: schema.cmsContent.updatedAt })
+    .from(schema.cmsContent);
+  return new Map(rows.map((r) => [r.key, r.updatedAt]));
 }
 
 type Value = string | string[] | Record<string, string | string[]>[];

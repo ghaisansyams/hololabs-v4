@@ -1,4 +1,5 @@
-import { getSql } from "@/lib/db/client";
+import { sql } from "drizzle-orm";
+import { rows } from "@/lib/db/client";
 import type { ContactFormValues } from "@/lib/utils/validation";
 import type { BookingView, BookingStatus, CheckinStatus, PaymentStatus } from "@/lib/types";
 import { createPayment } from "./payment";
@@ -43,15 +44,13 @@ function mapBookingView(row: any): BookingView {
 const PAYMENT_WINDOW_MINUTES = 60;
 
 export async function createBooking(request: CreateBookingRequest): Promise<CreateBookingResult> {
-  const sql = getSql();
   const { contact, sessionId, packageId, seats, unitPrice } = request;
 
   let customer;
   try {
-    const rows = await sql`
-      select * from upsert_customer(${contact.fullName.trim()}, ${contact.whatsapp.trim()}, ${contact.email.trim()})
-    `;
-    customer = rows[0];
+    [customer] = await rows<{ id: string }>(
+      sql`select * from upsert_customer(${contact.fullName.trim()}, ${contact.whatsapp.trim()}, ${contact.email.trim()})`,
+    );
   } catch {
     return { ok: false, error: "Gagal menyimpan data pemesan. Coba lagi sebentar lagi." };
   }
@@ -62,10 +61,9 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
   const amount = unitPrice * seats;
   let booking;
   try {
-    const rows = await sql`
-      select * from create_booking(${customer.id}, ${sessionId}, ${packageId}, ${seats}, ${amount})
-    `;
-    booking = rows[0];
+    [booking] = await rows<{ id: string; access_token: string; auto_routed: boolean }>(
+      sql`select * from create_booking(${customer.id}::uuid, ${sessionId}::uuid, ${packageId}, ${seats}::int, ${amount}::numeric)`,
+    );
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "";
     if (message.includes("NO_AVAILABILITY")) {
@@ -86,9 +84,7 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
 
 export async function getBookingByToken(token: string): Promise<BookingView | null> {
   try {
-    const sql = getSql();
-    const rows = await sql`select * from get_booking_by_token(${token})`;
-    const row = rows[0];
+    const [row] = await rows(sql`select * from get_booking_by_token(${token}::uuid)`);
     if (!row) return null;
     return mapBookingView(row);
   } catch {
@@ -107,9 +103,12 @@ export interface CheckInResult {
 
 export async function checkInBooking(bookingNumber: string, whatsapp: string): Promise<CheckInResult> {
   try {
-    const sql = getSql();
-    const rows = await sql`select * from check_in_booking(${bookingNumber.trim()}, ${whatsapp.trim()})`;
-    const row = rows[0];
+    const [row] = await rows<{
+      customer_full_name: string;
+      session_date: string;
+      start_time: string;
+      already_checked_in: boolean;
+    }>(sql`select * from check_in_booking(${bookingNumber.trim()}, ${whatsapp.trim()})`);
     return {
       ok: true,
       customerFullName: row.customer_full_name,

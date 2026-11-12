@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/guard";
 import { sanitizeSection } from "@/lib/cms";
-import { getSql } from "@/lib/db/client";
+import { eq, sql } from "drizzle-orm";
+import { getDb, schema } from "@/lib/db/client";
 
 export interface ContentFormState {
   ok?: boolean;
@@ -32,11 +33,10 @@ export async function saveContent(
   const value = sanitizeSection(key, parsed);
   if (typeof value === "string") return { error: value };
 
-  await getSql()`
-    insert into cms_content (key, value, updated_at)
-    values (${key}, ${JSON.stringify(value)}::jsonb, now())
-    on conflict (key) do update set value = excluded.value, updated_at = now()
-  `;
+  await getDb()
+    .insert(schema.cmsContent)
+    .values({ key, value })
+    .onConflictDoUpdate({ target: schema.cmsContent.key, set: { value, updatedAt: sql`now()` } });
   refreshSite();
   return { ok: true, savedAt: new Date().toISOString() };
 }
@@ -44,7 +44,7 @@ export async function saveContent(
 export async function resetContent(formData: FormData): Promise<void> {
   await requireAdmin();
   const key = String(formData.get("key") ?? "");
-  await getSql()`delete from cms_content where key = ${key}`;
+  await getDb().delete(schema.cmsContent).where(eq(schema.cmsContent.key, key));
   refreshSite();
   revalidatePath(`/admin/konten/${key}`);
 }
