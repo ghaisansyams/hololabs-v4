@@ -54,11 +54,19 @@ export function BookingWizard({
   const maxSeats = selectedSession ? Math.min(13, selectedSession.seatsLeft || 13) : 13;
 
   if (schedule.length === 0 || packages.length === 0) {
+    // Packages come back empty only when the database itself can't be read;
+    // an empty schedule with packages present just means every show date has
+    // passed (or none were added yet), which is the admin's call to fix.
+    const noPackages = packages.length === 0;
     return (
       <div className="flex min-h-dvh items-center justify-center px-6">
         <EmptyState
-          title="Sistem pemesanan belum terhubung"
-          description="Database belum dikonfigurasi. Jalankan db/schema.sql ke Postgres-mu, lalu isi DATABASE_URL di .env.local (atau environment hosting)."
+          title={noPackages ? "Sistem pemesanan belum terhubung" : "Belum ada jadwal show"}
+          description={
+            noPackages
+              ? "Database belum dikonfigurasi. Jalankan db/schema.sql ke Postgres-mu, lalu isi DATABASE_URL di .env.local (atau environment hosting)."
+              : "Belum ada sesi yang bisa dipesan. Tanggal show akan segera dibuka, silakan cek lagi nanti."
+          }
           action={
             <Link href="/" className="text-sm font-semibold text-accent hover:underline">
               Kembali ke beranda
