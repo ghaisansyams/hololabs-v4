@@ -37,6 +37,7 @@ export async function CollectionSection() {
       />
       <Container>
         <SectionHeading
+          as="h1"
           stagger
           align="center"
           eyebrow={collection.eyebrow}

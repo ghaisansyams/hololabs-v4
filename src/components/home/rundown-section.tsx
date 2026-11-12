@@ -25,6 +25,7 @@ export async function RundownSection() {
       />
       <Container>
         <SectionHeading
+          as="h1"
           stagger
           eyebrow={rundown.eyebrow}
           title={

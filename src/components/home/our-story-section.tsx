@@ -18,6 +18,7 @@ export async function OurStorySection() {
     <section id="our-story" className="py-12 sm:py-16">
       <Container>
         <SectionHeading
+          as="h1"
           stagger
           align="center"
           eyebrow={ourStory.eyebrow}

@@ -29,6 +29,7 @@ export function SectionHeading({
   action,
   className,
   stagger = false,
+  as: Heading = "h2",
 }: {
   eyebrow?: string;
   title: ReactNode;
@@ -41,6 +42,8 @@ export function SectionHeading({
    * as one block. Off by default, so every other section is untouched.
    */
   stagger?: boolean;
+  /** Use "h1" for a page's main heading; every page needs exactly one. */
+  as?: "h1" | "h2";
 }) {
   const centered = align === "center";
 
@@ -63,9 +66,9 @@ export function SectionHeading({
         {eyebrow ? step(0, <Eyebrow>{eyebrow}</Eyebrow>) : null}
         {step(
           1,
-          <h2 className="text-[1.75rem] leading-[1.15] font-extrabold text-ink sm:text-4xl">
+          <Heading className="text-[1.75rem] leading-[1.15] font-extrabold text-ink sm:text-4xl">
             {title}
-          </h2>,
+          </Heading>,
         )}
         {description
           ? step(

@@ -23,7 +23,7 @@ export async function AmbianceSection() {
           <Eyebrow className="justify-center">{ambiance.eyebrow}</Eyebrow>
         </Reveal>
         <Reveal delay={70}>
-          <h2 className="mt-4 text-3xl text-ink sm:text-4xl">{ambiance.title}</h2>
+          <h1 className="mt-4 text-3xl text-ink sm:text-4xl">{ambiance.title}</h1>
         </Reveal>
 
         {ambiance.stats.length > 0 ? (
