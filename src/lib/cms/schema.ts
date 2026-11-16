@@ -419,7 +419,7 @@ export const defaults = {
     footerNavTitle: "Jelajahi",
     footerScheduleTitle: "Informasi Sesi",
     footerWhatsappNote: "Konfirmasi pembayaran & pertanyaan lain lewat WhatsApp:",
-    footerCopyright: siteConfig.name,
+    footerCopyright: "Holomoc",
     whatsapp: String(siteConfig.whatsapp),
     email: String(siteConfig.email),
     instagram: "hololabs.exhibition",
