@@ -9,7 +9,7 @@ import {
   ADMIN_COOKIE,
   SESSION_HOURS,
   createSessionToken,
-  passwordMatches,
+  credentialsMatch,
 } from "@/lib/admin/session";
 import { findBookingByNumber } from "@/lib/services/admin";
 import { requireAdmin } from "@/lib/admin/guard";
@@ -20,9 +20,10 @@ export interface LoginState {
 }
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
+  const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
-  if (!(await passwordMatches(password))) {
-    return { error: "Password salah." };
+  if (!(await credentialsMatch(username, password))) {
+    return { error: "Username atau password salah." };
   }
   const token = await createSessionToken();
   (await cookies()).set(ADMIN_COOKIE, token, {

@@ -11,6 +11,9 @@ export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
   return (
     <form action={formAction} className="space-y-4">
+      <Field label="Username" htmlFor="username" required>
+        <TextInput id="username" name="username" type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} required autoFocus />
+      </Field>
       <Field label="Password" htmlFor="password" required>
         <TextInput id="password" name="password" type="password" autoComplete="current-password" required />
       </Field>

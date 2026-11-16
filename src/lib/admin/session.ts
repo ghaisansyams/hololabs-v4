@@ -1,5 +1,6 @@
 /**
- * Admin session: a single shared password (ADMIN_PASSWORD) exchanged for a
+ * Admin session: one admin account (ADMIN_USERNAME, default "admin", plus
+ * ADMIN_PASSWORD) exchanged for a
  * short-lived HMAC-signed cookie (ADMIN_SESSION_SECRET). Uses Web Crypto so
  * the same code runs in both the Edge middleware and Node server actions.
  *
@@ -30,9 +31,7 @@ export function isAdminConfigured(): boolean {
 }
 
 /** Constant-time string comparison via digest, so length/prefix don't leak. */
-export async function passwordMatches(candidate: string): Promise<boolean> {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false;
+async function safeEqual(candidate: string, expected: string): Promise<boolean> {
   const [a, b] = await Promise.all([
     crypto.subtle.digest("SHA-256", encoder.encode(candidate)),
     crypto.subtle.digest("SHA-256", encoder.encode(expected)),
@@ -42,6 +41,22 @@ export async function passwordMatches(candidate: string): Promise<boolean> {
   let diff = 0;
   for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
   return diff === 0;
+}
+
+/**
+ * Checks username + password. Both are always compared (no early exit) so the
+ * response never reveals which of the two was wrong. Username is
+ * case-insensitive and defaults to "admin" when ADMIN_USERNAME is unset.
+ */
+export async function credentialsMatch(username: string, password: string): Promise<boolean> {
+  const expectedPassword = process.env.ADMIN_PASSWORD;
+  if (!expectedPassword) return false;
+  const expectedUser = (process.env.ADMIN_USERNAME?.trim() || "admin").toLowerCase();
+  const [userOk, passOk] = await Promise.all([
+    safeEqual(username.trim().toLowerCase(), expectedUser),
+    safeEqual(password, expectedPassword),
+  ]);
+  return userOk && passOk;
 }
 
 export async function createSessionToken(): Promise<string> {

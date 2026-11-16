@@ -64,7 +64,8 @@ work:
 3. Put that same connection string into `.env.local` as `DATABASE_URL` (and
    into your hosting provider's environment variables for production).
 4. Also set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` (see
-   `.env.example`) — required for `/admin`.
+   `.env.example`) — required for `/admin`. The login also asks for a username:
+   set `ADMIN_USERNAME` (defaults to `admin` if left unset).
 5. Seed the starting data (see below), then set the real exhibition dates
    from `/admin/sessions`.
 
