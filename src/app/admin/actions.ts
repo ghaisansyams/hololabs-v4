@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq, like, or, sql } from "drizzle-orm";
@@ -26,9 +26,16 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: "Username atau password salah." };
   }
   const token = await createSessionToken();
+  // Flag "Secure" hanya bila koneksinya benar-benar HTTPS. Di HTTP biasa
+  // (localhost / IP LAN) browser menolak cookie Secure, sehingga login
+  // terlihat berhasil sesaat lalu minta isi ulang di setiap klik.
+  const h = await headers();
+  const viaHttps =
+    (h.get("x-forwarded-proto") ?? "").split(",")[0].trim() === "https" ||
+    (h.get("origin") ?? "").startsWith("https://");
   (await cookies()).set(ADMIN_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: viaHttps,
     sameSite: "lax",
     path: "/admin",
     maxAge: SESSION_HOURS * 60 * 60,
