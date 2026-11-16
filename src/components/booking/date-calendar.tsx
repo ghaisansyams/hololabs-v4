@@ -60,7 +60,7 @@ export function DateCalendar({
           type="button"
           disabled={!canGoPrev}
           onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-          className="flex size-8 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-accent/50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex size-11 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-accent/50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
           aria-label="Bulan sebelumnya"
         >
           <ChevronLeft className="size-4" aria-hidden />
@@ -70,7 +70,7 @@ export function DateCalendar({
           type="button"
           disabled={!canGoNext}
           onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-          className="flex size-8 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-accent/50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex size-11 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:border-accent/50 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
           aria-label="Bulan berikutnya"
         >
           <ChevronRight className="size-4" aria-hidden />
@@ -95,7 +95,7 @@ export function DateCalendar({
               disabled={!isAvailable}
               onClick={() => onChange(iso)}
               className={cn(
-                "mx-auto flex size-9 items-center justify-center rounded-full text-sm font-semibold transition-colors",
+                "mx-auto flex size-10 items-center justify-center rounded-full text-sm sm:size-11 font-semibold transition-colors",
                 isSelected
                   ? "bg-accent text-canvas"
                   : isAvailable

@@ -56,10 +56,10 @@ export async function SiteFooter() {
 
           <nav className="md:col-span-3 lg:col-span-2" aria-label="Navigasi footer">
             <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">{contact.footerNavTitle}</h2>
-            <ul className="mt-4 flex flex-col gap-2.5">
+            <ul className="mt-2 flex flex-col">
               {menuItems.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted transition-colors hover:text-accent">
+                  <Link href={link.href} className="flex min-h-11 items-center text-sm text-muted transition-colors hover:text-accent">
                     {link.label}
                   </Link>
                 </li>
@@ -75,7 +75,7 @@ export async function SiteFooter() {
               </p>
               <p className="leading-relaxed">
                 {contact.footerWhatsappNote}{" "}
-                <a href={whatsappHref} className="font-semibold text-accent hover:underline">
+                <a href={whatsappHref} className="inline-flex min-h-11 items-center font-semibold text-accent hover:underline">
                   {contact.whatsapp}
                 </a>
               </p>

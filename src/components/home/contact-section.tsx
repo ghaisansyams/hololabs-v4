@@ -32,7 +32,7 @@ export async function ContactSection() {
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted">{contact.scheduleInfo}</p>
         </Reveal>
         <Reveal delay={80}>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-1">
             {links.map((link) => {
               const Icon = icons[link.icon];
               return (
@@ -41,7 +41,7 @@ export async function ContactSection() {
                   href={link.href}
                   target={link.href.startsWith("http") ? "_blank" : undefined}
                   rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className="inline-flex items-center gap-2 text-sm text-ink-soft transition-colors hover:text-accent"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm text-ink-soft transition-colors hover:text-accent"
                 >
                   <Icon className="size-4" aria-hidden />
                   {link.label}
