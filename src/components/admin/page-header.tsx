@@ -21,7 +21,7 @@ export function StatusPill({ tone, children }: { tone: "success" | "warning" | "
     accent: "bg-accent-soft text-accent",
   } as const;
   return (
-    <span className={`inline-flex rounded-pill px-2.5 py-1 text-xs font-bold ${tones[tone]}`}>{children}</span>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-pill px-3 py-1 text-xs font-bold ${tones[tone]}`}>{children}</span>
   );
 }
 

@@ -12,7 +12,7 @@ export function ConfirmButton({
 }: {
   message: string;
   children: ReactNode;
-  tone?: "neutral" | "danger";
+  tone?: "neutral" | "primary" | "danger";
   className?: string;
 }) {
   return (
@@ -22,10 +22,10 @@ export function ConfirmButton({
         if (!window.confirm(message)) event.preventDefault();
       }}
       className={cn(
-        "rounded-pill border px-3 py-1.5 text-xs font-semibold transition-colors",
-        tone === "danger"
-          ? "border-danger/40 text-danger hover:bg-danger-soft"
-          : "border-line text-ink-soft hover:border-accent/50 hover:text-ink",
+        "inline-flex h-8 items-center whitespace-nowrap rounded-lg border px-3 text-xs font-semibold transition-colors",
+        tone === "primary" && "border-transparent bg-brand text-ink hover:bg-brand-dark",
+        tone === "danger" && "border-transparent text-danger hover:bg-danger-soft",
+        tone === "neutral" && "border-line text-ink-soft hover:border-accent/50 hover:text-ink",
         className,
       )}
     >

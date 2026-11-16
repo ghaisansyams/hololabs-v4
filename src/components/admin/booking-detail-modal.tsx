@@ -71,7 +71,7 @@ export function BookingDetailModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-pill border border-line px-3 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-accent/50 hover:text-ink"
+        className="inline-flex h-8 items-center rounded-lg border border-line px-3 text-xs font-semibold text-ink-soft transition-colors hover:border-accent/50 hover:text-ink"
       >
         Detail
       </button>

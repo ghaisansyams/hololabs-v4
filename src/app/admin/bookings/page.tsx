@@ -76,7 +76,7 @@ export default async function AdminBookingsPage({
       </div>
 
       <div className="overflow-x-auto rounded-card border border-line bg-surface">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">Booking</th>
@@ -101,28 +101,33 @@ export default async function AdminBookingsPage({
               return (
                 <tr key={b.id} className={cn("align-top", cancelled && "opacity-55")}>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-ink">{b.bookingNumber}</p>
+                    <p className="whitespace-nowrap font-semibold text-ink">{b.bookingNumber}</p>
                     <p className="text-xs text-muted">{b.createdAt.slice(0, 16).replace("T", " ")}</p>
-                    {b.autoRouted ? <StatusPill tone="accent">Auto-routed</StatusPill> : null}
+                    {b.autoRouted ? (
+                      <span className="mt-1.5 inline-flex">
+                        <StatusPill tone="accent">Auto-routed</StatusPill>
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-semibold text-ink">{b.customerName}</p>
                     <p className="text-xs text-muted">{b.whatsapp}</p>
                   </td>
-                  <td className="px-4 py-3 text-ink-soft">
+                  <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
                     {formatDate(b.sessionDate)}
                     <br />
                     <span className="text-xs text-muted">
                       {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-ink-soft">
+                  <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
                     {b.packageName}
                     <br />
                     <span className="text-xs text-muted">{b.seats} kursi</span>
                   </td>
-                  <td className="px-4 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
-                  <td className="px-4 py-3 space-y-1.5">
+                  <td className="whitespace-nowrap px-4 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col items-start gap-1.5">
                     <StatusPill tone={paymentTone(b.paymentStatus)}>
                       {cancelled
                         ? "Dibatalkan"
@@ -133,32 +138,33 @@ export default async function AdminBookingsPage({
                             : "Belum transfer"}
                     </StatusPill>
                     {b.checkinStatus === "CHECKED_IN" ? <StatusPill tone="success">Check-in</StatusPill> : null}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                      {!cancelled && b.paymentStatus !== "PAID" ? (
+                        <form action={markBookingPaid}>
+                          <input type="hidden" name="bookingId" value={b.id} />
+                          <ConfirmButton tone="primary" message={`Tandai ${b.bookingNumber} sebagai LUNAS?`}>
+                            {b.paymentStatus === "SUBMITTED" ? "Konfirmasi" : "Tandai lunas"}
+                          </ConfirmButton>
+                        </form>
+                      ) : null}
+                      {!cancelled && b.paymentStatus === "PAID" && b.checkinStatus !== "CHECKED_IN" ? (
+                        <form action={checkInBooking}>
+                          <input type="hidden" name="bookingId" value={b.id} />
+                          <ConfirmButton tone="primary" message={`Check-in ${b.bookingNumber}?`}>
+                            Check-in
+                          </ConfirmButton>
+                        </form>
+                      ) : null}
                       <BookingDetailModal
                         booking={b}
                         markBookingPaid={markBookingPaid}
                         checkInBooking={checkInBooking}
                         cancelBooking={cancelBooking}
                       />
-                    </div>
-                    {!cancelled ? (
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {b.paymentStatus !== "PAID" ? (
-                          <form action={markBookingPaid}>
-                            <input type="hidden" name="bookingId" value={b.id} />
-                            <ConfirmButton message={`Tandai ${b.bookingNumber} sebagai LUNAS?`}>
-                              {b.paymentStatus === "SUBMITTED" ? "Konfirmasi pembayaran" : "Tandai lunas"}
-                            </ConfirmButton>
-                          </form>
-                        ) : null}
-                        {b.paymentStatus === "PAID" && b.checkinStatus !== "CHECKED_IN" ? (
-                          <form action={checkInBooking}>
-                            <input type="hidden" name="bookingId" value={b.id} />
-                            <ConfirmButton message={`Check-in ${b.bookingNumber}?`}>Check-in</ConfirmButton>
-                          </form>
-                        ) : null}
+                      {!cancelled ? (
                         <form action={cancelBooking}>
                           <input type="hidden" name="bookingId" value={b.id} />
                           <ConfirmButton
@@ -168,8 +174,8 @@ export default async function AdminBookingsPage({
                             Batalkan
                           </ConfirmButton>
                         </form>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               );
