@@ -5,7 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const controlBase =
-  "w-full rounded-xl border bg-surface px-4 text-[0.9375rem] text-ink placeholder:text-muted/60 " +
+  "w-full rounded-xl border bg-surface px-4 text-base text-ink sm:text-[0.9375rem] placeholder:text-muted/60 " +
   "transition-colors duration-150 outline-none " +
   "focus:border-accent focus:ring-4 focus:ring-accent/15 " +
   "disabled:cursor-not-allowed disabled:bg-canvas-deep disabled:text-muted";

@@ -10,7 +10,7 @@ type Item = Record<string, string | string[]>;
 type Values = Record<string, string | string[] | Item[]>;
 
 const inputClass =
-  "w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent";
+  "w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-base text-ink outline-none sm:text-sm transition-colors placeholder:text-muted/60 focus:border-accent";
 
 /** Image field: preview, upload (to /admin/api/media), and "back to the built-in image". */
 function ImageInput({
