@@ -1,7 +1,7 @@
 import type { ElementType, ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
-/** Single source of the page gutter: 20px on phones, growing with the viewport. */
+/** Single source of the page gutter: 20px on phones, growing with the viewport (see .container-gutter). */
 export function Container({
   children,
   className,
@@ -12,7 +12,7 @@ export function Container({
   as?: ElementType;
 }) {
   return (
-    <Tag className={cn("mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8", className)}>
+    <Tag className={cn("container-gutter mx-auto w-full max-w-7xl", className)}>
       {children}
     </Tag>
   );

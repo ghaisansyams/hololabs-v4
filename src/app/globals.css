@@ -98,6 +98,27 @@
     color-scheme: dark;
   }
 
+  /* Everything is sized in rem, so raising the root size on big screens
+     scales the whole interface: a 1080p TV gets ~112%, a 1440p monitor 150%
+     and a 4K TV 200%, so it reads like the laptop layout at a comfortable
+     viewing size instead of a small strip in the middle of the screen.
+     (Media queries themselves keep using the browser's own 16px.) */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 112.5%;
+    }
+  }
+  @media (min-width: 2560px) {
+    html {
+      font-size: 150%;
+    }
+  }
+  @media (min-width: 3200px) {
+    html {
+      font-size: 200%;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
     overflow-x: clip;
@@ -147,6 +168,27 @@
 
   [id] {
     scroll-margin-top: 6rem;
+  }
+}
+
+@layer components {
+  /* Page gutter: 20px on phones, growing with the viewport, and never less
+     than the device's safe area (notch / rounded corners in landscape). */
+  .container-gutter {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+  @media (min-width: 640px) {
+    .container-gutter {
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-gutter {
+      padding-left: max(2rem, env(safe-area-inset-left));
+      padding-right: max(2rem, env(safe-area-inset-right));
+    }
   }
 }
 
