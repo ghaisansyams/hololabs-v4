@@ -78,14 +78,14 @@ export function BookingWizard({
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-24 pt-6 sm:px-8">
+    <div className="container-gutter mx-auto max-w-6xl pb-24 pt-6">
       <div className="flex items-center justify-between">
-        <Link href="/" aria-label="Hololabs — beranda">
+        <Link href="/" aria-label="Hololabs — beranda" className="inline-flex min-h-11 items-center">
           <Logo />
         </Link>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted hover:text-ink"
+          className="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted hover:text-ink"
         >
           Batalkan Reservasi
           <X className="size-3.5" aria-hidden />
@@ -96,9 +96,9 @@ export function BookingWizard({
         <h1 className="font-sans text-xs font-bold uppercase tracking-[0.22em] text-accent">Reservasi</h1>
       </div>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[22rem_1fr]">
+      <div className="mt-10 grid gap-10 md:grid-cols-[18rem_1fr] md:gap-8 lg:grid-cols-[22rem_1fr] lg:gap-10">
         {/* Order summary sidebar */}
-        <aside className="order-2 lg:order-1">
+        <aside className="order-2 md:order-1">
           <div className="rounded-card border border-line bg-surface p-6">
             <div className="mb-6 flex justify-center">
               <Logo />
@@ -133,7 +133,7 @@ export function BookingWizard({
         </aside>
 
         {/* Step content */}
-        <div className="order-1 lg:order-2">
+        <div className="order-1 md:order-2">
           {screen === "details" ? (
             <DetailsScreen
               schedule={schedule}
@@ -285,7 +285,7 @@ function DetailsScreen({
     <div>
       <h3 className="text-2xl text-ink sm:text-3xl">Lengkapi Informasi Reservasi</h3>
 
-      <div className="mt-6 max-w-xs">
+      <div className="mt-6 max-w-xs sm:max-w-sm">
         <Field label="Paket" htmlFor="package-select" required>
           <Select id="package-select" value={packageId} onChange={(e) => setPackageId(e.target.value)}>
             <option value="" disabled>
@@ -304,7 +304,7 @@ function DetailsScreen({
         <p className="text-sm font-semibold text-ink">
           Tanggal <span className="ml-0.5 text-accent">*</span>
         </p>
-        <div className="mt-1.5 max-w-xs">
+        <div className="mt-1.5 max-w-xs sm:max-w-sm">
           <DateCalendar availableDates={schedule.map((d) => d.date)} value={selectedDate} onChange={setSelectedDate} />
         </div>
       </div>

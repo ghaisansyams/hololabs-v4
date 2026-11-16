@@ -92,15 +92,18 @@ function Profile({
 
       <div
         className={cn(
-          "mt-8 grid items-center gap-6 sm:mt-10 lg:gap-12",
+          "mt-8 grid items-center gap-6 sm:mt-10 md:gap-8 lg:gap-12",
           // The photo is pinned to the outer edge of the container (left for
           // the founder, right for the second profile), flush with the text
           // block's own edge; the text takes whatever width is left.
-          reverse ? "lg:grid-cols-[1fr_500px]" : "lg:grid-cols-[500px_1fr]",
+          // Two columns from tablet width up, with the photo growing as the screen does.
+          reverse
+            ? "md:grid-cols-[1fr_16rem] lg:grid-cols-[1fr_24rem] xl:grid-cols-[1fr_31.25rem]"
+            : "md:grid-cols-[16rem_1fr] lg:grid-cols-[24rem_1fr] xl:grid-cols-[31.25rem_1fr]",
         )}
       >
-        <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "lg:order-2")}>
-          <div className="relative mx-auto flex aspect-square w-full max-w-[500px] items-center justify-center border border-line bg-surface lg:mx-0">
+        <Reveal variant={reverse ? "right" : "left"} className={cn(reverse && "md:order-2")}>
+          <div className="relative mx-auto flex aspect-square w-full max-w-[31.25rem] items-center justify-center border border-line bg-surface md:mx-0">
             {/* The built-in placeholder is the logo, shown small and centred;
                 an uploaded photo fills the square. */}
             {photo === PLACEHOLDER ? (
@@ -109,7 +112,7 @@ function Profile({
                 alt={name}
                 width={715}
                 height={586}
-                sizes="(min-width: 1024px) 280px, 55vw"
+                sizes="(min-width: 768px) 25vw, 55vw"
                 className="h-auto w-[56%] object-contain"
               />
             ) : (
@@ -117,14 +120,14 @@ function Profile({
                 src={photo}
                 alt={name}
                 fill
-                sizes="(min-width: 1024px) 500px, 90vw"
+                sizes="(min-width: 768px) 30vw, 90vw"
                 className="object-cover object-top"
               />
             )}
           </div>
         </Reveal>
 
-        <Reveal variant={reverse ? "left" : "right"} delay={60} className={cn(reverse && "lg:order-1")}>
+        <Reveal variant={reverse ? "left" : "right"} delay={60} className={cn(reverse && "md:order-1")}>
           <div>
             <h3 className="text-2xl font-bold text-accent sm:text-3xl">{name}</h3>
             <p className="mt-1 text-base font-bold text-ink">{title}</p>
