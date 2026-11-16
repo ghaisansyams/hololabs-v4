@@ -19,7 +19,7 @@ export async function DummyMapCard() {
               src={image}
               alt={title}
               fill
-              sizes="(min-width: 1024px) 768px, 100vw"
+              sizes="(min-width: 1024px) 60vw, 100vw"
               className="object-cover grayscale-[15%] transition-transform duration-500 group-hover:scale-105"
             />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep/70 via-transparent to-transparent" />

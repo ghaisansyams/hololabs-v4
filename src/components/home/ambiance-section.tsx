@@ -56,7 +56,7 @@ export async function AmbianceSection() {
             src={ambiance.image}
             alt={ambiance.imageAlt}
             fill
-            sizes="(min-width: 1024px) 1024px, 100vw"
+            sizes="(min-width: 1024px) 70vw, 100vw"
             className="object-cover"
           />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep/60 via-transparent to-transparent" />
