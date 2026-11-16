@@ -135,7 +135,7 @@ export function SiteHeader() {
             </div>
           </div>
 
-          <Container className="flex min-h-full flex-col py-10 lg:max-w-none lg:px-16 lg:py-16">
+          <Container className="flex min-h-full flex-col py-10 lg:max-w-none lg:px-16 lg:py-16 [@media(max-height:520px)]:py-4">
             <div className="my-auto">
               <nav aria-label="Navigasi utama">
                 <ul>
@@ -150,7 +150,7 @@ export function SiteHeader() {
                         <Link
                           href={link.href}
                           aria-current={active ? "page" : undefined}
-                          className="group flex items-center gap-4 py-3.5 sm:py-4"
+                          className="group flex items-center gap-4 py-3.5 sm:py-4 [@media(max-height:520px)]:py-2"
                         >
                           <span
                             className={cn(

@@ -14,7 +14,7 @@ import { getSiteContent } from "@/lib/cms";
 export async function Hero() {
   const { hero } = await getSiteContent();
   return (
-    <section className="relative flex min-h-[88vh] items-center overflow-hidden py-24 sm:min-h-[92vh]">
+    <section className="relative flex min-h-[88dvh] items-center overflow-hidden py-24 sm:min-h-[92dvh] [@media(max-height:520px)]:py-10">
       <HeroParallax src={hero.backgroundImage} alt="" />
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-canvas-deep/70 via-canvas-deep/55 to-canvas" />
       <div aria-hidden className="absolute inset-0 bg-canvas-deep/25" />
@@ -27,7 +27,7 @@ export async function Hero() {
         </Reveal>
 
         <Reveal delay={90}>
-          <h1 className="mx-auto mt-6 max-w-3xl text-[2.25rem] leading-[1.1] text-ink sm:text-6xl">
+          <h1 className="mx-auto mt-6 max-w-3xl text-[2.25rem] leading-[1.1] text-ink sm:text-6xl [@media(max-height:520px)]:text-4xl">
             {hero.title} <span className="text-gradient italic">{hero.titleAccent}</span>
             {hero.titleSuffix}
           </h1>

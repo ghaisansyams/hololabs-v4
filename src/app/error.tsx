@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <Container className="flex min-h-[70vh] max-w-xl flex-col items-center justify-center py-16 text-center">
+    <Container className="flex min-h-[70dvh] max-w-xl flex-col items-center justify-center py-16 text-center">
       <span className="flex size-16 items-center justify-center rounded-full bg-brand-soft text-brand">
         <TriangleAlert className="size-8" aria-hidden />
       </span>

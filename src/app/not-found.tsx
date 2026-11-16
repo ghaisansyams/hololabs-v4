@@ -14,7 +14,7 @@ export default async function NotFound() {
       <SiteHeader />
       <Container
         as="main"
-        className="flex min-h-[70vh] max-w-2xl flex-1 flex-col items-center justify-center py-16 text-center"
+        className="flex min-h-[70dvh] max-w-2xl flex-1 flex-col items-center justify-center py-16 text-center"
       >
         <LogoMark className="size-14 motion-safe:animate-float-slow" />
 
