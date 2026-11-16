@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LayoutDashboard, Ticket, CalendarDays, Package, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink } from "lucide-react";
 import { logout } from "./actions";
 import { Logo } from "@/components/brand/logo";
+import { isAdmin } from "@/lib/admin/guard";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s · Admin Hololabs" },
@@ -20,7 +21,10 @@ const nav = [
   { href: "/admin/konten", label: "Konten Website", icon: FileText },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Belum login (halaman /admin/login): tanpa sidebar, hanya isi halaman.
+  if (!(await isAdmin())) return <>{children}</>;
+
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="border-b border-line bg-canvas-deep/80 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:shrink-0 lg:border-b-0 lg:border-r">
