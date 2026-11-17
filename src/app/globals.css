@@ -126,6 +126,15 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Setiap blok halaman memotong sendiri apa pun yang melebihi lebarnya
+     (orb dekoratif, animasi masuk dari samping, marquee). Pada HP, satu elemen
+     yang lolos cukup membuat browser memperkecil seluruh halaman. `clip` tidak
+     membuat scroll container, jadi header sticky tetap normal. */
+  main,
+  section {
+    overflow-x: clip;
+  }
+
   body {
     background-color: var(--color-canvas);
     background-image: radial-gradient(70rem 46rem at 50% -14%, rgb(168 85 247 / 0.14), transparent 60%);
@@ -301,6 +310,8 @@
     }
   }
   .holo-marquee-mask {
+    max-width: 100%;
+    contain: paint;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   }

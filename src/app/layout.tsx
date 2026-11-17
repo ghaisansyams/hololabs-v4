@@ -69,6 +69,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Pinch-zoom is locked on purpose, per the client: the page is designed
   // for a fixed mobile layout and zooming exposed horizontal overflow.
+  // minimumScale 1: browser HP (Chrome/Oppo/in-app WhatsApp) tidak boleh
+  // "zoom out otomatis" untuk memuat elemen yang melebihi lebar layar.
+  minimumScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
