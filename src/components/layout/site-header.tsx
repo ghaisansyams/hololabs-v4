@@ -90,9 +90,11 @@ export function SiteHeader() {
         Lompat ke konten
       </a>
 
-      <Container className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+      {/* Selebar layar (bukan max-w-7xl): logo menempel ke kiri dan tombol ke kanan,
+            sejajar dengan isi menu, termasuk di TV/monitor besar. */}
+      <Container className="flex h-20 max-w-none items-center justify-between gap-4 lg:h-24 lg:px-16 [@media(max-height:520px)]:h-16">
         <Link href="/" aria-label="Hololabs — beranda" className="shrink-0">
-          <Logo className="h-12 sm:h-14" />
+          <Logo className="h-14 sm:h-16 lg:h-[4.5rem] [@media(max-height:520px)]:h-11" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -119,7 +121,7 @@ export function SiteHeader() {
       <div
         id="menu-overlay"
         hidden={!open}
-        className="fixed inset-0 top-[4.5rem] z-40 overflow-y-auto bg-canvas-deep lg:top-20"
+        className="fixed inset-0 top-20 z-40 overflow-y-auto bg-canvas-deep lg:top-24 [@media(max-height:520px)]:top-16"
       >
         <div className="grid min-h-full lg:grid-cols-2">
           {/* Dummy image panel, matching the reference's menu layout — no
