@@ -11,6 +11,6 @@ export interface PaymentAccount {
 }
 
 export const paymentAccounts: PaymentAccount[] = [
-  { bank: "BCA", accountNumber: "1234567890", accountName: "Aji" },
-  { bank: "Mandiri", accountNumber: "9876543210", accountName: "Aji" },
+  { bank: "BCA", accountNumber: "1234567890", accountName: "Holomoc" },
+  { bank: "Mandiri", accountNumber: "9876543210", accountName: "Holomoc" },
 ];
