@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Minus, Plus, X } from "lucide-react";
 import { submitBooking, type BookingFormState } from "@/app/pesan/actions";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,20 @@ export function BookingWizard({
 }) {
   const [state, formAction, pending] = useActionState(submitBooking, initialState);
   const [screen, setScreen] = useState<"details" | "contact">("details");
+  const stepRef = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+
+  // Pindah langkah (Lanjutkan Reservasi / Kembali): bawa pengguna ke awal
+  // langkah baru. Tanpa ini, di HP layar tetap di posisi lama sehingga form
+  // kontak langsung terlihat dari bagian Ketentuan Reservasi.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    stepRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }, [screen]);
 
   const [packageId, setPackageId] = useState<string>(
     packages.find((p) => p.id === initialPackageId)?.id ?? "",
@@ -133,7 +147,7 @@ export function BookingWizard({
         </aside>
 
         {/* Step content */}
-        <div className="order-1 md:order-2">
+        <div ref={stepRef} className="order-1 scroll-mt-24 md:order-2">
           {screen === "details" ? (
             <DetailsScreen
               schedule={schedule}
