@@ -9,15 +9,18 @@ export function ConfirmButton({
   children,
   tone = "neutral",
   className,
+  form,
 }: {
   message: string;
   children: ReactNode;
   tone?: "neutral" | "primary" | "danger";
   className?: string;
+  form?: string;
 }) {
   return (
     <button
       type="submit"
+      form={form}
       onClick={(event) => {
         if (!window.confirm(message)) event.preventDefault();
       }}

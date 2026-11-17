@@ -120,6 +120,36 @@ export async function updatePackage(formData: FormData): Promise<void> {
   revalidatePath("/");
 }
 
+/**
+ * Hapus paket permanen. Hanya boleh bila belum pernah dipesan (booking
+ * menyimpan referensi ke paket); kalau sudah pernah, paket tetap ada dan admin
+ * diarahkan untuk menonaktifkannya saja.
+ */
+export async function deletePackage(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("packageId") ?? "");
+  if (!id) redirect("/admin/packages");
+
+  const db = getDb();
+  const [used] = await db
+    .select({ id: schema.bookings.id })
+    .from(schema.bookings)
+    .where(eq(schema.bookings.packageId, id))
+    .limit(1);
+  if (used) redirect("/admin/packages?notice=used");
+
+  try {
+    await db.delete(schema.packages).where(eq(schema.packages.id, id));
+  } catch {
+    // Pemesanan masuk tepat saat dihapus: FK menolak, perlakukan sebagai "sudah dipakai".
+    redirect("/admin/packages?notice=used");
+  }
+  revalidatePath("/admin/packages");
+  revalidatePath("/pesan");
+  revalidatePath("/");
+  redirect("/admin/packages?notice=deleted");
+}
+
 /** Bullet points, one per line in the form. */
 function readIncludes(formData: FormData): string[] {
   return String(formData.get("includes") ?? "")
