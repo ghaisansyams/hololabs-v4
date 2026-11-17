@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/guard";
 import { sanitizeSection } from "@/lib/cms";
 import { eq, sql } from "drizzle-orm";
@@ -47,4 +48,6 @@ export async function resetContent(formData: FormData): Promise<void> {
   await getDb().delete(schema.cmsContent).where(eq(schema.cmsContent.key, key));
   refreshSite();
   revalidatePath(`/admin/konten/${key}`);
+  // ?r=... membuat form di halaman editor dimuat ulang dengan teks bawaan.
+  redirect(`/admin/konten/${encodeURIComponent(key)}?r=${Date.now()}`);
 }

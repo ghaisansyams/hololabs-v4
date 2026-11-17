@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ImagePlus, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { ArrowDown, ArrowUp, Check, ExternalLink, ImagePlus, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { saveContent, type ContentFormState } from "@/app/admin/konten/actions";
 import { Button } from "@/components/ui/button";
 import type { FieldDef, ListField, SectionDef, TagsField, TextField } from "@/lib/cms/schema";
@@ -265,6 +265,221 @@ function ListEditor({
 
 const initial: ContentFormState = {};
 
+/* ------------------------------------------------------------------ */
+/* Ringkasan perubahan (untuk pop up konfirmasi)                       */
+/* ------------------------------------------------------------------ */
+
+interface Change {
+  label: string;
+  kind: "text" | "image";
+  from: string;
+  to: string;
+}
+
+const asText = (value: unknown): string =>
+  Array.isArray(value) ? value.map((v) => String(v)).filter(Boolean).join(" • ") : String(value ?? "");
+
+function describeChanges(section: SectionDef, before: Values, after: Values): Change[] {
+  const changes: Change[] = [];
+  const push = (label: string, type: string, from: unknown, to: unknown) => {
+    const a = asText(from);
+    const b = asText(to);
+    if (a !== b) changes.push({ label, kind: type === "image" ? "image" : "text", from: a, to: b });
+  };
+
+  for (const field of section.fields) {
+    if (field.type !== "list") {
+      push(field.label, field.type, before[field.key], after[field.key]);
+      continue;
+    }
+    const a = (before[field.key] as Item[]) ?? [];
+    const b = (after[field.key] as Item[]) ?? [];
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      const name = `${field.label} › ${field.itemLabel} ${i + 1}`;
+      if (!a[i]) {
+        changes.push({ label: name, kind: "text", from: "", to: "(item baru ditambahkan)" });
+      } else if (!b[i]) {
+        changes.push({ label: name, kind: "text", from: "(item dihapus)", to: "" });
+      } else {
+        for (const sub of field.fields) {
+          push(`${name} › ${sub.label}`, sub.type, a[i][sub.key], b[i][sub.key]);
+        }
+      }
+    }
+  }
+  return changes;
+}
+
+function Snippet({ text, kind, tone }: { text: string; kind: "text" | "image"; tone: "old" | "new" }) {
+  const box =
+    tone === "old"
+      ? "border-line bg-canvas-deep text-muted"
+      : "border-accent/40 bg-accent-soft text-ink";
+  if (kind === "image") {
+    return (
+      <div className={`flex h-20 items-center justify-center overflow-hidden rounded-lg border ${box}`}>
+        {text ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={text} alt="" className="max-h-full max-w-full object-contain" />
+        ) : (
+          <span className="px-2 text-center text-xs">(kosong)</span>
+        )}
+      </div>
+    );
+  }
+  const shown = text.length > 160 ? `${text.slice(0, 160)}…` : text;
+  return (
+    <p className={`rounded-lg border px-3 py-2 text-sm leading-snug [overflow-wrap:anywhere] ${box} ${tone === "old" && text ? "line-through decoration-muted/60" : ""}`}>
+      {shown || <span className="text-xs italic">(kosong)</span>}
+    </p>
+  );
+}
+
+function ConfirmDialog({
+  sectionLabel,
+  changes,
+  onCancel,
+  onConfirm,
+}: {
+  sectionLabel: string;
+  changes: Change[];
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    confirmRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  const none = changes.length === 0;
+  const visible = changes.slice(0, 12);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        className="flex max-h-[88dvh] w-full max-w-xl flex-col rounded-card border border-line bg-surface shadow-lift"
+      >
+        <div className="border-b border-line px-6 py-5">
+          <h2 id="confirm-title" className="text-lg font-extrabold text-ink">
+            Tayangkan perubahan ke website?
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Bagian <span className="font-semibold text-ink-soft">{sectionLabel}</span>.{" "}
+            {none
+              ? "Belum ada yang berbeda dari versi yang sedang tayang."
+              : `${changes.length} bagian akan diubah dan langsung tampil di website publik.`}
+          </p>
+        </div>
+
+        {none ? null : (
+          <ul className="space-y-4 overflow-y-auto px-6 py-5">
+            {visible.map((change, index) => (
+              <li key={index}>
+                <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-ink-soft">{change.label}</p>
+                <div className="grid items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
+                  <Snippet text={change.from} kind={change.kind} tone="old" />
+                  <span className="hidden text-muted sm:block" aria-hidden>
+                    →
+                  </span>
+                  <Snippet text={change.to} kind={change.kind} tone="new" />
+                </div>
+              </li>
+            ))}
+            {changes.length > visible.length ? (
+              <li className="text-sm text-muted">+ {changes.length - visible.length} perubahan lainnya.</li>
+            ) : null}
+          </ul>
+        )}
+
+        <div className="flex flex-wrap justify-end gap-3 border-t border-line px-6 py-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex h-11 items-center rounded-pill border border-line px-5 text-sm font-semibold text-ink-soft hover:border-accent/50 hover:text-ink"
+          >
+            {none ? "Tutup" : "Batal"}
+          </button>
+          {none ? null : (
+            <button
+              ref={confirmRef}
+              type="button"
+              onClick={onConfirm}
+              className="inline-flex h-11 items-center rounded-pill bg-brand px-5 text-sm font-semibold uppercase tracking-[0.08em] text-ink hover:bg-brand-dark"
+            >
+              Ya, simpan & tayangkan
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SuccessToast({
+  sectionLabel,
+  count,
+  onClose,
+}: {
+  sectionLabel: string;
+  count: number;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 12000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-card border border-success/50 bg-surface p-4 shadow-lift"
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
+          <Check className="size-4" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-ink">Berhasil tayang di website publik</p>
+          <p className="mt-1 text-sm leading-snug text-muted">
+            Bagian <span className="font-semibold text-ink-soft">{sectionLabel}</span> sudah disimpan
+            {count > 0 ? ` (${count} perubahan)` : ""} dan sekarang tampil untuk semua pengunjung.
+          </p>
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
+          >
+            Lihat website <ExternalLink className="size-3.5" aria-hidden />
+          </a>
+        </div>
+        <button
+          type="button"
+          aria-label="Tutup pemberitahuan"
+          onClick={onClose}
+          className="rounded-lg p-1.5 text-muted hover:bg-surface-raised hover:text-ink"
+        >
+          <X className="size-4" aria-hidden />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ContentEditor({
   section,
   initialValues,
@@ -276,25 +491,49 @@ export function ContentEditor({
   defaultValues?: Values;
 }) {
   const [values, setValues] = useState<Values>(initialValues);
+  // Versi yang sedang tayang; dipakai untuk membandingkan sebelum menyimpan.
+  const [published, setPublished] = useState<Values>(initialValues);
   const [dirty, setDirty] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [toast, setToast] = useState<{ id: string; count: number } | null>(null);
   const [state, formAction, pending] = useActionState(saveContent, initial);
+  const [, startTransition] = useTransition();
+  const submitted = useRef<{ values: Values; count: number } | null>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   const set = (key: string, value: Values[string]) => {
     setValues((v) => ({ ...v, [key]: value }));
     setDirty(true);
   };
 
+  const changes = confirming ? describeChanges(section, published, values) : [];
+
+  function confirmSave() {
+    const formData = new FormData();
+    formData.set("key", section.key);
+    formData.set("value", JSON.stringify(values));
+    submitted.current = { values, count: changes.length };
+    setConfirming(false);
+    setDirty(false);
+    startTransition(() => formAction(formData));
+  }
+
+  // Server sudah menyimpan: catat versi tayang yang baru dan tampilkan notifikasi.
+  useEffect(() => {
+    if (!state.ok || !state.savedAt || !submitted.current) return;
+    setPublished(submitted.current.values);
+    setToast({ id: state.savedAt, count: submitted.current.count });
+    submitted.current = null;
+  }, [state]);
+
   return (
     <form
-      action={(fd) => {
-        setDirty(false);
-        formAction(fd);
+      onSubmit={(event) => {
+        event.preventDefault();
+        setConfirming(true);
       }}
       className="space-y-6"
     >
-      <input type="hidden" name="key" value={section.key} />
-      <input type="hidden" name="value" value={JSON.stringify(values)} />
-
       {section.fields.map((field: FieldDef) => (
         <div key={field.key}>
           {field.type === "list" ? (
@@ -327,17 +566,34 @@ export function ContentEditor({
       ))}
 
       <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center gap-3 border-t border-line bg-canvas/95 px-1 py-4 backdrop-blur">
-        <Button type="submit" disabled={pending}>
+        <Button ref={saveButtonRef} type="submit" disabled={pending}>
           {pending ? "Menyimpan…" : "Simpan & tayangkan"}
         </Button>
         {state.error ? (
-          <p className="text-sm font-medium text-danger">{state.error}</p>
+          <p role="alert" className="text-sm font-medium text-danger">
+            {state.error}
+          </p>
         ) : state.ok && !dirty ? (
           <p className="text-sm font-medium text-success">Tersimpan — sudah tampil di website.</p>
         ) : dirty ? (
           <p className="text-sm text-muted">Ada perubahan yang belum disimpan.</p>
         ) : null}
       </div>
+
+      {confirming ? (
+        <ConfirmDialog
+          sectionLabel={section.label}
+          changes={changes}
+          onCancel={() => {
+            setConfirming(false);
+            saveButtonRef.current?.focus();
+          }}
+          onConfirm={confirmSave}
+        />
+      ) : null}
+      {toast ? (
+        <SuccessToast key={toast.id} sectionLabel={section.label} count={toast.count} onClose={() => setToast(null)} />
+      ) : null}
     </form>
   );
 }

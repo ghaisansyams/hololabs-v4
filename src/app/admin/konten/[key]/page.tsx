@@ -9,8 +9,15 @@ import { resetContent } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditKontenPage({ params }: { params: Promise<{ key: string }> }) {
+export default async function EditKontenPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ key: string }>;
+  searchParams: Promise<{ r?: string }>;
+}) {
   const { key } = await params;
+  const { r } = await searchParams;
   const section = sectionDef(key);
   if (!section) notFound();
 
@@ -39,9 +46,11 @@ export default async function EditKontenPage({ params }: { params: Promise<{ key
         />
       </div>
       <div className="max-w-3xl">
-        {/* key on edited timestamp: after a reset the form remounts with defaults. */}
+        {/* key hanya berubah saat "Kembalikan ke bawaan" (?r=...), supaya form dibuat
+            ulang dengan teks bawaan. Menyimpan TIDAK boleh membuat ulang form, kalau
+            tidak pop up dan notifikasi "sudah tayang" ikut hilang. */}
         <ContentEditor
-          key={edited.get(key) ?? "default"}
+          key={r ?? "editor"}
           section={section}
           initialValues={values}
           defaultValues={defaults[key as keyof SiteContent] as unknown as typeof values}
