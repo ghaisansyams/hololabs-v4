@@ -14,7 +14,7 @@ import { getSiteContent } from "@/lib/cms";
 export async function Hero() {
   const { hero } = await getSiteContent();
   return (
-    <section className="relative flex min-h-[88dvh] items-center overflow-hidden py-24 sm:min-h-[92dvh] [@media(max-height:520px)]:py-10">
+    <section className="relative flex min-h-dvh items-center overflow-hidden py-24 [@media(max-height:520px)]:py-10">
       <HeroParallax src={hero.backgroundImage} alt="" />
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-canvas-deep/70 via-canvas-deep/55 to-canvas" />
       <div aria-hidden className="absolute inset-0 bg-canvas-deep/25" />
