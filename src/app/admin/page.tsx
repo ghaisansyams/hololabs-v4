@@ -3,6 +3,7 @@ import { getDashboardStats, listSessions } from "@/lib/services/admin";
 import { formatRupiah } from "@/lib/utils/format";
 import { formatDayMonth, formatWeekdayShort } from "@/lib/utils/date";
 import { isDatabaseConfigured } from "@/lib/db/client";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,36 @@ export default async function AdminDashboardPage() {
     { label: "Sudah check-in", value: stats.checkedIn.toLocaleString("id-ID") },
   ];
 
+  // Peringatan jadwal: tanpa sesi mendatang, halaman Reservasi kosong untuk pengunjung.
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+  const upcomingDays = new Set(sessions.filter((s) => s.sessionDate >= today).map((s) => s.sessionDate)).size;
+
   const byDate = new Map<string, typeof sessions>();
   for (const s of sessions) byDate.set(s.sessionDate, [...(byDate.get(s.sessionDate) ?? []), s]);
 
   return (
     <>
       <AdminHeader title="Dashboard" description={`Ringkasan booking — ${soldPercent}% kapasitas terisi.`} />
+
+      {upcomingDays <= 2 ? (
+        <div
+          role="alert"
+          className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-medium ${
+            upcomingDays === 0
+              ? "border-danger/40 bg-danger-soft text-danger"
+              : "border-warning/40 bg-warning-soft text-warning"
+          }`}
+        >
+          <p>
+            {upcomingDays === 0
+              ? "Tidak ada jadwal show ke depan. Halaman Reservasi kosong, pengunjung belum bisa memesan."
+              : `Jadwal show tinggal ${upcomingDays} hari ke depan. Tambahkan tanggal baru supaya reservasi tetap bisa dipakai.`}
+          </p>
+          <Link href="/admin/sessions" className="font-bold underline underline-offset-2">
+            Atur jadwal
+          </Link>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
