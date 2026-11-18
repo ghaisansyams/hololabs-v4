@@ -30,7 +30,6 @@ export function SiteHeader() {
   const isHome = pathname === "/";
   const { menuItems, reservationLabel, menuImage, menuEyebrow, menuTagline } = useChrome();
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   // Bar atas bersembunyi saat scroll turun dan muncul lagi saat scroll naik.
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
@@ -44,7 +43,6 @@ export function SiteHeader() {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      setScrolled(y > 8);
       const delta = y - lastY.current;
       if (y < 120 || openRef.current) {
         setHidden(false);
@@ -99,18 +97,15 @@ export function SiteHeader() {
     <>
     <header
       className={cn(
-        "sticky top-0 z-50 transition-[background-color,border-color,box-shadow,transform] duration-300 motion-reduce:transition-none",
-        // Tersembunyi saat scroll turun; tetap muncul bila fokus keyboard ada di dalamnya.
-        hidden && !open && "-translate-y-full focus-within:translate-y-0",
-        // Beranda: header transparan di atas gambar hero (konten ditarik ke belakang header).
+        // Gerakan memakai properti `translate` (Tailwind v4), jadi harus ikut
+        // di daftar transisi; kalau tidak, bar hilang mendadak tanpa animasi.
+        "sticky top-0 z-50 transition-[translate,opacity,background-color] duration-[650ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+        // Beranda: konten ditarik ke belakang header supaya hero tampil sampai tepi atas.
         isHome && "-mb-20 lg:-mb-24 [@media(max-height:520px)]:-mb-16",
-        open
-          ? "border-b border-line bg-canvas-deep"
-          : scrolled
-          ? "border-b border-line bg-canvas/95 supports-[backdrop-filter]:bg-canvas/75 supports-[backdrop-filter]:backdrop-blur-xl"
-          : isHome
-          ? "border-b-0 bg-gradient-to-b from-black/45 to-transparent"
-          : "border-b border-transparent bg-canvas/70 supports-[backdrop-filter]:bg-canvas/40 supports-[backdrop-filter]:backdrop-blur-md",
+        // Tersembunyi saat scroll turun; tetap muncul bila fokus keyboard ada di dalamnya.
+        hidden && !open && "pointer-events-none -translate-y-full opacity-0 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100",
+        // Selalu transparan (tanpa blok gelap dan garis); gradasi tipis menjaga logo terbaca.
+        open ? "border-b border-line bg-canvas-deep" : "border-b-0 bg-gradient-to-b from-black/55 via-black/20 to-transparent",
       )}
     >
       <a
