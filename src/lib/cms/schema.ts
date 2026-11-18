@@ -1,5 +1,5 @@
 import { siteConfig } from "@/data/site";
-import { ambianceStats } from "@/data/ambiance";
+import { ambianceFacts, ambiancePhases, ambianceStats } from "@/data/ambiance";
 import { collectionItems } from "@/data/collection";
 import { journeySteps, journeyDurationLabel } from "@/data/journey";
 import { storyIntro, philosophy, dnaTraits, manifesto } from "@/data/story";
@@ -136,9 +136,6 @@ export const sections = [
       t("eyebrow", "Label section"),
       t("title", "Judul section"),
       ta("description", "Deskripsi suasana/tempat", 400),
-      img("image", "Gambar suasana"),
-      t("imageAlt", "Deskripsi gambar (untuk pembaca layar)", 200),
-      t("imageCaption", "Keterangan di atas gambar", 120),
       {
         key: "stats",
         label: "Angka suasana",
@@ -148,6 +145,34 @@ export const sections = [
         max: 4,
         fields: [t("value", "Angka / teks besar", 30), t("label", "Keterangan", 50)],
       },
+      t("phasesEyebrow", "Label bagian perjalanan"),
+      t("phasesTitle", "Judul bagian perjalanan", 120),
+      {
+        key: "phases",
+        label: "Tahapan perjalanan",
+        type: "list",
+        itemLabel: "Tahap",
+        min: 2,
+        max: 4,
+        fields: [
+          t("title", "Nama tahap", 50),
+          t("time", "Waktu (mis. Menit 0–10)", 30),
+          ta("description", "Penjelasan", 300),
+          { key: "tags", label: "Sorotan", type: "tags", hint: "Satu sorotan per baris, maksimal 3." },
+        ],
+      },
+      t("factsTitle", "Judul bagian informasi praktis", 80),
+      {
+        key: "facts",
+        label: "Informasi praktis",
+        type: "list",
+        itemLabel: "Informasi",
+        min: 0,
+        max: 8,
+        fields: [t("label", "Judul", 30), t("value", "Isi", 200)],
+      },
+      t("closingTitle", "Kalimat penutup", 80),
+      t("collectionLabel", "Teks link ke Collection", 40),
     ],
   },
   {
@@ -338,14 +363,18 @@ export const defaults = {
     ].join("\n\n"),
   },
   ambiance: {
-    image: "/renders/ambiance-hall.jpg",
-    imageAlt: "Render suasana ruang Hololabs — koridor imersif dengan dinding LED",
-    imageCaption: "Ilustrasi render — belum foto venue asli.",
     eyebrow: "Ambiance",
     title: "Satu ruang, banyak dimensi pengalaman.",
     description:
       "Hololabs dirancang sebagai ruang yang transparan, berlapis, dan saling terhubung, tempat dunia fisik dan digital bertemu. Sebelum masuk ke isinya, rasakan dulu suasananya: cahaya, pantulan, dan ruang yang terus berubah bentuk mengikuti cerita.",
     stats: ambianceStats.map(({ value, label }) => ({ value, label })),
+    phasesEyebrow: "Perjalanan",
+    phasesTitle: "Sembilan puluh menit, empat tahap.",
+    phases: ambiancePhases.map(({ title, time, description, tags }) => ({ title, time, description, tags: [...tags] })),
+    factsTitle: "Sebelum Anda datang",
+    facts: ambianceFacts.map(({ label, value }) => ({ label, value })),
+    closingTitle: "Siap masuk ke dalamnya?",
+    collectionLabel: "Lihat Collection",
   },
   collection: {
     eyebrow: "Collection",
