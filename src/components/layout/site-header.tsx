@@ -31,6 +31,10 @@ export function SiteHeader() {
   const { menuItems, reservationLabel, menuImage, menuEyebrow, menuTagline } = useChrome();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Bar atas bersembunyi saat scroll turun dan muncul lagi saat scroll naik.
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
+  const openRef = useRef(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -38,11 +42,30 @@ export function SiteHeader() {
   }, [pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      const delta = y - lastY.current;
+      if (y < 120 || openRef.current) {
+        setHidden(false);
+        lastY.current = y;
+      } else if (delta > 8) {
+        setHidden(true);
+        lastY.current = y;
+      } else if (delta < -8) {
+        setHidden(false);
+        lastY.current = y;
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    openRef.current = open;
+    if (open) setHidden(false);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -76,7 +99,9 @@ export function SiteHeader() {
     <>
     <header
       className={cn(
-        "sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
+        "sticky top-0 z-50 transition-[background-color,border-color,box-shadow,transform] duration-300 motion-reduce:transition-none",
+        // Tersembunyi saat scroll turun; tetap muncul bila fokus keyboard ada di dalamnya.
+        hidden && !open && "-translate-y-full focus-within:translate-y-0",
         // Beranda: header transparan di atas gambar hero (konten ditarik ke belakang header).
         isHome && "-mb-20 lg:-mb-24 [@media(max-height:520px)]:-mb-16",
         open
