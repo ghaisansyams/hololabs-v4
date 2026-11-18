@@ -237,10 +237,6 @@
     transform-origin: top;
     transition: transform 120ms linear;
   }
-  .scroll-progress-fill {
-    transform: scaleX(var(--scroll-progress, 0));
-    transition: transform 120ms linear;
-  }
 
   /* Hero background drift — see components/home/hero-parallax.tsx. */
   .hero-parallax-layer {
