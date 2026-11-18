@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
 import { AboutSection } from "@/components/home/about-section";
 import { PeopleSection } from "@/components/home/people-section";
-import { ReservationCta } from "@/components/home/reservation-cta";
-import { ContactSection } from "@/components/home/contact-section";
 import { FaqSection } from "@/components/home/faq-section";
 import { siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
@@ -24,9 +22,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Homepage structure mirrors meatguysteakhouse.com exactly, per the
  * client's request: Hero → About Us → Founder profile → second profile →
- * standalone Reservation CTA → Contact →
  * FAQ → Footer. Reservation itself still lives at /pesan, unchanged from
- * v3. The map card moved from the homepage into the footer.
+ * v3. The reservation CTA block and the contact row were removed from the
+ * homepage (contact details and the map card live in the footer).
  */
 export default async function HomePage() {
   const { brand } = await getSiteContent();
@@ -45,8 +43,6 @@ export default async function HomePage() {
       <Hero />
       <AboutSection />
       <PeopleSection />
-      <ReservationCta />
-      <ContactSection />
       <FaqSection />
     </>
   );
