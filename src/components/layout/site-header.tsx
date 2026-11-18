@@ -27,6 +27,7 @@ function isActive(pathname: string, href: string): boolean {
  */
 export function SiteHeader() {
   const pathname = usePathname();
+  const isHome = pathname === "/";
   const { menuItems, reservationLabel, menuImage, menuEyebrow, menuTagline } = useChrome();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -76,10 +77,14 @@ export function SiteHeader() {
     <header
       className={cn(
         "sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
+        // Beranda: header transparan di atas gambar hero (konten ditarik ke belakang header).
+        isHome && "-mb-20 lg:-mb-24 [@media(max-height:520px)]:-mb-16",
         open
           ? "border-b border-line bg-canvas-deep"
           : scrolled
           ? "border-b border-line bg-canvas/95 supports-[backdrop-filter]:bg-canvas/75 supports-[backdrop-filter]:backdrop-blur-xl"
+          : isHome
+          ? "border-b-0 bg-gradient-to-b from-black/45 to-transparent"
           : "border-b border-transparent bg-canvas/70 supports-[backdrop-filter]:bg-canvas/40 supports-[backdrop-filter]:backdrop-blur-md",
       )}
     >
@@ -98,7 +103,13 @@ export function SiteHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/pesan" className={buttonStyles({ size: "sm" })}>
+          <Link
+            href="/pesan"
+            className={buttonStyles({
+              size: "sm",
+              className: "border border-[#5b53c9]/60 bg-[#2a2468] shadow-none hover:bg-[#373092]",
+            })}
+          >
             <Ticket className="size-4" aria-hidden />
             {reservationLabel}
           </Link>
