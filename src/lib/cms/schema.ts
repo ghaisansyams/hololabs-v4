@@ -3,7 +3,6 @@ import { ambianceStats } from "@/data/ambiance";
 import { collectionItems } from "@/data/collection";
 import { journeySteps, journeyDurationLabel } from "@/data/journey";
 import { storyIntro, philosophy, dnaTraits, manifesto } from "@/data/story";
-import { bestWorks } from "@/data/best-works";
 import { faqItems } from "@/data/faq";
 import { mainNav } from "@/data/site";
 
@@ -107,24 +106,6 @@ export const sections = [
       t("title", "Judul section"),
       ta("bodyShort", "Paragraf pertama", 400),
       ta("bodyLong", "Paragraf kedua", 500),
-    ],
-  },
-  {
-    key: "bestWorks",
-    label: "Our Best Works",
-    description: "Daftar proyek klien dan logo yang berjalan sebagai marquee di bawah About Us.",
-    fields: [
-      t("eyebrow", "Label section"),
-      t("title", "Judul section"),
-      {
-        key: "items",
-        label: "Proyek",
-        type: "list",
-        itemLabel: "Proyek",
-        min: 0,
-        max: 24,
-        fields: [t("title", "Nama proyek", 100), t("client", "Nama klien", 60), img("logo", "Logo klien", "Kosongkan kalau tidak ada logo.")],
-      },
     ],
   },
   {
@@ -328,11 +309,6 @@ export const defaults = {
       "Hololabs adalah creative technology lab yang mengubah teknologi, mulai dari projection mapping, AI, VR, hingga 3D printing, menjadi satu pengalaman yang bisa dilihat, didengar, dan disentuh langsung.",
     bodyLong:
       "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
-  },
-  bestWorks: {
-    eyebrow: "Our Best Works",
-    title: "Proyek yang sudah kami kerjakan",
-    items: bestWorks.map(({ title, client, logo }) => ({ title, client, logo })),
   },
   people: {
     founderPhoto: "/hololabs-mark.png",
