@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
 import { AboutSection } from "@/components/home/about-section";
 import { PeopleSection } from "@/components/home/people-section";
-import { LocationSection } from "@/components/home/location-section";
 import { ReservationCta } from "@/components/home/reservation-cta";
 import { ContactSection } from "@/components/home/contact-section";
 import { FaqSection } from "@/components/home/faq-section";
@@ -25,10 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Homepage structure mirrors meatguysteakhouse.com exactly, per the
  * client's request: Hero → About Us → Founder profile → second profile →
- * Lokasi (hours/map equivalent) → standalone Reservation CTA → Contact →
+ * standalone Reservation CTA → Contact →
  * FAQ → Footer. Reservation itself still lives at /pesan, unchanged from
- * v3 — Lokasi replaced the earlier live Jadwal grid, which duplicated what
- * the reservation flow already shows.
+ * v3. The map card moved from the homepage into the footer.
  */
 export default async function HomePage() {
   const { brand } = await getSiteContent();
@@ -47,7 +45,6 @@ export default async function HomePage() {
       <Hero />
       <AboutSection />
       <PeopleSection />
-      <LocationSection />
       <ReservationCta />
       <ContactSection />
       <FaqSection />

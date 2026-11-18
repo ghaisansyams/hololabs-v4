@@ -7,19 +7,19 @@ import { getSiteContent } from "@/lib/cms";
  * with a pin, styled after meatguysteakhouse.com's "Open in Maps" location
  * cards — that opens Google Maps in a new tab when clicked.
  */
-export async function DummyMapCard() {
+export async function DummyMapCard({ compact = false }: { compact?: boolean }) {
   const { location } = await getSiteContent();
   const { mapLink: href, mapImage: image, mapBadge: badge, cardTitle: title, cardSubtitle: subtitle, cardCta: cta } = location;
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${title} — ${cta}`}>
-      <TiltCard max={4}>
+      <TiltCard max={compact ? 0 : 4}>
         <div className="group relative overflow-hidden rounded-card border border-line">
-          <div className="relative h-56 overflow-hidden sm:h-72">
+          <div className={compact ? "relative h-36 overflow-hidden sm:h-40" : "relative h-56 overflow-hidden sm:h-72"}>
             <Image
               src={image}
               alt={title}
               fill
-              sizes="(min-width: 1024px) 60vw, 100vw"
+              sizes={compact ? "(min-width: 1024px) 28rem, 100vw" : "(min-width: 1024px) 60vw, 100vw"}
               className="object-cover grayscale-[15%] transition-transform duration-500 group-hover:scale-105"
             />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-canvas-deep/70 via-transparent to-transparent" />
@@ -27,7 +27,7 @@ export async function DummyMapCard() {
               {badge}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4 border-t border-line bg-surface p-5">
+          <div className={compact ? "flex items-center justify-between gap-4 border-t border-line bg-surface px-4 py-3.5" : "flex items-center justify-between gap-4 border-t border-line bg-surface p-5"}>
             <div>
               <p className="text-sm font-bold text-ink">{title}</p>
               <p className="mt-0.5 text-xs text-muted">{subtitle}</p>
