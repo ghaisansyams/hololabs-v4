@@ -18,7 +18,7 @@ export async function AboutSection() {
             <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">{"// "}{about.eyebrow}</p>
           </Reveal>
           <Reveal delay={70}>
-            <h2 className="mt-5 text-4xl leading-[1.08] text-ink sm:text-5xl lg:text-6xl">{about.title}</h2>
+            <h2 className="mt-5 text-3xl font-semibold leading-[1.12] text-ink sm:text-4xl lg:text-5xl">{about.title}</h2>
           </Reveal>
           <Reveal delay={140}>
             <p className="mt-7 max-w-xl text-lg leading-9 text-ink-soft">{about.bodyShort}</p>
@@ -35,7 +35,7 @@ export async function AboutSection() {
             <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line">
               {stats.map((stat, index) => (
                 <div key={index} className="bg-canvas p-6 sm:p-8">
-                  <dd className="whitespace-nowrap text-2xl text-ink sm:text-4xl">{stat.value}</dd>
+                  <dd className="whitespace-nowrap font-display text-xl font-semibold text-ink sm:text-3xl">{stat.value}</dd>
                   <dt className="mt-2 font-mono text-[0.6875rem] uppercase leading-snug tracking-[0.12em] text-muted">
                     {stat.label}
                   </dt>

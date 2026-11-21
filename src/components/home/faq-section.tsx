@@ -20,7 +20,7 @@ export async function FaqSection() {
             <Eyebrow className="justify-center">{faq.eyebrow}</Eyebrow>
           </Reveal>
           <Reveal delay={60}>
-            <h2 className="mt-4 text-3xl text-ink sm:text-4xl">{faq.title}</h2>
+            <h2 className="mt-4 text-2xl font-semibold text-ink sm:text-3xl">{faq.title}</h2>
           </Reveal>
         </div>
 

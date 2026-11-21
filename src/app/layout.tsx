@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { ChromeProvider } from "@/components/layout/chrome-context";
 import { siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
@@ -11,11 +12,13 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Headlines in a geometric grotesk with a mono face for labels and readouts:
-// the "tech" voice of the redesign. (The CSS variable keeps its old name.)
-const space = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+// Headlines in Unbounded, a wide geometric display face, with a mono face
+// for labels and readouts: the "tech" voice of the redesign. (The CSS
+// variable keeps its old name.) Self-hosted variable font (OFL), because
+// Google's Unbounded URLs trip next/font/google.
+const space = localFont({
+  src: "./fonts/unbounded-latin-wght-normal.woff2",
+  weight: "200 900",
   variable: "--font-space",
   display: "swap",
 });

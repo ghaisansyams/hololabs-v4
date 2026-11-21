@@ -32,7 +32,7 @@ export async function VisitSection() {
               <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">{"// "}{visit.eyebrow}</p>
             </Reveal>
             <Reveal delay={70}>
-              <h2 className="mt-5 text-4xl leading-[1.08] text-ink sm:text-5xl">{visit.title}</h2>
+              <h2 className="mt-5 text-3xl font-semibold leading-[1.12] text-ink sm:text-4xl">{visit.title}</h2>
             </Reveal>
             <Reveal delay={140}>
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
@@ -116,7 +116,7 @@ export async function VisitSection() {
         <div className="mt-20 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-2">
           <Reveal className="bg-canvas">
             <div className="flex h-full flex-col p-7 sm:p-10">
-              <h3 className="text-2xl text-ink sm:text-3xl">{visit.personalTitle}</h3>
+              <h3 className="text-xl font-semibold text-ink sm:text-2xl">{visit.personalTitle}</h3>
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.personalBody}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {visit.personalTags.map((tag, i) => (
@@ -132,7 +132,7 @@ export async function VisitSection() {
           </Reveal>
           <Reveal delay={90} className="bg-canvas">
             <div className="flex h-full flex-col p-7 sm:p-10">
-              <h3 className="text-2xl text-ink sm:text-3xl">{visit.groupTitle}</h3>
+              <h3 className="text-xl font-semibold text-ink sm:text-2xl">{visit.groupTitle}</h3>
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.groupBody}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {visit.groupTags.map((tag, i) => (
