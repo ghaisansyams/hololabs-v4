@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Reservation itself still lives at /pesan.
  */
 export default async function HomePage() {
-  const { brand, hero, experience } = await getSiteContent();
+  const { brand, hero, experience, visit } = await getSiteContent();
   const steps = experience.steps.filter((step) => step.title);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -40,7 +40,7 @@ export default async function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <ExperienceStage hero={{ ...hero, words: hero.words.filter(Boolean) }} steps={steps} />
+      <ExperienceStage hero={{ ...hero, hud: visit.stats.filter((item) => item.value) }} steps={steps} />
       <AboutSection />
       <VisitSection />
       <FaqSection />

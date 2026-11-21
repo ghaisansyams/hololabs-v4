@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { ChromeProvider } from "@/components/layout/chrome-context";
 import { siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
@@ -11,13 +11,19 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Editorial serif for headlines — v3's visual language follows the
-// meatguysteakhouse.com reference (centered, badge-laden, generous
-// whitespace), which pairs a serif display face against a plain sans body.
-const playfair = Playfair_Display({
+// Headlines in a geometric grotesk with a mono face for labels and readouts:
+// the "tech" voice of the redesign. (The CSS variable keeps its old name.)
+const space = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-space",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -83,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="id"
       data-scroll-behavior="smooth"
-      className={`${jakarta.variable} ${playfair.variable}`}
+      className={`${jakarta.variable} ${space.variable} ${mono.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
         <ChromeProvider
@@ -93,9 +99,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             siteName: brand.siteName,
             reservationLabel: navigation.reservationLabel,
             menuItems: navigation.menuItems.filter((item) => item.label && item.href),
-            menuImage: navigation.menuImage,
-            menuEyebrow: navigation.menuEyebrow,
-            menuTagline: navigation.menuTagline,
           }}
         >
           {children}

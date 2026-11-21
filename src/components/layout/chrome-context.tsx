@@ -13,9 +13,6 @@ export interface Chrome {
   siteName: string;
   reservationLabel: string;
   menuItems: { label: string; href: string }[];
-  menuImage: string;
-  menuEyebrow: string;
-  menuTagline: string;
 }
 
 const fallback: Chrome = {
@@ -24,9 +21,6 @@ const fallback: Chrome = {
   siteName: "Hololabs",
   reservationLabel: "Reservasi",
   menuItems: [],
-  menuImage: "/renders/ambiance-hall.jpg",
-  menuEyebrow: "Hololabs",
-  menuTagline: "A Creative Technology Lab",
 };
 
 const ChromeContext = createContext<Chrome>(fallback);

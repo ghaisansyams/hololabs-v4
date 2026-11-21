@@ -40,19 +40,13 @@ export interface NavLink {
   label: string;
 }
 
-// Meat Guy-style header: logo + a Reservasi button + a hamburger that opens
-// a full-screen menu (see SiteHeader). The menu only lists pages that are
-// real navigation — Ambiance, Collection, Rundown, Our Story and Cek
-// Tiket each have their own route. About Us/Lokasi/FAQ stay off this list
-// on purpose: from any other page they'd just be "go back to the
-// homepage, then scroll", which felt like the menu was lying about taking
-// you somewhere new.
+// Header and footer links, same anchors as hololabs.id (Tentang, Journey, Info,
+// FAQ) plus the ticket lookup. Editable in the CMS (Menu & tombol).
 export const mainNav: NavLink[] = [
-  { href: "/", label: "Beranda" },
-  { href: "/ambiance", label: "Ambiance" },
-  { href: "/collection", label: "Collection" },
-  { href: "/rundown", label: "Rundown" },
-  { href: "/our-story", label: "Our Story" },
+  { href: "/#about", label: "Tentang" },
+  { href: "/#journey", label: "Journey" },
+  { href: "/#reservasi", label: "Info" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/cek-tiket", label: "Cek Tiket" },
 ];
 

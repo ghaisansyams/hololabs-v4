@@ -37,6 +37,9 @@
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
   --font-display: var(--font-space), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-cyan: #22d3ee;
+  --color-cyan-soft: #0b2a33;
 
   --radius-card: 1.25rem;
   --radius-pill: 999px;
@@ -151,7 +154,7 @@
   h3,
   h4 {
     text-wrap: balance;
-    letter-spacing: 0;
+    letter-spacing: -0.02em;
     font-family: var(--font-display);
     font-weight: 600;
   }
@@ -286,193 +289,6 @@
   }
 
 
-  /* ---- Ambiance: CSS-3D room (components/home/ambiance-room.tsx) ---- */
-  .amb-stage {
-    container-type: inline-size;
-    position: relative;
-    aspect-ratio: 1 / 1;
-  }
-  .amb-scene {
-    position: absolute;
-    inset: 0;
-    perspective: 125cqw;
-    perspective-origin: 50% 46%;
-  }
-  .amb-rig {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transform: translateZ(calc(var(--dz, 0) * 1cqw)) rotateX(calc((var(--px, 0) + var(--sx, 0)) * 1deg))
-      rotateY(calc((var(--py, 0) + var(--sy, 0)) * 1deg));
-    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .amb-room {
-    position: absolute;
-    left: 12cqw;
-    top: 12cqw;
-    width: 76cqw;
-    height: 76cqw;
-    transform-style: preserve-3d;
-  }
-  .amb-face {
-    position: absolute;
-    backface-visibility: hidden;
-  }
-  .amb-back {
-    inset: 0;
-    transform: translateZ(-60cqw);
-    background:
-      radial-gradient(ellipse 34% 46% at 50% 56%, rgb(233 213 255 / 0.95) 0, rgb(192 132 252 / 0.7) 40%, transparent 100%),
-      radial-gradient(ellipse at 50% 60%, rgb(126 34 206 / 0.7), rgb(12 8 22) 78%);
-    box-shadow: inset 0 0 8cqw rgb(5 3 8 / 0.9);
-  }
-  .amb-door {
-    position: absolute;
-    left: 36%;
-    right: 36%;
-    top: 24%;
-    bottom: 0;
-    border: 1px solid rgb(233 213 255 / 0.7);
-    border-bottom: 0;
-    border-radius: 2cqw 2cqw 0 0;
-    background: linear-gradient(to top, rgb(255 255 255 / 0.85), rgb(216 180 254 / 0.35));
-    box-shadow: 0 0 6cqw rgb(192 132 252 / 0.7);
-  }
-  .amb-left,
-  .amb-right {
-    top: 0;
-    width: 60cqw;
-    height: 100%;
-    background:
-      linear-gradient(to bottom, transparent 70%, rgb(168 85 247 / 0.12)),
-      linear-gradient(90deg, rgb(21 15 36 / 0.2), rgb(126 34 206 / 0.38));
-    border-top: 1px solid rgb(192 132 252 / 0.3);
-    border-bottom: 1px solid rgb(192 132 252 / 0.3);
-  }
-  .amb-left {
-    left: 0;
-    transform-origin: left center;
-    transform: rotateY(90deg);
-  }
-  .amb-right {
-    right: 0;
-    transform-origin: right center;
-    transform: rotateY(-90deg);
-    background:
-      linear-gradient(to bottom, transparent 70%, rgb(168 85 247 / 0.12)),
-      linear-gradient(270deg, rgb(21 15 36 / 0.2), rgb(126 34 206 / 0.38));
-  }
-  .amb-floor {
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 60cqw;
-    transform-origin: bottom center;
-    transform: rotateX(90deg);
-    background:
-      linear-gradient(90deg, transparent 33%, rgb(216 180 254 / 0.85) 33.4%, transparent 34.2%, transparent 65.8%, rgb(216 180 254 / 0.85) 66.6%, transparent 67%),
-      linear-gradient(to top, rgb(12 10 18), rgb(168 85 247 / 0.42));
-  }
-  .amb-ceiling {
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 60cqw;
-    transform-origin: top center;
-    transform: rotateX(-90deg);
-    background: linear-gradient(90deg, transparent 40%, rgb(233 213 255 / 0.65) 48%, rgb(233 213 255 / 0.65) 52%, transparent 60%),
-      linear-gradient(to bottom, rgb(12 10 18), rgb(30 20 48));
-  }
-  .amb-slab {
-    position: absolute;
-    border-radius: 1.2cqw;
-    border: 1px solid rgb(216 180 254 / 0.5);
-    background: linear-gradient(135deg, rgb(168 85 247 / 0.34), rgb(56 189 248 / 0.1) 60%, rgb(168 85 247 / 0.05));
-    box-shadow: 0 0 5cqw rgb(168 85 247 / 0.3), inset 0 0 3cqw rgb(233 213 255 / 0.12);
-  }
-  .amb-slab-1 {
-    left: 6%;
-    top: 20%;
-    width: 24cqw;
-    height: 34cqw;
-    transform: translateZ(calc(-14cqw + var(--slide, 0) * 10cqw)) rotateY(24deg);
-  }
-  .amb-slab-2 {
-    right: 4%;
-    top: 34%;
-    width: 20cqw;
-    height: 28cqw;
-    transform: translateZ(calc(-30cqw + var(--slide, 0) * 14cqw)) rotateY(-26deg);
-  }
-  .amb-slab-3 {
-    left: 40%;
-    top: 12%;
-    width: 12cqw;
-    height: 16cqw;
-    transform: translateZ(calc(-44cqw + var(--slide, 0) * 8cqw)) rotateY(8deg);
-    opacity: 0.8;
-  }
-  .amb-figure {
-    position: absolute;
-    left: 47%;
-    bottom: 0;
-    width: 6cqw;
-    height: 17cqw;
-    transform: translateZ(-26cqw);
-  }
-  .amb-figure::before,
-  .amb-figure::after {
-    content: "";
-    position: absolute;
-    background: #05030a;
-    box-shadow: 0 0 1.6cqw rgb(216 180 254 / 0.8);
-  }
-  .amb-figure::before {
-    left: 28%;
-    top: 0;
-    width: 44%;
-    height: 21%;
-    border-radius: 50%;
-  }
-  .amb-figure::after {
-    left: 6%;
-    top: 24%;
-    width: 88%;
-    height: 76%;
-    border-radius: 2cqw 2cqw 0.4cqw 0.4cqw;
-  }
-
-  /* ---- Ambiance: sticky scene stage (components/home/ambiance-phases.tsx) ---- */
-  .amb-scene-item {
-    opacity: 0;
-    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .amb-scene-item[data-on="true"] {
-    opacity: 1;
-  }
-  .amb-pop {
-    transform-box: fill-box;
-    transform-origin: center;
-    transform: scale(0.82);
-    opacity: 0.35;
-    transition:
-      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 900ms ease;
-  }
-  [data-on="true"] .amb-pop {
-    transform: scale(1);
-    opacity: 1;
-  }
-  .amb-turn {
-    transform-box: fill-box;
-    transform-origin: center;
-    transform: rotate(0deg);
-    transition: transform 1200ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  [data-on="true"] .amb-turn {
-    transform: rotate(calc(var(--i, 0) * 9deg));
-  }
-
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -563,9 +379,6 @@
   }
   .timeline-fill {
     transform: none;
-  }
-  .amb-rig {
-    transform: rotateX(-3deg) rotateY(-12deg);
   }
   .hero-parallax-layer {
     transform: none;

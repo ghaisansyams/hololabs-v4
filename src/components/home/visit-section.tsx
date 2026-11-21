@@ -29,7 +29,7 @@ export async function VisitSection() {
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
           <div>
             <Reveal>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">{visit.eyebrow}</p>
+              <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">{"// "}{visit.eyebrow}</p>
             </Reveal>
             <Reveal delay={70}>
               <h2 className="mt-5 text-4xl leading-[1.08] text-ink sm:text-5xl">{visit.title}</h2>
@@ -50,7 +50,7 @@ export async function VisitSection() {
                     const isPlace = /lokasi/i.test(fact.label);
                     return (
                       <div key={index} className="grid gap-1 border-b border-line py-5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-8">
-                        <dt className="text-xs font-bold uppercase leading-7 tracking-[0.16em] text-accent">{fact.label}</dt>
+                        <dt className="font-mono text-xs font-medium uppercase leading-7 tracking-[0.16em] text-cyan">{fact.label}</dt>
                         <dd>
                           <p className="text-lg text-ink">{fact.value}</p>
                           {isPlace && address ? <p className="mt-1 text-sm leading-7 text-muted">{address}</p> : null}
@@ -60,7 +60,7 @@ export async function VisitSection() {
                               href={location.mapLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
+                              className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-cyan hover:underline"
                             >
                               <MapPin className="size-4" aria-hidden />
                               {location.cardCta}
@@ -78,10 +78,10 @@ export async function VisitSection() {
           <Reveal variant="zoom" delay={120}>
             <div className="mx-auto w-full max-w-sm">
               <TiltCard max={9}>
-                <div className="relative overflow-hidden rounded-card border border-accent/40 bg-gradient-to-br from-[#150d28] to-[#2a1450] p-7 shadow-lift">
+                <div className="relative overflow-hidden rounded-xl border border-accent/40 bg-gradient-to-br from-[#150d28] to-[#2a1450] p-7 shadow-lift">
                   <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full bg-brand/30 blur-3xl" />
                   <div className="relative flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">E-ticket</p>
+                    <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">E-ticket</p>
                     <p className="rounded-pill bg-success-soft px-3 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-success">
                       Confirmed
                     </p>
@@ -113,14 +113,14 @@ export async function VisitSection() {
           </Reveal>
         </div>
 
-        <div className="mt-20 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-2">
+        <div className="mt-20 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-2">
           <Reveal className="bg-canvas">
             <div className="flex h-full flex-col p-7 sm:p-10">
               <h3 className="text-2xl text-ink sm:text-3xl">{visit.personalTitle}</h3>
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.personalBody}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {visit.personalTags.map((tag, i) => (
-                  <li key={i} className="rounded-pill border border-line px-3 py-1.5 text-xs font-medium text-ink-soft">
+                  <li key={i} className="rounded-md border border-line px-3 py-1.5 font-mono text-xs text-ink-soft">
                     {tag}
                   </li>
                 ))}
@@ -136,7 +136,7 @@ export async function VisitSection() {
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.groupBody}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {visit.groupTags.map((tag, i) => (
-                  <li key={i} className="rounded-pill border border-line px-3 py-1.5 text-xs font-medium text-ink-soft">
+                  <li key={i} className="rounded-md border border-line px-3 py-1.5 font-mono text-xs text-ink-soft">
                     {tag}
                   </li>
                 ))}

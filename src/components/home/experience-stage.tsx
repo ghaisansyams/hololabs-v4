@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type * as T from "three";
+import { buttonStyles } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 export interface StageStep {
@@ -20,7 +21,7 @@ export interface StageHero {
   lead: string;
   ctaPrimary: string;
   ctaSecondary: string;
-  words: string[];
+  hud: { value: string; label: string }[];
 }
 
 type Visual = { kind: "ticket" } | { kind: "image"; src: string; crop?: [number, number, number, number] };
@@ -159,8 +160,8 @@ function webglAvailable() {
 /**
  * The homepage's centrepiece: a real WebGL scene (three.js). The page
  * scroll flies the camera through a tunnel of seven glowing panels, one
- * per chapter of the show, after a hero where the Hololabs mark floats in
- * space. The 3D code is loaded after first paint; if WebGL is unavailable
+ * per chapter of the show, after a hero built around a glowing wireframe
+ * "holo core". The 3D code is loaded after first paint; if WebGL is unavailable
  * or the visitor prefers reduced motion, a plain illustrated list of the
  * same chapters is shown instead.
  */
@@ -275,7 +276,7 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
       );
       scene.add(new THREE.Points(runwayGeo, runwayMat));
 
-      // ---- hero: floating mark ----------------------------------------
+      // ---- hero: holo core (wireframe lattice, rings, data net) --------
       const loader = new THREE.TextureLoader();
       let loaded = 0;
       const needed = 3;
@@ -284,9 +285,7 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         if (loaded >= needed && !disposed) setReady(true);
       };
       const loadTexture = (src: string, crop?: [number, number, number, number]) => {
-        const tex = track(
-          loader.load(src, () => markLoaded(), undefined, () => markLoaded()),
-        );
+        const tex = track(loader.load(src, () => markLoaded(), undefined, () => markLoaded()));
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = 4;
         if (crop) {
@@ -296,44 +295,97 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         return tex;
       };
 
-      const markTex = loadTexture("/experience/logo-hd.jpg");
-      const markMat = track(
-        new THREE.MeshBasicMaterial({
-          map: markTex,
-          transparent: true,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          fog: false,
-        }),
-      );
-      const mark = new THREE.Mesh(track(new THREE.PlaneGeometry(1, 1326 / 1600)), markMat);
-      scene.add(mark);
+      const core = new THREE.Group();
+      scene.add(core);
+      const coreMats: { mat: { opacity: number }; base: number }[] = [];
+      const glowMat = (color: number, base: number, wire = true) => {
+        const mat = track(
+          new THREE.MeshBasicMaterial({
+            color,
+            wireframe: wire,
+            transparent: true,
+            opacity: base,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            fog: false,
+          }),
+        );
+        coreMats.push({ mat, base });
+        return mat;
+      };
+      const inner = new THREE.Mesh(track(new THREE.IcosahedronGeometry(1.5, 1)), glowMat(0x22d3ee, 0.6));
+      const outer = new THREE.Mesh(track(new THREE.IcosahedronGeometry(2.35, 2)), glowMat(0xa855f7, 0.26));
+      core.add(inner, outer);
 
-      // orbiting dust around the mark
-      const orbitCount = mobile ? 160 : 320;
-      const op = new Float32Array(orbitCount * 3);
-      for (let i = 0; i < orbitCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 3.2 + Math.random() * 2.2;
-        op[i * 3] = Math.cos(a) * r;
-        op[i * 3 + 1] = (Math.random() - 0.5) * 3.2;
-        op[i * 3 + 2] = Math.sin(a) * r * 0.5;
+      const spriteMat = (color: number, base: number) => {
+        const mat = track(
+          new THREE.SpriteMaterial({ map: dot, color, transparent: true, opacity: base, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
+        );
+        coreMats.push({ mat, base });
+        return mat;
+      };
+      const nucleus = new THREE.Sprite(spriteMat(0x7dd3fc, 0.95));
+      nucleus.scale.set(3.6, 3.6, 1);
+      const halo = new THREE.Sprite(spriteMat(0x7c3aed, 0.4));
+      halo.scale.set(10, 10, 1);
+      core.add(halo, nucleus);
+
+      // three gyroscope rings, each carrying a few bright nodes
+      const rings: T.Mesh[] = [];
+      [
+        { r: 2.95, color: 0x22d3ee, rx: 1.15, ry: 0 },
+        { r: 3.45, color: 0x818cf8, rx: 0.35, ry: 0.9 },
+        { r: 3.95, color: 0xe879f9, rx: 1.45, ry: -0.7 },
+      ].forEach((cfg, i) => {
+        const ring = new THREE.Mesh(track(new THREE.TorusGeometry(cfg.r, 0.014, 8, 180)), glowMat(cfg.color, 0.7, false));
+        ring.rotation.set(cfg.rx, cfg.ry, 0);
+        const nodePos = new Float32Array(9);
+        for (let k = 0; k < 3; k++) {
+          const a = (k / 3) * Math.PI * 2 + i;
+          nodePos[k * 3] = Math.cos(a) * cfg.r;
+          nodePos[k * 3 + 1] = Math.sin(a) * cfg.r;
+        }
+        const nodeGeo = track(new THREE.BufferGeometry());
+        nodeGeo.setAttribute("position", new THREE.BufferAttribute(nodePos, 3));
+        const nodeMat = track(
+          new THREE.PointsMaterial({ size: 0.34, map: dot, color: cfg.color, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+        );
+        coreMats.push({ mat: nodeMat, base: 1 });
+        ring.add(new THREE.Points(nodeGeo, nodeMat));
+        core.add(ring);
+        rings.push(ring);
+      });
+
+      // data net: nodes scattered on a shell, linked when close
+      const netCount = mobile ? 46 : 72;
+      const netPts: T.Vector3[] = [];
+      for (let i = 0; i < netCount; i++) {
+        const y = 1 - (i / (netCount - 1)) * 2;
+        const rad = Math.sqrt(1 - y * y);
+        const theta = i * 2.399963;
+        const shell = 4.5 + ((i * 37) % 10) / 12;
+        netPts.push(new THREE.Vector3(Math.cos(theta) * rad * shell, y * shell, Math.sin(theta) * rad * shell));
       }
-      const orbitGeo = track(new THREE.BufferGeometry());
-      orbitGeo.setAttribute("position", new THREE.BufferAttribute(op, 3));
-      const orbitMat = track(
-        new THREE.PointsMaterial({
-          size: 0.12,
-          map: dot,
-          color: 0x93c5fd,
-          transparent: true,
-          opacity: 0.9,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        }),
+      const linePos: number[] = [];
+      for (let i = 0; i < netPts.length; i++) {
+        for (let j = i + 1; j < netPts.length; j++) {
+          if (netPts[i].distanceTo(netPts[j]) < 2.5) linePos.push(netPts[i].x, netPts[i].y, netPts[i].z, netPts[j].x, netPts[j].y, netPts[j].z);
+        }
+      }
+      const netGeo = track(new THREE.BufferGeometry());
+      netGeo.setAttribute("position", new THREE.Float32BufferAttribute(linePos, 3));
+      const netLineMat = track(
+        new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
       );
-      const orbit = new THREE.Points(orbitGeo, orbitMat);
-      scene.add(orbit);
+      coreMats.push({ mat: netLineMat, base: 0.22 });
+      const netDotGeo = track(new THREE.BufferGeometry().setFromPoints(netPts));
+      const netDotMat = track(
+        new THREE.PointsMaterial({ size: 0.16, map: dot, color: 0xbae6fd, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+      );
+      coreMats.push({ mat: netDotMat, base: 0.95 });
+      const net = new THREE.Group();
+      net.add(new THREE.LineSegments(netGeo, netLineMat), new THREE.Points(netDotGeo, netDotMat));
+      core.add(net);
 
       // ---- chapter panels ---------------------------------------------
       const ticketTex = track(new THREE.CanvasTexture(drawTicket()));
@@ -347,6 +399,8 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         mat: T.MeshBasicMaterial;
         glow: T.MeshBasicMaterial;
         line: T.LineBasicMaterial;
+        scan: T.MeshBasicMaterial;
+        scanMesh: T.Mesh;
         w: number;
         h: number;
         side: number;
@@ -378,21 +432,28 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         group.add(glowMesh);
 
         const line = track(new THREE.LineBasicMaterial({ color: v.tint, transparent: true, opacity: 0.9 }));
-        const outline = new THREE.LineLoop(
-          track(
-            new THREE.BufferGeometry().setFromPoints([
-              new THREE.Vector3(-0.5, -0.5, 0.01),
-              new THREE.Vector3(0.5, -0.5, 0.01),
-              new THREE.Vector3(0.5, 0.5, 0.01),
-              new THREE.Vector3(-0.5, 0.5, 0.01),
-            ]),
-          ),
-          line,
-        );
+        const L = 0.14;
+        const corners: [number, number][] = [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]];
+        const br: number[] = [];
+        for (const [cx, cy] of corners) {
+          const sx = cx < 0 ? 1 : -1;
+          const sy = cy < 0 ? 1 : -1;
+          br.push(cx, cy, 0.01, cx + sx * L, cy, 0.01, cx, cy, 0.01, cx, cy + sy * L, 0.01);
+        }
+        const brGeo = track(new THREE.BufferGeometry());
+        brGeo.setAttribute("position", new THREE.Float32BufferAttribute(br, 3));
+        const outline = new THREE.LineSegments(brGeo, line);
         group.add(outline);
 
+        const scan = track(
+          new THREE.MeshBasicMaterial({ color: v.tint, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
+        );
+        const scanMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(1, 0.012)), scan);
+        scanMesh.position.z = 0.02;
+        group.add(scanMesh);
+
         scene.add(group);
-        panels.push({ group, mat, glow, line, w: 1, h: 1, side: i % 2 === 0 ? -1 : 1 });
+        panels.push({ group, mat, glow, line, scan, scanMesh, w: 1, h: 1, side: i % 2 === 0 ? -1 : 1 });
       }
 
       // ---- layout (depends on aspect ratio) ----------------------------
@@ -406,10 +467,8 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         camera.fov = portrait ? 62 : 48;
         camera.updateProjectionMatrix();
 
-        const markW = portrait ? 3.6 : 5.8;
-        mark.scale.set(markW, markW, 1);
-        mark.position.set(portrait ? 0 : 3.3, portrait ? 3.1 : 0.2, 0);
-        orbit.position.copy(mark.position);
+        core.scale.setScalar(portrait ? 0.5 : 0.55);
+        core.position.set(0, portrait ? 3.4 : 2.3, 0);
 
         panels.forEach((p, i) => {
           const v = VISUALS[i % VISUALS.length];
@@ -420,7 +479,8 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
           const face = p.group.children[0] as T.Mesh;
           face.scale.set(pw, ph, 1);
           (p.group.children[1] as T.Mesh).scale.set(pw * 1.55, ph * 1.7, 1);
-          (p.group.children[2] as T.LineLoop).scale.set(pw, ph, 1);
+          (p.group.children[2] as T.LineSegments).scale.set(pw, ph, 1);
+          p.scanMesh.scale.set(pw, 1, 1);
         });
       };
       layout();
@@ -480,16 +540,22 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         camera.position.set(ptr.x * 0.55, -ptr.y * 0.3, camZ);
         camera.lookAt(ptr.x * 0.15, -ptr.y * 0.08, camZ - 10);
 
-        // hero mark: fades as the camera dives past it
+        // hero core: fades as the camera dives into it
         const heroFade = clamp((camZ - 2.5) / 5);
-        markMat.opacity = heroFade;
-        mark.visible = heroFade > 0.01;
-        mark.rotation.y = ptr.x * 0.25 + Math.sin(time * 0.5) * 0.06;
-        mark.rotation.x = -ptr.y * 0.15;
-        mark.position.y = (portrait ? 3.1 : 0.2) + Math.sin(time * 0.8) * 0.12;
-        orbit.visible = mark.visible;
-        orbit.rotation.y = time * 0.18;
-        orbitMat.opacity = 0.9 * heroFade;
+        core.visible = heroFade > 0.01;
+        for (const m of coreMats) m.mat.opacity = m.base * heroFade;
+        const pulse = 1 + Math.sin(time * 1.6) * 0.04;
+        nucleus.scale.setScalar(3.6 * pulse);
+        inner.rotation.y = time * 0.25;
+        inner.rotation.x = time * 0.12;
+        outer.rotation.y = -time * 0.15;
+        outer.rotation.z = time * 0.08;
+        rings[0].rotation.z = time * 0.35;
+        rings[1].rotation.z = -time * 0.28;
+        rings[2].rotation.z = time * 0.2;
+        net.rotation.y = time * 0.07;
+        core.rotation.y = ptr.x * 0.35;
+        core.rotation.x = ptr.y * 0.2;
 
         // panels
         for (let i = 0; i < panels.length; i++) {
@@ -503,6 +569,8 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
           pn.mat.opacity = (0.35 + 0.65 * act) * vis;
           pn.glow.opacity = (0.25 + 0.5 * act) * vis;
           pn.line.opacity = (0.35 + 0.65 * act) * vis;
+          pn.scan.opacity = 0.9 * act * vis;
+          pn.scanMesh.position.y = (((time * 0.35 + i * 0.3) % 1) - 0.5) * pn.h;
           const x = portrait ? 0 : pn.side * 3.0;
           const y = portrait ? 1.9 : 0.2;
           const lift = Math.sin(time * 0.6 + i) * 0.08;
@@ -521,6 +589,7 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         const d = Math.abs(smoothT - rounded);
         stage.style.setProperty("--o", restOpacity(d).toFixed(3));
         stage.style.setProperty("--p", p.toFixed(4));
+        stage.style.setProperty("--t", smoothT.toFixed(3));
         if (rounded !== lastActive) {
           lastActive = rounded;
           setActive(Math.min(rounded, count));
@@ -560,6 +629,11 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
   const stepIndex = Math.max(0, active - 1);
   const step = steps[stepIndex];
   const side = stepIndex % 2 === 0 ? "right" : "left";
+  // minutes elapsed in the show when each chapter begins ("20 menit" -> 20)
+  const starts = steps.slice(0, count).reduce<number[]>((acc, st, i) => {
+    acc.push(i === 0 ? 0 : acc[i - 1] + (parseInt(steps[i - 1].minutes, 10) || 0));
+    return acc;
+  }, []);
 
   return (
     <div
@@ -574,105 +648,135 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
           aria-hidden
           className={cn("absolute inset-0 size-full transition-opacity duration-1000", ready ? "opacity-100" : "opacity-0")}
         />
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgb(5_3_8/0.75))]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgb(5_3_8/0.8))]" />
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-canvas-deep/85 via-canvas-deep/50 to-transparent"
+          style={{ opacity: active === 0 ? "var(--o, 1)" : 0 }}
+        />
+
+        {/* HUD frame */}
+        <div aria-hidden className="pointer-events-none absolute inset-3 sm:inset-5">
+          <span className="absolute left-0 top-0 size-5 border-l border-t border-cyan/50" />
+          <span className="absolute right-0 top-0 size-5 border-r border-t border-cyan/50" />
+          <span className="absolute bottom-0 left-0 size-5 border-b border-l border-cyan/50" />
+          <span className="absolute bottom-0 right-0 size-5 border-b border-r border-cyan/50" />
+        </div>
 
         {/* Hero copy */}
         <div
           className={cn(
-            "absolute inset-0 flex items-end px-5 pb-16 pt-28 sm:px-10 lg:items-center lg:px-16 lg:pb-0",
+            "absolute inset-0 flex flex-col items-center justify-end px-5 pb-28 pt-28 text-center sm:px-10 sm:pb-32",
             active === 0 ? "pointer-events-auto" : "pointer-events-none",
           )}
           style={{ opacity: active === 0 ? "var(--o, 1)" : 0 }}
         >
-          <div className="max-w-xl">
-            <p className="text-xs font-bold uppercase tracking-[0.26em] text-accent">{hero.badge}</p>
-            <h1 className="mt-5 text-[2.5rem] leading-[1.05] text-ink sm:text-6xl lg:text-7xl">
-              {hero.title} <span className="text-gradient italic">{hero.titleAccent}</span>
-            </h1>
-            <p className="mt-6 max-w-md text-base leading-8 text-ink-soft">{hero.lead}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <Link
-                href="/pesan"
-                className="inline-flex min-h-12 items-center rounded-pill bg-brand px-7 text-sm font-semibold uppercase tracking-[0.1em] text-ink shadow-glow transition-colors hover:bg-brand-dark"
-              >
-                {hero.ctaPrimary}
-              </Link>
-              <button
-                type="button"
-                onClick={() => jump(1)}
-                className="inline-flex min-h-12 items-center text-sm font-semibold uppercase tracking-[0.1em] text-ink-soft transition-colors hover:text-accent"
-              >
-                {hero.ctaSecondary}
-              </button>
-            </div>
-            <p className="mt-10 hidden text-[0.6875rem] font-semibold uppercase tracking-[0.3em] text-muted sm:block">
-              {hero.words.join("  ·  ")}
-            </p>
+          <p className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-cyan sm:text-xs">{hero.badge}</p>
+          <h1 className="mt-4 max-w-4xl text-[2.25rem] font-bold leading-[1.04] text-ink sm:text-6xl lg:text-7xl">
+            {hero.title} <span className="bg-gradient-to-r from-cyan via-[#818cf8] to-[#e879f9] bg-clip-text text-transparent">{hero.titleAccent}</span>
+          </h1>
+          <p className="mt-5 max-w-lg text-sm leading-7 text-ink-soft sm:text-base sm:leading-8">{hero.lead}</p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link href="/pesan" className={buttonStyles({ size: "lg" })}>
+              {hero.ctaPrimary}
+            </Link>
+            <button type="button" onClick={() => jump(1)} className={buttonStyles({ variant: "secondary", size: "lg" })}>
+              {hero.ctaSecondary}
+            </button>
           </div>
         </div>
+
+        {/* Hero readouts */}
+        <dl
+          className="pointer-events-none absolute inset-x-0 bottom-6 mx-auto hidden max-w-4xl grid-cols-4 gap-px px-10 font-mono sm:grid"
+          style={{ opacity: active === 0 ? "var(--o, 1)" : 0 }}
+        >
+          {hero.hud.map((item, i) => (
+            <div key={i} className="border-l border-cyan/30 pl-4 text-left">
+              <dd className="text-sm font-medium text-ink">{item.value}</dd>
+              <dt className="text-[0.625rem] uppercase tracking-[0.16em] text-muted">{item.label}</dt>
+            </div>
+          ))}
+        </dl>
 
         {/* Chapter copy */}
         {active > 0 && step ? (
           <div
             key={active}
             className={cn(
-              "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-14 pt-24 sm:px-10",
+              "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-24 pt-24 sm:px-10",
               "bg-gradient-to-t from-canvas-deep via-canvas-deep/80 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[42%] lg:items-center lg:bg-none lg:p-0",
-              side === "right" ? "lg:left-auto lg:right-0 lg:pr-16" : "lg:left-0 lg:pl-16",
+              side === "right" ? "lg:left-auto lg:right-0 lg:pr-20" : "lg:left-0 lg:pl-20",
             )}
             style={{ opacity: "var(--o, 0)" }}
           >
             <div className="max-w-md">
-              <p className="text-sm font-semibold tabular-nums text-muted">
-                <span className="text-accent">{String(active).padStart(2, "0")}</span> / {String(count).padStart(2, "0")}
-                <span aria-hidden className="mx-3 inline-block h-px w-8 bg-line align-middle" />
-                <span className="uppercase tracking-[0.2em] text-brand-ink">{step.mood}</span>
+              <p className="font-mono text-xs font-medium uppercase tracking-[0.2em] text-cyan">
+                CH.{String(active).padStart(2, "0")} / {String(count).padStart(2, "0")}
+                <span aria-hidden className="mx-2 text-muted">{"//"}</span>
+                <span className="text-ink-soft">{step.mood}</span>
               </p>
-              <h2 className="mt-3 text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">{step.title}</h2>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-ink sm:text-4xl lg:text-5xl">{step.title}</h2>
               <p className="mt-4 text-base leading-8 text-ink-soft">{step.description}</p>
-              {step.minutes ? (
-                <p className="mt-5 inline-flex rounded-pill border border-line px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">
-                  {step.minutes}
-                </p>
-              ) : null}
+              <p className="mt-5 inline-flex items-center gap-3 rounded-md border border-cyan/30 bg-cyan-soft/60 px-3 py-1.5 font-mono text-xs uppercase tracking-[0.12em] text-cyan">
+                <span>T+{String(starts[stepIndex] ?? 0).padStart(2, "0")}&apos;</span>
+                {step.minutes ? (
+                  <>
+                    <span aria-hidden className="h-3 w-px bg-cyan/40" />
+                    <span>{step.minutes}</span>
+                  </>
+                ) : null}
+              </p>
             </div>
           </div>
         ) : null}
 
-        {/* Progress rail */}
-        <nav aria-label="Babak journey" className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 flex-col sm:flex">
-          {Array.from({ length: STOPS }, (_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => jump(i)}
-              aria-label={i === 0 ? "Awal" : `Babak ${i}: ${steps[i - 1]?.title ?? ""}`}
-              aria-current={i === active ? "true" : undefined}
-              className="group flex size-7 items-center justify-center"
-            >
-              <span
-                className={cn(
-                  "block rounded-full transition-all duration-300",
-                  i === active ? "h-5 w-1.5 bg-accent" : "size-1.5 bg-ink-soft/40 group-hover:bg-ink-soft",
-                )}
-              />
-            </button>
-          ))}
+        {/* Chapter timeline */}
+        <nav
+          aria-label="Babak journey"
+          className={cn(
+            "absolute inset-x-0 bottom-5 mx-auto max-w-4xl px-6 transition-opacity duration-500 sm:bottom-7 sm:px-10",
+            active === 0 ? "pointer-events-none opacity-0" : "opacity-100",
+          )}
+        >
+          <ol className="grid" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`, gap: "0.375rem" }}>
+            {steps.slice(0, count).map((st, i) => (
+              <li key={i}>
+                <button
+                  type="button"
+                  onClick={() => jump(i + 1)}
+                  aria-label={`Babak ${i + 1}: ${st.title}`}
+                  aria-current={i + 1 === active ? "true" : undefined}
+                  className="group block w-full py-2 text-left"
+                >
+                  <span className="block h-[3px] overflow-hidden rounded-full bg-white/10">
+                    <span
+                      className="block h-full origin-left bg-gradient-to-r from-cyan to-[#a855f7]"
+                      style={{ transform: `scaleX(clamp(0, calc(var(--t, 0) - ${i}), 1))` }}
+                    />
+                  </span>
+                  <span
+                    className={cn(
+                      "mt-1.5 block font-mono text-[0.625rem] uppercase tracking-[0.12em] transition-colors",
+                      i + 1 === active ? "text-cyan" : "text-muted group-hover:text-ink-soft",
+                    )}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                    <span className="hidden lg:inline"> {st.mood}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
         </nav>
 
-        <p
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-5 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.3em] text-muted transition-opacity duration-500"
-          style={{ opacity: active === 0 ? 0.9 : 0 }}
-        >
-          Scroll untuk masuk
-        </p>
       </div>
 
       <ol className="sr-only">
-        {steps.slice(0, count).map((s, i) => (
+        {steps.slice(0, count).map((st, i) => (
           <li key={i}>
-            {s.mood}: {s.title}. {s.description} {s.minutes}
+            {st.mood}: {st.title}. {st.description} {st.minutes}
           </li>
         ))}
       </ol>
@@ -704,15 +808,12 @@ function StaticExperience({ hero, steps }: { hero: StageHero; steps: StageStep[]
           className="object-cover opacity-40 [mask-image:linear-gradient(to_bottom,black,transparent)]"
         />
         <div className="relative max-w-xl">
-          <p className="text-xs font-bold uppercase tracking-[0.26em] text-accent">{hero.badge}</p>
+          <p className="font-mono text-xs font-medium uppercase tracking-[0.26em] text-cyan">{hero.badge}</p>
           <h1 className="mt-5 text-[2.5rem] leading-[1.05] text-ink sm:text-6xl">
-            {hero.title} <span className="text-gradient italic">{hero.titleAccent}</span>
+            {hero.title} <span className="bg-gradient-to-r from-cyan via-[#818cf8] to-[#e879f9] bg-clip-text text-transparent">{hero.titleAccent}</span>
           </h1>
           <p className="mt-6 max-w-md text-base leading-8 text-ink-soft">{hero.lead}</p>
-          <Link
-            href="/pesan"
-            className="mt-8 inline-flex min-h-12 items-center rounded-pill bg-brand px-7 text-sm font-semibold uppercase tracking-[0.1em] text-ink shadow-glow hover:bg-brand-dark"
-          >
+          <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8" })}>
             {hero.ctaPrimary}
           </Link>
         </div>

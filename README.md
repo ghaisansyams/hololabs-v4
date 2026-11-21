@@ -29,7 +29,7 @@ underneath is Spero's own.
 - A full admin/CMS panel at `/admin` — bookings, sessions, packages,
   customers, reports, CSV export, and a content editor for every section
   of the public site (Hero, Journey 3D, About Us, Reservasi & info kunjungan,
-  FAQ, Ambiance, Collection, Rundown, Our Story, Kontak & footer).
+  FAQ, Menu & tombol, Kontak & footer).
 - The homepage is a WebGL scroll journey built with three.js
   (`src/components/home/experience-stage.tsx`): the camera flies through the
   seven chapters of the show. Without WebGL, or with reduced motion, it falls
@@ -99,11 +99,10 @@ so `--clean-demo` only removes them, never real bookings.
 - `db/seed.ts` — the data seeder (`npm run db:seed`).
 - `drizzle.config.ts` — tooling only (`npm run db:studio`); don't `drizzle-kit push` onto this database.
 - `src/lib/services/` — the only code that talks to the database.
-- `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`. Every public text, image, link and menu item is a field here (logo, hero, About, people, Ambiance, Our Story, Lokasi, FAQ, menu, footer, SEO title). Only the fonts and the favicon (`src/app/icon.png`) live in code.
+- `src/lib/cms/` — the editable-content schema and merge logic for `/admin/konten`. Every public text, image, link and menu item is a field here (logo, hero, journey, About, reservasi, Lokasi, FAQ, menu, footer, SEO title). Only the fonts and the favicon (`src/app/icon.png`) live in code.
 - `src/app/admin/api/media` + `src/app/media/[id]` — image upload (admin only) and serving. Uploads are stored in the `cms_media` table (PNG/JPG/WebP/GIF, up to 5 MB), so no writable disk is needed on the host. If you already have a database, re-run `db/schema.sql` to add that table.
 - `src/app/pesan` — the full-screen reservation flow (own layout, no site header/footer).
 - `src/app/(public)/pembayaran/[token]` — bank-transfer payment + proof upload.
 - `src/app/(public)/e-tiket/[token]` — the e-ticket, shown once paid.
 - `src/app/(public)/cek-tiket` — booking-status lookup for guests.
-- `src/app/(public)/ambiance`, `/collection`, `/rundown`, `/our-story` — pages reached from the header's hamburger menu.
 - `src/app/admin` — the admin/CMS panel (see `src/app/admin/layout.tsx` for the full nav).
