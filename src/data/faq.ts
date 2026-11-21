@@ -5,36 +5,26 @@ export interface FaqItem {
 
 export const faqItems: FaqItem[] = [
   {
-    question: "Di mana lokasi Hololabs?",
-    answer: "Lihat peta dan rute lengkapnya di bagian Lokasi pada halaman depan.",
+    question: "Berapa lama satu show?",
+    answer: "Sekitar 90 menit dari check-in sampai kamu membawa pulang hasil 3D print. Datang 10 menit sebelum show dimulai.",
   },
   {
-    question: "Jam berapa show berlangsung?",
-    answer: "Dua show per hari, masing-masing berdurasi 1,5 jam. Tanggal dan sesi yang tersedia bisa dilihat langsung saat reservasi.",
+    question: "Berapa harga tiketnya?",
+    answer: "Rp 100.000 per orang, untuk seluruh 7 babak journey.",
   },
   {
-    question: "Apakah Hololabs menerima reservasi?",
-    answer: "Ya, reservasi wajib dilakukan sebelum datang. Kursi dialokasikan per show dan terbatas.",
-  },
-  {
-    question: "Bagaimana kebijakan reservasinya?",
+    question: "Apakah bisa datang tanpa reservasi?",
     answer:
-      "Pilih tanggal dan sesi, isi data pemesan, lalu transfer bank sesuai total. Kursi aktif setelah pembayaran diverifikasi admin.",
+      "Tidak. Setiap show dibatasi 18 kursi supaya semua tamu bisa berinteraksi langsung, jadi kunjungan wajib reservasi online lebih dulu.",
   },
   {
-    question: "Apa yang akan saya alami di dalam show?",
-    answer: "Satu Experience Journey 1,5 jam melewati tujuh babak cerita, dari video mapping sampai custom 3D printing. Detailnya ada di bagian About Us.",
+    question: "Berapa orang maksimal dalam satu booking?",
+    answer:
+      "Satu booking untuk maksimal 6 orang. Untuk rombongan lebih besar, sekolah, kantor, atau brand, ajukan private show lewat WhatsApp.",
   },
   {
-    question: "Bisa datang berombongan?",
-    answer: "Bisa, dari individu sampai grup hingga 50 orang per sesi, tergantung sisa kursi yang tersedia.",
-  },
-  {
-    question: "Apakah ada paket F&B?",
-    answer: "Ada beberapa pilihan paket dengan harga berbeda, dipilih langsung saat reservasi.",
-  },
-  {
-    question: "Bagaimana cara membatalkan atau mengubah reservasi?",
-    answer: "Hubungi admin lewat WhatsApp dengan menyertakan nomor booking-mu untuk dibantu lebih lanjut.",
+    question: "Bagaimana cara ganti jadwal atau membatalkan?",
+    answer:
+      "Lewat halaman Cek Tiket dengan kode booking dan email, sesuai batas waktu yang berlaku. Ketentuan lengkap ditampilkan saat booking.",
   },
 ];

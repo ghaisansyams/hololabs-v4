@@ -26,13 +26,13 @@ export const siteConfig = {
     "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan transfer bank, dan datang dengan e-tiket.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3004",
   locale: "id-ID",
-  email: "hello@hololabs.id",
-  whatsapp: "081774918611",
-  whatsappE164: "6281774918611",
+  email: "",
+  whatsapp: "0816712339",
+  whatsappE164: "62816712339",
   venueCity: "Jakarta",
-  sessionDurationLabel: "1,5 jam per show",
-  dailyWindowLabel: "18.00 – 21.00 WIB",
-  seatsPerSessionLabel: "Maks. 13 kursi per show",
+  sessionDurationLabel: "± 90 menit per show",
+  dailyWindowLabel: "18.00 & 19.30 WIB",
+  seatsPerSessionLabel: "18 kursi per show",
 } as const;
 
 export interface NavLink {

@@ -1,35 +1,49 @@
 import { Container } from "@/components/ui/container";
-import { Eyebrow } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 import { getSiteContent } from "@/lib/cms";
 
 /**
- * "About Us" — mirrors meatguysteakhouse.com's About Us, but leans into
- * personal branding. Intro copy only: the "Our Best Works" list and its
- * client logo strip were removed at the client's request.
+ * "Apa itu Hololabs": the one-paragraph pitch on the left, the four
+ * numbers that matter (length, chapters, seats, price) on the right.
  */
 export async function AboutSection() {
-  const { about } = await getSiteContent();
+  const { about, visit } = await getSiteContent();
+  const stats = visit.stats.filter((s) => s.value);
 
   return (
-    <section id="about" className="py-8 sm:py-10">
-      <Container className="max-w-3xl text-center">
-        <Reveal>
-          <Eyebrow className="justify-center">{about.eyebrow}</Eyebrow>
-        </Reveal>
-        <Reveal delay={60}>
-          <h2 className="mt-3 text-3xl font-bold text-ink sm:text-4xl">{about.title}</h2>
-        </Reveal>
-        <Reveal delay={100}>
-          <span aria-hidden className="mx-auto mt-5 block h-px w-12 bg-accent" />
-        </Reveal>
+    <section id="about" className="relative border-t border-line py-20 sm:py-28">
+      <Container className="grid items-end gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
+        <div>
+          <Reveal>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">{about.eyebrow}</p>
+          </Reveal>
+          <Reveal delay={70}>
+            <h2 className="mt-5 text-4xl leading-[1.08] text-ink sm:text-5xl lg:text-6xl">{about.title}</h2>
+          </Reveal>
+          <Reveal delay={140}>
+            <p className="mt-7 max-w-xl text-lg leading-9 text-ink-soft">{about.bodyShort}</p>
+          </Reveal>
+          {about.bodyLong ? (
+            <Reveal delay={200}>
+              <p className="mt-4 max-w-xl text-base leading-8 text-muted">{about.bodyLong}</p>
+            </Reveal>
+          ) : null}
+        </div>
 
-        <Reveal delay={160}>
-          <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-ink sm:text-xl sm:leading-9">{about.bodyShort}</p>
-        </Reveal>
-        <Reveal delay={220}>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-ink-soft">{about.bodyLong}</p>
-        </Reveal>
+        {stats.length > 0 ? (
+          <Reveal delay={120}>
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line bg-line">
+              {stats.map((stat, index) => (
+                <div key={index} className="bg-canvas p-6 sm:p-8">
+                  <dd className="whitespace-nowrap text-2xl text-ink sm:text-4xl">{stat.value}</dd>
+                  <dt className="mt-2 text-[0.6875rem] font-semibold uppercase leading-snug tracking-[0.14em] text-muted">
+                    {stat.label}
+                  </dt>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        ) : null}
       </Container>
     </section>
   );

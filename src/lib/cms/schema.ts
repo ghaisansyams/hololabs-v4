@@ -2,6 +2,7 @@ import { siteConfig } from "@/data/site";
 import { ambianceFacts, ambiancePhases, ambianceStats } from "@/data/ambiance";
 import { collectionItems } from "@/data/collection";
 import { journeySteps, journeyDurationLabel } from "@/data/journey";
+import { experienceSteps, visitStats } from "@/data/experience";
 import { storyIntro, philosophy, dnaTraits, manifesto } from "@/data/story";
 import { faqItems } from "@/data/faq";
 import { mainNav } from "@/data/site";
@@ -87,14 +88,76 @@ export const sections = [
   {
     key: "hero",
     label: "Hero (bagian paling atas)",
-    description: "Judul besar dan kalimat pembuka.",
+    description: "Judul besar, kalimat pembuka, dan dua tombol di layar pertama (di samping logo 3D).",
     fields: [
-      img("backgroundImage", "Gambar latar hero"),
       t("badge", "Label kecil di atas judul"),
       t("title", "Judul (bagian putih)"),
       t("titleAccent", "Judul (bagian berwarna gradien)"),
-      t("titleSuffix", "Judul (akhiran, mis. titik)", 20),
       ta("lead", "Kalimat pembuka"),
+      t("ctaPrimary", "Teks tombol utama (menuju reservasi)", 40),
+      t("ctaSecondary", "Teks tombol kedua (menuju journey)", 40),
+      { key: "words", label: "Kata-kata di bawah tombol", type: "tags", hint: "Satu kata per baris." },
+    ],
+  },
+  {
+    key: "experience",
+    label: "Journey 3D (7 babak)",
+    description:
+      "Tujuh babak yang dilewati kamera 3D saat halaman di-scroll. Urutan gambar tiap babak tetap; teks, durasi, dan kata suasana bisa diubah.",
+    fields: [
+      {
+        key: "steps",
+        label: "Babak",
+        type: "list",
+        itemLabel: "Babak",
+        min: 3,
+        max: 7,
+        fields: [
+          t("mood", "Kata suasana (mis. Amazed)", 30),
+          t("title", "Judul babak", 60),
+          ta("description", "Penjelasan", 240),
+          t("minutes", "Durasi (mis. 15 menit)", 20),
+        ],
+      },
+    ],
+  },
+  {
+    key: "visit",
+    label: "Reservasi & info kunjungan",
+    description: "Angka ringkas, jadwal & lokasi, contoh e-tiket, dan pilihan individu atau grup.",
+    fields: [
+      {
+        key: "stats",
+        label: "Angka ringkas",
+        type: "list",
+        itemLabel: "Angka",
+        min: 0,
+        max: 4,
+        fields: [t("value", "Angka / teks besar", 20), t("label", "Keterangan", 40)],
+      },
+      t("eyebrow", "Label bagian reservasi"),
+      t("title", "Judul bagian reservasi", 80),
+      ta("body", "Kalimat di bawah judul", 240),
+      t("cta", "Teks tombol reservasi", 40),
+      t("ticketNote", "Keterangan di bawah contoh tiket", 60),
+      {
+        key: "facts",
+        label: "Jadwal & lokasi",
+        type: "list",
+        itemLabel: "Info",
+        min: 0,
+        max: 4,
+        fields: [t("label", "Judul", 30), t("value", "Isi utama", 80), t("note", "Keterangan kecil", 100)],
+      },
+      t("personalTitle", "Judul kolom individu", 60),
+      ta("personalBody", "Penjelasan kolom individu", 240),
+      { key: "personalTags", label: "Label kolom individu", type: "tags", hint: "Satu label per baris." },
+      t("personalCta", "Tombol kolom individu", 40),
+      t("groupTitle", "Judul kolom grup", 60),
+      ta("groupBody", "Penjelasan kolom grup", 240),
+      { key: "groupTags", label: "Label kolom grup", type: "tags", hint: "Satu label per baris." },
+      t("groupCta", "Tombol kolom grup (WhatsApp)", 40),
+      ta("groupMessage", "Pesan WhatsApp otomatis untuk private show", 300),
     ],
   },
   {
@@ -285,7 +348,7 @@ export const sections = [
     key: "contact",
     label: "Kontak & footer",
     description:
-      "Nomor WhatsApp admin (dipakai juga untuk tombol konfirmasi pembayaran), email, alamat, media sosial, dan teks footer. Alamat dan LinkedIn masih data contoh, silakan ganti dengan data asli.",
+      "Nomor WhatsApp admin (dipakai juga untuk tombol konfirmasi pembayaran), email, alamat, media sosial, dan teks footer. LinkedIn masih data contoh, silakan ganti dengan data asli.",
     fields: [
       t("whatsapp", "Nomor WhatsApp admin (format 08…)", 20),
       t("email", "Email", 80),
@@ -318,25 +381,50 @@ export const defaults = {
   navigation: {
     reservationLabel: "Reservasi",
     menuItems: mainNav.map(({ label, href }) => ({ label, href })),
-    menuImage: "/renders/ambiance-hall.jpg",
+    menuImage: "/experience/journey-of-life.jpg",
     menuEyebrow: siteConfig.name,
     menuTagline: "A Creative Technology Lab",
   },
   hero: {
-    backgroundImage: "/renders/ambiance-hall.jpg",
-    badge: `${siteConfig.shortName} · A Creative Technology Lab`,
-    title: "Don't just see the technology.",
-    titleAccent: "Step inside it.",
-    titleSuffix: "",
-    lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
+    badge: "Immersive · Interactive · Intelligent",
+    title: "Jangan cuma melihat teknologi.",
+    titleAccent: "Masuk ke dalamnya.",
+    lead: "Satu show, 90 menit, 7 babak. Dari video mapping imersif sampai pulang membawa karya 3D print buatanmu sendiri.",
+    ctaPrimary: "Pilih Jadwal Show",
+    ctaSecondary: "Lihat Journey",
+    words: ["See", "Touch", "Play", "Talk", "Enter", "Create"],
+  },
+  experience: {
+    steps: experienceSteps.map(({ mood, title, description, minutes }) => ({ mood, title, description, minutes })),
+  },
+  visit: {
+    stats: visitStats.map(({ value, label }) => ({ value, label })),
+    eyebrow: "Reservasi",
+    title: "Kursinya sedikit. Amankan sekarang.",
+    body: "Pilih tanggal dan show, bayar online, dan e-ticket QR langsung dikirim ke email kamu.",
+    cta: "Booking Sekarang",
+    ticketNote: "Contoh tiket",
+    facts: [
+      { label: "Jadwal show", value: "18.00 & 19.30 WIB", note: "setiap hari, ± 90 menit per show" },
+      { label: "Lokasi", value: "Duren Sawit, Jakarta Timur", note: "" },
+    ],
+    personalTitle: "Individu, teman & keluarga",
+    personalBody: "Pilih tanggal dan show, bayar online, kursi langsung tercatat. Maksimal 6 orang per booking.",
+    personalTags: ["Individu", "Friends & Family", "Komunitas"],
+    personalCta: "Pilih Jadwal Show",
+    groupTitle: "Sekolah, korporat & brand",
+    groupBody: "Private show, field trip, team building, atau aktivasi brand. Hubungi kami untuk jadwal dan penawaran.",
+    groupTags: ["School & University", "Corporate & Team", "Brand & Client", "Private Group"],
+    groupCta: "Ajukan private show via WhatsApp",
+    groupMessage:
+      "Halo Hololabs, saya ingin mengajukan private show / kunjungan rombongan.\nNama instansi:\nPerkiraan jumlah orang:\nTanggal yang diinginkan:",
   },
   about: {
-    eyebrow: "About Us",
-    title: "Tentang Hololabs",
+    eyebrow: "Apa itu Hololabs",
+    title: "Where technology becomes experience.",
     bodyShort:
-      "Hololabs adalah creative technology lab yang mengubah teknologi, mulai dari projection mapping, AI, VR, hingga 3D printing, menjadi satu pengalaman yang bisa dilihat, didengar, dan disentuh langsung.",
-    bodyLong:
-      "Satu Experience Journey berjalan 1,5 jam, melewati tujuh babak: booking seat, video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan Doocoon AI, road to smart home technology, custom 3D printing, sampai pulang membawa karya sendiri. Kami percaya teknologi paling berkesan bukan yang hanya ditonton, tapi yang dialami.",
+      "Hololabs adalah creative technology lab dari Holomoc. Projection mapping, AI, smart home, dan 3D printing dirangkai jadi satu perjalanan yang bisa kamu lihat, dengar, sentuh, dan ajak bicara.",
+    bodyLong: "",
   },
   people: {
     founderPhoto: "/hololabs-mark.png",
@@ -409,7 +497,7 @@ export const defaults = {
   },
   location: {
     mapImage: "/renders/map.jpg",
-    mapLink: "https://maps.app.goo.gl/UJTHbjNEDMiDtwdx7",
+    mapLink: "https://maps.google.com/?q=Jl.+Duren+Sawit+Indah+Blok+K1+No+10+Klender+Jakarta+Timur",
     mapBadge: "Open in Maps",
     cardTitle: "Lokasi Hololabs",
     cardSubtitle: "Klik untuk buka rute di Google Maps.",
@@ -417,7 +505,7 @@ export const defaults = {
   },
   faq: {
     eyebrow: "FAQ",
-    title: "Pertanyaan yang sering ditanyakan",
+    title: "Pertanyaan umum",
     items: faqItems.map(({ question, answer }) => ({ question, answer })),
   },
   contact: {
@@ -427,12 +515,12 @@ export const defaults = {
     footerScheduleTitle: "Informasi Sesi",
     footerTagline: "A Creative Technology Lab",
     linkedin: "holomoc",
-    address: "Jl. Contoh Raya No. 12\nKebayoran Baru, Jakarta Selatan 12345, ID",
+    address: "Jl. Duren Sawit Indah, Blok K1 No 10, RT.5/RW.3, Klender\nKec. Duren Sawit, Kota Jakarta Timur, DKI Jakarta 13440",
     footerWhatsappNote: "Konfirmasi pembayaran & pertanyaan lain lewat WhatsApp:",
     footerCopyright: "Holomoc",
     whatsapp: String(siteConfig.whatsapp),
     email: String(siteConfig.email),
-    instagram: "hololabs.exhibition",
+    instagram: "hololabs.id",
     footerText: String(siteConfig.description),
     scheduleInfo: `${siteConfig.dailyWindowLabel} · ${siteConfig.sessionDurationLabel} · ${siteConfig.seatsPerSessionLabel}`,
   },

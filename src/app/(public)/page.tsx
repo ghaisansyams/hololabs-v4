@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Hero } from "@/components/home/hero";
+import { ExperienceStage } from "@/components/home/experience-stage";
+import { VisitSection } from "@/components/home/visit-section";
 import { AboutSection } from "@/components/home/about-section";
-import { PeopleSection } from "@/components/home/people-section";
 import { FaqSection } from "@/components/home/faq-section";
 import { siteConfig } from "@/data/site";
 import { getSiteContent } from "@/lib/cms";
@@ -20,14 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Homepage structure mirrors meatguysteakhouse.com exactly, per the
- * client's request: Hero → About Us → Founder profile → second profile →
- * FAQ → Footer. Reservation itself still lives at /pesan, unchanged from
- * v3. The reservation CTA block and the contact row were removed from the
- * homepage (contact details and the map card live in the footer).
+ * Homepage: a 3D scroll journey (hero + the seven chapters of the show),
+ * then what Hololabs is, how to reserve, and FAQ. The founder/team block
+ * (PeopleSection, still editable in the CMS) is left off until real bios exist.
+ * Reservation itself still lives at /pesan.
  */
 export default async function HomePage() {
-  const { brand } = await getSiteContent();
+  const { brand, hero, experience } = await getSiteContent();
+  const steps = experience.steps.filter((step) => step.title);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -40,9 +40,9 @@ export default async function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Hero />
+      <ExperienceStage hero={{ ...hero, words: hero.words.filter(Boolean) }} steps={steps} />
       <AboutSection />
-      <PeopleSection />
+      <VisitSection />
       <FaqSection />
     </>
   );

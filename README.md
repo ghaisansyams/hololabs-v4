@@ -28,8 +28,12 @@ underneath is Spero's own.
   (`/cek-tiket` for guests to check status, `/admin/check-in` for staff).
 - A full admin/CMS panel at `/admin` — bookings, sessions, packages,
   customers, reports, CSV export, and a content editor for every section
-  of the public site (Hero, About Us, Founder & Tim, Ambiance, Collection,
-  Rundown, Our Story, Kontak & footer).
+  of the public site (Hero, Journey 3D, About Us, Reservasi & info kunjungan,
+  FAQ, Ambiance, Collection, Rundown, Our Story, Kontak & footer).
+- The homepage is a WebGL scroll journey built with three.js
+  (`src/components/home/experience-stage.tsx`): the camera flies through the
+  seven chapters of the show. Without WebGL, or with reduced motion, it falls
+  back to a plain illustrated list. Photos live in `public/experience/`.
 
 ## Stack
 
