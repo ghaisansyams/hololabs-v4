@@ -160,14 +160,10 @@ export const sections = [
   {
     key: "location",
     label: "Lokasi",
-    description: "Kartu peta di pojok kanan bawah footer: gambar peta, link Google Maps, dan teksnya.",
+    description: "Link Google Maps yang muncul di footer dan di bagian reservasi.",
     fields: [
-      img("mapImage", "Gambar peta"),
       url("mapLink", "Link Google Maps", "Tempel link dari Google Maps (https://…)."),
-      t("mapBadge", "Label di atas gambar peta", 30),
-      t("cardTitle", "Judul kartu peta", 60),
-      t("cardSubtitle", "Keterangan kartu peta", 100),
-      t("cardCta", "Teks tombol di kartu peta", 40),
+      t("cardCta", "Teks link Google Maps", 40),
     ],
   },
   {
@@ -191,23 +187,12 @@ export const sections = [
   {
     key: "contact",
     label: "Kontak & footer",
-    description:
-      "Nomor WhatsApp admin (dipakai juga untuk tombol konfirmasi pembayaran), email, alamat, media sosial, dan teks footer. LinkedIn masih data contoh, silakan ganti dengan data asli.",
+    description: "Nomor WhatsApp (dipakai juga untuk tombol konfirmasi pembayaran), Instagram, alamat, dan deskripsi singkat di footer.",
     fields: [
-      t("whatsapp", "Nomor WhatsApp admin (format 08…)", 20),
-      t("email", "Email", 80),
+      t("whatsapp", "Nomor WhatsApp (format 08…)", 20),
       t("instagram", "Instagram (tanpa @)", 60),
-      t("linkedin", "LinkedIn (nama halaman perusahaan, tanpa link)", 60),
-      ta("address", "Alamat di footer (satu baris per alamat)", 200),
-      ta("footerText", "Deskripsi di footer", 400),
-      t("scheduleInfo", "Info jadwal di footer", 120),
-      t("footerNavTitle", "Judul kolom menu di footer", 40),
-      t("footerContactTitle", "Judul kolom kontak di footer", 40),
-      t("footerFollowTitle", "Judul kolom media sosial di footer", 40),
-      t("footerScheduleTitle", "Judul info sesi di footer", 40),
-      t("footerWhatsappNote", "Kalimat sebelum nomor WhatsApp di footer", 120),
-      t("footerTagline", "Tulisan kecil di kanan bawah footer", 80),
-      t("footerCopyright", "Nama di baris hak cipta", 60),
+      ta("address", "Alamat (satu baris per alamat)", 200),
+      t("footerTagline", "Deskripsi di bawah logo footer", 80),
     ],
   },
 ] as const satisfies readonly SectionDef[];
@@ -267,11 +252,7 @@ export const defaults = {
     bodyLong: "",
   },
   location: {
-    mapImage: "/renders/map.jpg",
     mapLink: "https://maps.google.com/?q=Jl.+Duren+Sawit+Indah+Blok+K1+No+10+Klender+Jakarta+Timur",
-    mapBadge: "Open in Maps",
-    cardTitle: "Lokasi Hololabs",
-    cardSubtitle: "Klik untuk buka rute di Google Maps.",
     cardCta: "Buka di Google Maps",
   },
   faq: {
@@ -280,20 +261,10 @@ export const defaults = {
     items: faqItems.map(({ question, answer }) => ({ question, answer })),
   },
   contact: {
-    footerNavTitle: "Menu",
-    footerContactTitle: "Kontak",
-    footerFollowTitle: "Ikuti Kami",
-    footerScheduleTitle: "Informasi Sesi",
-    footerTagline: "A Creative Technology Lab",
-    linkedin: "holomoc",
-    address: "Jl. Duren Sawit Indah, Blok K1 No 10, RT.5/RW.3, Klender\nKec. Duren Sawit, Kota Jakarta Timur, DKI Jakarta 13440",
-    footerWhatsappNote: "Konfirmasi pembayaran & pertanyaan lain lewat WhatsApp:",
-    footerCopyright: "Holomoc",
     whatsapp: String(siteConfig.whatsapp),
-    email: String(siteConfig.email),
     instagram: "hololabs.id",
-    footerText: String(siteConfig.description),
-    scheduleInfo: `${siteConfig.dailyWindowLabel} · ${siteConfig.sessionDurationLabel} · ${siteConfig.seatsPerSessionLabel}`,
+    address: "Jl. Duren Sawit Indah, Blok K1 No 10, RT.5/RW.3, Klender\nKec. Duren Sawit, Kota Jakarta Timur, DKI Jakarta 13440",
+    footerTagline: "A creative technology lab by Holomoc",
   },
 };
 
