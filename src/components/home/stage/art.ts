@@ -463,3 +463,118 @@ export function ledWall() {
   g.fillRect(0, 0, 256, 512);
   return c;
 }
+
+export type HomeTile = { label: string; on: string; off: string; icon: "lamp" | "curtain" | "mood" };
+
+/** Smart-home control tile (360×150), drawn off or on, for the Smart Living chapter. */
+export function drawHomeTile(g: CanvasRenderingContext2D, tile: HomeTile, on: boolean) {
+  const W = 360;
+  const H = 150;
+  g.clearRect(0, 0, W, H);
+  roundRect(g, 3, 3, W - 6, H - 6, 26);
+  const bg = g.createLinearGradient(0, 0, W, H);
+  if (on) {
+    bg.addColorStop(0, "rgba(120,72,10,0.96)");
+    bg.addColorStop(1, "rgba(62,30,8,0.96)");
+  } else {
+    bg.addColorStop(0, "rgba(28,24,48,0.94)");
+    bg.addColorStop(1, "rgba(14,12,28,0.94)");
+  }
+  g.fillStyle = bg;
+  g.fill();
+  g.lineWidth = 3;
+  g.strokeStyle = on ? "rgba(253,224,71,0.85)" : "rgba(255,255,255,0.16)";
+  g.stroke();
+
+  // icon disc
+  const cx = 64;
+  const cy = 75;
+  g.beginPath();
+  g.arc(cx, cy, 36, 0, Math.PI * 2);
+  g.fillStyle = on ? "#fbbf24" : "rgba(255,255,255,0.08)";
+  g.fill();
+  const ink = on ? "#3b2405" : "rgba(255,255,255,0.7)";
+  g.strokeStyle = ink;
+  g.fillStyle = ink;
+  g.lineWidth = 4;
+  g.lineCap = "round";
+  if (tile.icon === "lamp") {
+    g.beginPath();
+    g.arc(cx, cy - 6, 14, Math.PI * 0.8, Math.PI * 2.2);
+    g.lineTo(cx + 7, cy + 12);
+    g.lineTo(cx - 7, cy + 12);
+    g.closePath();
+    g.stroke();
+    g.beginPath();
+    g.moveTo(cx - 6, cy + 19);
+    g.lineTo(cx + 6, cy + 19);
+    g.stroke();
+  } else if (tile.icon === "curtain") {
+    g.beginPath();
+    g.moveTo(cx - 20, cy - 18);
+    g.lineTo(cx + 20, cy - 18);
+    g.stroke();
+    for (const side of [-1, 1]) {
+      g.beginPath();
+      g.moveTo(cx + side * 18, cy - 18);
+      g.quadraticCurveTo(cx + side * (on ? 2 : 10), cy, cx + side * (on ? 3 : 16), cy + 18);
+      g.stroke();
+    }
+  } else {
+    g.beginPath();
+    g.arc(cx, cy, 17, Math.PI * 0.25, Math.PI * 1.75);
+    g.arc(cx + 9, cy - 4, 13, Math.PI * 1.6, Math.PI * 0.4, true);
+    g.closePath();
+    g.fill();
+  }
+
+  g.textAlign = "left";
+  g.fillStyle = on ? "#fff7e0" : "#ffffff";
+  g.font = `700 34px ${SANS}`;
+  g.fillText(tile.label, 120, 68);
+  g.fillStyle = on ? "rgba(254,240,199,0.85)" : "rgba(255,255,255,0.5)";
+  g.font = `500 24px ${SANS}`;
+  g.fillText(on ? tile.on : tile.off, 120, 104);
+
+  // toggle
+  roundRect(g, 282, 56, 56, 32, 16);
+  g.fillStyle = on ? "#fbbf24" : "rgba(255,255,255,0.18)";
+  g.fill();
+  g.beginPath();
+  g.arc(on ? 322 : 298, 72, 12, 0, Math.PI * 2);
+  g.fillStyle = on ? "#3b2405" : "#d4d4d8";
+  g.fill();
+}
+
+/** "Check-in berhasil" badge (480×120) that pops above the QR once it is read. */
+export function drawCheckBadge(g: CanvasRenderingContext2D) {
+  const W = 480;
+  const H = 120;
+  g.clearRect(0, 0, W, H);
+  roundRect(g, 4, 4, W - 8, H - 8, 56);
+  g.fillStyle = "rgba(6,40,30,0.94)";
+  g.fill();
+  g.lineWidth = 4;
+  g.strokeStyle = "rgba(52,211,153,0.9)";
+  g.stroke();
+  g.beginPath();
+  g.arc(64, 60, 34, 0, Math.PI * 2);
+  g.fillStyle = "#34d399";
+  g.fill();
+  g.strokeStyle = "#052e1f";
+  g.lineWidth = 8;
+  g.lineCap = "round";
+  g.lineJoin = "round";
+  g.beginPath();
+  g.moveTo(48, 61);
+  g.lineTo(60, 73);
+  g.lineTo(81, 48);
+  g.stroke();
+  g.textAlign = "left";
+  g.fillStyle = "#ecfdf5";
+  g.font = `700 36px ${SANS}`;
+  g.fillText("Check-in berhasil", 118, 58);
+  g.fillStyle = "rgba(167,243,208,0.85)";
+  g.font = `500 24px ${MONO}`;
+  g.fillText("Kursi A4 · Show 18.00", 118, 92);
+}

@@ -70,14 +70,18 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2 lg:gap-8">
           <nav aria-label="Navigasi utama" className="hidden lg:block">
-            <ul className="flex items-center gap-8">
+            <ul className="flex items-center gap-9">
               {menuItems.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex min-h-11 items-center font-mono text-xs font-medium uppercase tracking-[0.14em] text-ink-soft transition-colors hover:text-cyan"
+                    className="group relative inline-flex min-h-11 items-center text-[0.9375rem] font-semibold text-white/85 transition-colors hover:text-white"
                   >
                     {link.label}
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-0 bottom-2 h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-cyan to-[#c026d3] transition-transform duration-300 group-hover:scale-x-100"
+                    />
                   </Link>
                 </li>
               ))}

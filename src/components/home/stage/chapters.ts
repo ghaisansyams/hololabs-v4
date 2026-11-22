@@ -1,13 +1,13 @@
 import * as THREE from "three";
-import { canvas, drawHolomedis, drawSouvenir, drawTicket, ecg } from "./art";
+import { canvas, drawCheckBadge, drawHolomedis, drawHomeTile, drawSouvenir, drawTicket, ecg, type HomeTile } from "./art";
 
 /**
  * The seven chapters of the show, each with its own 3D treatment:
- *   1 Check-in     a thick e-ticket card swept by a QR scanner beam
+ *   1 Check-in     a thick e-ticket whose QR is read by a scanner window
  *   2 Journey      a curved projection screen lit by a projector cone
  *   3 DJ           a beat-driven equaliser, shockwave rings, stage beams
  *   4 Holomedis    a holographic assistant screen with a floating ECG
- *   5 Smart Living a wireframe house whose lights follow a voice wave
+ *   5 Smart Living a voice command switching on 3D control tiles
  *   6 3D printing  the photo prints layer by layer beside a growing vase
  *   7 Keepsake     the finished vase on a turntable with rising sparks
  * The engine places each group in the tunnel; a chapter only animates its
@@ -37,6 +37,10 @@ export interface Chapter {
 }
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const smoothstep01 = (v: number) => {
+  const x = clamp(v);
+  return x * x * (3 - 2 * x);
+};
 
 /** Materials whose opacity follows the chapter fade, each with its own base. */
 class Fader {
@@ -128,8 +132,11 @@ function photoMaterial(ctx: Ctx, src: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 1. Check-in: e-ticket + QR scanner                                  */
+/* 1. Check-in: e-ticket whose QR is read by a scanner window          */
 /* ------------------------------------------------------------------ */
+/** The QR's white box in the 800×640 ticket art: centre and side, as fractions. */
+const QR = { cx: 175.5 / 800, cy: 343.5 / 640, side: 259 / 800 };
+
 function ticketChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
@@ -149,44 +156,125 @@ function ticketChapter(ctx: Ctx): Chapter {
   card.add(glow, brackets);
   group.add(card);
 
-  // scanner: a bright line plus a translucent fan from the emitter above
-  const laser = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1, 1)), fader.add(additive(ctx, 0x67e8f9, 1)));
-  const fanGeo = ctx.track(new THREE.BufferGeometry());
-  const fanPos = new Float32Array(9);
-  fanGeo.setAttribute("position", new THREE.BufferAttribute(fanPos, 3));
-  const fan = new THREE.Mesh(fanGeo, fader.add(additive(ctx, 0x22d3ee, 0.16, THREE.DoubleSide)));
-  const emitter = new THREE.Sprite(
-    fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0xa5f3fc, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
+  // Scanner window sitting on the QR: four solid corner marks that close in
+  // and lock, a scan band with a soft trail sweeping down the code, then a
+  // green confirmation (ring + badge). All children of the card, so they
+  // follow its tilt.
+  const scanner = new THREE.Group();
+  card.add(scanner);
+  const cyan = new THREE.Color(0x22d3ee);
+  const green = new THREE.Color(0x34d399);
+  const cornerMat = fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 1, depthWrite: false })), 1);
+  const barGeo = ctx.track(new THREE.PlaneGeometry(1, 1));
+  const corners: THREE.Group[] = [];
+  for (const [sx, sy] of [
+    [-1, 1],
+    [1, 1],
+    [1, -1],
+    [-1, -1],
+  ]) {
+    const corner = new THREE.Group();
+    const hBar = new THREE.Mesh(barGeo, cornerMat);
+    const vBar = new THREE.Mesh(barGeo, cornerMat);
+    corner.add(hBar, vBar);
+    corner.userData = { sx, sy, hBar, vBar };
+    scanner.add(corner);
+    corners.push(corner);
+  }
+
+  const bandMat = ctx.track(
+    new THREE.ShaderMaterial({
+      uniforms: { uPos: { value: 0 }, uOpacity: { value: 0 }, uColor: { value: new THREE.Color(0x67e8f9) } },
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: `uniform float uPos; uniform float uOpacity; uniform vec3 uColor; varying vec2 vUv;
+        void main(){
+          float d = vUv.y - uPos;                       // >0 above the line (already scanned)
+          float line = smoothstep(0.012, 0.0, abs(d));
+          float trail = d > 0.0 ? exp(-d * 9.0) * 0.32 : 0.0;
+          float edge = smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x);
+          gl_FragColor = vec4(uColor, (line + trail) * edge * uOpacity);
+        }`,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
   );
-  group.add(laser, fan, emitter);
+  const band = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1, 1)), bandMat);
+  scanner.add(band);
+
+  const ringMat = additive(ctx, 0x34d399, 0, THREE.DoubleSide);
+  const ring = new THREE.Mesh(ctx.track(new THREE.RingGeometry(0.47, 0.5, 64)), ringMat);
+  scanner.add(ring);
+
+  const [bc, bg] = canvas(480, 120);
+  drawCheckBadge(bg);
+  const badgeMat = ctx.track(new THREE.MeshBasicMaterial({ map: canvasTexture(ctx, bc), transparent: true, opacity: 0, depthWrite: false }));
+  const badge = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1, 120 / 480)), badgeMat);
+  card.add(badge);
 
   let w = 4.4;
   let h = w / 1.25;
+  let side = 1;
+  const CYCLE = 4.2;
   return {
     group,
     layout(width) {
-      // a touch smaller than the panels: the card tilts toward the camera and its scanner sits above it
+      // a touch smaller than the panels: the card tilts toward the camera
       w = width * 0.84;
       h = w / 1.25;
       box.scale.set(w, h, 0.08);
       brackets.scale.set(w * 1.05, h * 1.05, 1);
       brackets.position.z = 0.05;
       glow.scale.set(w * 1.8, h * 1.8, 1);
-      laser.scale.set(w * 1.06, 0.018, 1);
-      emitter.scale.set(0.5, 0.5, 1);
-      emitter.position.set(0, h * 0.78, 1.3);
+      side = QR.side * w;
+      scanner.position.set((QR.cx - 0.5) * w, (0.5 - QR.cy) * h, 0.05);
+      band.scale.set(side * 1.02, side * 1.02, 1);
+      band.position.z = 0.01;
+      ring.scale.setScalar(side);
+      ring.position.z = 0.02;
+      badge.scale.setScalar(w * 0.5);
+      const t = side * 0.035;
+      const len = side * 0.2;
+      for (const corner of corners) {
+        const { hBar, vBar } = corner.userData as { hBar: THREE.Mesh; vBar: THREE.Mesh; sx: number; sy: number };
+        const { sx, sy } = corner.userData as { sx: number; sy: number };
+        hBar.scale.set(len, t, 1);
+        hBar.position.set(-sx * (len / 2 - t / 2), 0, 0);
+        vBar.scale.set(t, len, 1);
+        vBar.position.set(0, -sy * (len / 2 - t / 2), 0);
+      }
     },
     update({ act, vis, time }) {
       fader.apply(vis);
       card.rotation.x = (1 - act) * 0.5 - 0.05;
       card.rotation.y = Math.sin(time * 0.5) * 0.07;
-      const y = Math.sin(time * 1.6) * h * 0.38;
-      laser.position.set(0, y, 0.07);
-      laser.visible = act > 0.05;
-      fan.visible = laser.visible;
-      fanPos.set([0, h * 0.78, 1.3, -w * 0.53, y, 0.07, w * 0.53, y, 0.07]);
-      fanGeo.attributes.position.needsUpdate = true;
-      (laser.material as THREE.MeshBasicMaterial).opacity = vis * act;
+
+      // 0–0.7 s seek (marks close in) · 0.7–2.3 s scan sweep · 2.3–3.7 s verified · fade out
+      const cyc = time % CYCLE;
+      const seek = smoothstep01(cyc / 0.7);
+      const scan = clamp((cyc - 0.7) / 1.6);
+      const done = clamp((cyc - 2.3) / 0.25) * clamp((CYCLE - 0.3 - cyc) / 0.3);
+      const spread = side * (0.62 - 0.1 * seek + 0.04 * Math.sin(time * 3) * (1 - seek));
+      for (const corner of corners) {
+        const { sx, sy } = corner.userData as { sx: number; sy: number };
+        corner.position.set(sx * spread * (1 - 0.06 * done), sy * spread * (1 - 0.06 * done), 0.03);
+      }
+      cornerMat.color.copy(cyan).lerp(green, done);
+      cornerMat.opacity = vis * (0.35 + 0.65 * seek) * clamp((CYCLE - 0.15 - cyc) / 0.3);
+
+      const scanning = cyc > 0.7 && cyc < 2.3;
+      bandMat.uniforms.uPos.value = 1 - scan;
+      bandMat.uniforms.uOpacity.value = vis * act * (scanning ? Math.sin(scan * Math.PI) ** 0.35 : 0);
+
+      const pulse = clamp((cyc - 2.3) / 0.9);
+      ring.scale.setScalar(side * (1 + pulse * 0.9));
+      ringMat.opacity = vis * act * (cyc > 2.3 ? (1 - pulse) * 0.8 : 0);
+
+      badgeMat.opacity = vis * done;
+      const pop = 1 + 0.08 * Math.sin(clamp((cyc - 2.3) / 0.3) * Math.PI);
+      badge.scale.set(w * 0.5 * pop, w * 0.5 * pop, 1);
+      // floats just above the card's top edge, over the QR side
+      badge.position.set(scanner.position.x + side * 0.45, h / 2 + w * 0.08 + done * 0.06, 0.3 + done * 0.15);
     },
   };
 }
@@ -499,7 +587,7 @@ function holomedisChapter(ctx: Ctx): Chapter {
 }
 
 /* ------------------------------------------------------------------ */
-/* 5. Smart Living: wireframe house, windows lit by a voice command    */
+/* 5. Smart Living: voice command switches on 3D control tiles       */
 /* ------------------------------------------------------------------ */
 function smartHomeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
@@ -509,34 +597,32 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   const panel = framedPanel(ctx, photo, 0xf59e0b, fader);
   group.add(panel.root);
 
-  // house outline: box body + gabled roof (unit size, scaled in layout)
-  const v = (x: number, y: number, z: number) => [x, y, z];
-  const A = v(-0.5, 0, 0.4), B = v(0.5, 0, 0.4), C = v(0.5, 0, -0.4), D = v(-0.5, 0, -0.4);
-  const E = v(-0.5, 0.6, 0.4), F = v(0.5, 0.6, 0.4), G = v(0.5, 0.6, -0.4), H = v(-0.5, 0.6, -0.4);
-  const R1 = v(-0.5, 0.95, 0), R2 = v(0.5, 0.95, 0);
-  const edges = [A, B, B, C, C, D, D, A, E, F, F, G, G, H, H, E, A, E, B, F, C, G, D, H, E, R1, H, R1, F, R2, G, R2, R1, R2].flat();
-  const houseGeo = ctx.track(new THREE.BufferGeometry());
-  houseGeo.setAttribute("position", new THREE.Float32BufferAttribute(edges, 3));
-  const house = new THREE.Group();
-  house.add(new THREE.LineSegments(houseGeo, fader.add(ctx.track(new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 1 })))));
-  const floor = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1.5, 1.3)), fader.add(additive(ctx, 0x22d3ee, 0.08, THREE.DoubleSide)));
-  floor.rotation.x = -Math.PI / 2;
-  house.add(floor);
-  const windows: THREE.Mesh[] = [];
-  const winGeo = ctx.track(new THREE.PlaneGeometry(0.2, 0.18));
-  [
-    [-0.25, 0.3, 0.401, 0],
-    [0.25, 0.3, 0.401, 0],
-    [0.501, 0.3, 0.15, Math.PI / 2],
-    [0.501, 0.3, -0.15, Math.PI / 2],
-  ].forEach(([x, y, z, ry]) => {
-    const win = new THREE.Mesh(winGeo, additive(ctx, 0xfbbf24, 0.9, THREE.DoubleSide));
-    win.position.set(x, y, z);
-    win.rotation.y = ry;
-    house.add(win);
-    windows.push(win);
+  // three control tiles (lamp, curtains, mood) that switch on one by one
+  // after the voice command; solid slabs with a lit face, not wireframe
+  const TILES: HomeTile[] = [
+    { label: "Lampu", on: "Hangat 40%", off: "Mati", icon: "lamp" },
+    { label: "Tirai", on: "Tertutup", off: "Terbuka", icon: "curtain" },
+    { label: "Suasana", on: "Mode santai", off: "Normal", icon: "mood" },
+  ];
+  const tileGeo = ctx.track(new THREE.BoxGeometry(1, 150 / 360, 0.06));
+  const tileEdge = fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0x1c1530, transparent: true })), 1);
+  const tileGlowMat = (): THREE.SpriteMaterial =>
+    ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0xf59e0b, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  const tiles = TILES.map((tile) => {
+    const faces = [false, true].map((on) => {
+      const [tc, tg] = canvas(360, 150);
+      drawHomeTile(tg, tile, on);
+      return canvasTexture(ctx, tc);
+    });
+    const faceMat = ctx.track(new THREE.MeshBasicMaterial({ map: faces[0], transparent: true }));
+    const mesh = new THREE.Mesh(tileGeo, [tileEdge, tileEdge, tileEdge, tileEdge, faceMat, tileEdge]);
+    const halo = new THREE.Sprite(tileGlowMat());
+    halo.position.z = -0.1;
+    const root = new THREE.Group();
+    root.add(halo, mesh);
+    group.add(root);
+    return { root, mesh, faceMat, faces, halo, lit: false };
   });
-  group.add(house);
 
   // voice orb + waveform ring
   const orb = new THREE.Sprite(
@@ -567,6 +653,8 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   let h = w / aspect;
   const orbPos = new THREE.Vector3();
   let labelX = 0;
+  let tileX = 0;
+  let tileRy = 0;
   const warm = new THREE.Color(1, 0.86, 0.68);
   const white = new THREE.Color(1, 1, 1);
   return {
@@ -577,8 +665,14 @@ function smartHomeChapter(ctx: Ctx): Chapter {
       panel.setSize(w, h);
       panel.root.position.z = -0.25;
       const inner = side === 0 ? 1 : -side;
-      house.scale.setScalar(w * 0.22);
-      house.position.set(inner * w * 0.36, -h * 0.5 + 0.02, 0.7);
+      tileX = inner * w * 0.4;
+      tileRy = -inner * 0.38;
+      tiles.forEach((t, i) => {
+        t.root.scale.setScalar(w * 0.3);
+        t.root.position.set(tileX, h * 0.24 - i * w * 0.155, 0.55);
+        t.root.rotation.y = tileRy;
+        t.halo.scale.set(1.6, 0.9, 1);
+      });
       orbPos.set(-inner * w * 0.3, -h * 0.25, 0.8);
       orb.position.copy(orbPos);
       orb.scale.set(0.6, 0.6, 1);
@@ -591,13 +685,22 @@ function smartHomeChapter(ctx: Ctx): Chapter {
       // a 6 s loop: speak (0-2 s), lights go on one by one, mood warms, then reset
       const cyc = time % 6;
       const speaking = cyc < 2.2 ? Math.sin((cyc / 2.2) * Math.PI) : 0;
-      windows.forEach((win, i) => {
+      tiles.forEach((t, i) => {
         const on = clamp((cyc - 2.2 - i * 0.35) / 0.3) * clamp((5.6 - cyc) / 0.4);
-        (win.material as THREE.MeshBasicMaterial).opacity = (0.12 + 0.88 * on) * vis;
+        const lit = on > 0.5;
+        if (lit !== t.lit) {
+          t.lit = lit;
+          t.faceMat.map = t.faces[lit ? 1 : 0];
+          t.faceMat.needsUpdate = true;
+        }
+        t.faceMat.opacity = vis;
+        (t.halo.material as THREE.SpriteMaterial).opacity = vis * on * 0.55;
+        t.mesh.position.z = on * 0.12;
+        t.root.rotation.y = tileRy + Math.sin(time * 0.6 + i) * 0.05;
+        t.root.position.x = tileX;
       });
       const mood = clamp((cyc - 3.6) / 0.8) * clamp((5.8 - cyc) / 0.4);
       photo.color.copy(white).lerp(warm, mood * act);
-      house.rotation.y = -0.5 + Math.sin(time * 0.4) * 0.25;
       const R = w * 0.09;
       for (let i = 0; i < WN; i++) {
         const a = (i / WN) * Math.PI * 2;
