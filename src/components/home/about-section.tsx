@@ -11,7 +11,9 @@ export async function AboutSection() {
   const stats = visit.stats.filter((s) => s.value);
 
   return (
-    <section id="about" className="relative border-t border-line py-20 sm:py-28">
+    <section id="about" className="bg-hall relative isolate overflow-hidden py-20 sm:py-28">
+      <div aria-hidden className="hall-seam" />
+      <div aria-hidden className="hall-floor -z-10" />
       <Container className="grid items-end gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
         <div>
           <Reveal>
@@ -34,7 +36,7 @@ export async function AboutSection() {
           <Reveal delay={120}>
             <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line">
               {stats.map((stat, index) => (
-                <div key={index} className="bg-canvas p-6 sm:p-8">
+                <div key={index} className="bg-[#07041a]/85 p-6 backdrop-blur-sm sm:p-8">
                   <dd className="whitespace-nowrap font-display text-xl font-semibold text-ink sm:text-3xl">{stat.value}</dd>
                   <dt className="mt-2 font-mono text-[0.6875rem] uppercase leading-snug tracking-[0.12em] text-muted">
                     {stat.label}

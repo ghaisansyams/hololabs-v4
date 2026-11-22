@@ -75,8 +75,9 @@ export const sections = [
   {
     key: "hero",
     label: "Hero (bagian paling atas)",
-    description: "Judul besar, kalimat pembuka, dan dua tombol di layar pertama (di atas objek 3D).",
+    description: "Layar pertama: foto latar penuh, judul besar, kalimat pembuka, dan dua tombol. Journey 3D dimulai di bawahnya.",
     fields: [
+      img("backgroundImage", "Foto latar hero", "Foto mendatar, gelap di tengah agar judul terbaca. Minimal 1200px lebar."),
       t("badge", "Label kecil di atas judul"),
       t("title", "Judul (bagian putih)"),
       t("titleAccent", "Judul (bagian berwarna gradien)"),
@@ -212,10 +213,11 @@ export const defaults = {
     menuItems: mainNav.map(({ label, href }) => ({ label, href })),
   },
   hero: {
-    badge: "Immersive · Interactive · Intelligent",
-    title: "Teknologi yang bisa kamu",
-    titleAccent: "masuki, sentuh, dan bawa pulang.",
-    lead: "Satu show, 90 menit, 7 babak. Dari video mapping imersif sampai pulang membawa karya 3D print buatanmu sendiri.",
+    backgroundImage: "/renders/ambiance-hall.jpg",
+    badge: "Hololabs · A Creative Technology Lab",
+    title: "Don't just see the technology.",
+    titleAccent: "Step inside it.",
+    lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
     ctaPrimary: "Pilih Jadwal Show",
     ctaSecondary: "Lihat Journey",
   },

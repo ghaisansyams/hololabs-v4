@@ -13,7 +13,9 @@ export async function FaqSection() {
   const items = faq.items.filter((item) => item.question);
 
   return (
-    <section id="faq" className="border-t border-line bg-canvas-deep py-10 sm:py-12">
+    <section id="faq" className="bg-hall relative isolate overflow-hidden py-16 sm:py-20">
+      <div aria-hidden className="hall-seam" />
+      <div aria-hidden className="hall-floor -z-10 opacity-60" />
       <Container className="max-w-2xl">
         <div className="text-center">
           <Reveal>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ExperienceStage } from "@/components/home/experience-stage";
+import { HeroSection } from "@/components/home/hero-section";
 import { VisitSection } from "@/components/home/visit-section";
 import { AboutSection } from "@/components/home/about-section";
 import { FaqSection } from "@/components/home/faq-section";
@@ -20,13 +21,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Homepage: a 3D scroll journey (hero + the seven chapters of the show),
+ * Homepage: a full-screen photo hero, then the 3D scroll journey (the seven
+ * chapters of the show),
  * then what Hololabs is, how to reserve, and FAQ. The founder/team block
  * (PeopleSection, still editable in the CMS) is left off until real bios exist.
  * Reservation itself still lives at /pesan.
  */
 export default async function HomePage() {
-  const { brand, hero, experience, visit } = await getSiteContent();
+  const { brand, experience } = await getSiteContent();
   const steps = experience.steps.filter((step) => step.title);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -40,7 +42,8 @@ export default async function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <ExperienceStage hero={{ ...hero, hud: visit.stats.filter((item) => item.value) }} steps={steps} />
+      <HeroSection />
+      <ExperienceStage steps={steps} />
       <AboutSection />
       <VisitSection />
       <FaqSection />

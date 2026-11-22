@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { buttonStyles } from "@/components/ui/button";
 import { canvas, drawHolomedis, drawSouvenir, drawTicket } from "@/components/home/stage/art";
 import { cn } from "@/lib/utils/cn";
 
@@ -14,17 +12,7 @@ export interface StageStep {
   minutes: string;
 }
 
-export interface StageHero {
-  badge: string;
-  title: string;
-  titleAccent: string;
-  lead: string;
-  ctaPrimary: string;
-  ctaSecondary: string;
-  hud: { value: string; label: string }[];
-}
-
-const STOPS = 8; // hero + 7 chapters (mirrors stage/engine.ts)
+const MAX_CHAPTERS = 7; // one per chapter factory in stage/chapters.ts
 
 /** What each chapter's 3D effect is about, shown under the title. */
 const EFFECT_TAGS = ["QR scan", "Projection mapping", "Audio reactive", "AI hologram", "Voice control", "Layer by layer", "Souvenir"];
@@ -39,20 +27,21 @@ function webglAvailable() {
 }
 
 /**
- * The homepage's centrepiece: a WebGL (three.js) journey. A portal frames
- * the hero; scrolling flies the camera through it and past seven chapters,
- * each with its own 3D effect (see stage/chapters.ts). The 3D code is a
- * separate chunk loaded after first paint. Without WebGL, or with reduced
- * motion, the same chapters appear as a plain illustrated list.
+ * The journey under the photo hero: a WebGL (three.js) scene pinned while
+ * the page scrolls, flying the camera past the seven chapters, each with its
+ * own 3D effect (see stage/chapters.ts), between glowing LED walls like the
+ * hall in the hero photo. The 3D code is a separate chunk loaded after first
+ * paint. Without WebGL, or with reduced motion, the same chapters appear as
+ * a plain illustrated list.
  */
-export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: StageStep[] }) {
+export function ExperienceStage({ steps }: { steps: StageStep[] }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mode, setMode] = useState<"stage" | "static">("stage");
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(0);
-  const count = Math.min(steps.length, STOPS - 1);
+  const count = Math.min(steps.length, MAX_CHAPTERS);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -104,14 +93,14 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
     if (!section) return;
     const top = section.getBoundingClientRect().top + window.scrollY;
     const span = section.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + (index / (STOPS - 1)) * span, behavior: "smooth" });
+    window.scrollTo({ top: top + (index / Math.max(1, count - 1)) * span, behavior: "smooth" });
   }
 
   if (mode === "static") {
-    return <StaticExperience hero={hero} steps={steps.slice(0, count)} />;
+    return <StaticExperience steps={steps.slice(0, count)} />;
   }
 
-  const stepIndex = Math.max(0, active - 1);
+  const stepIndex = Math.min(Math.max(0, active), count - 1);
   const step = steps[stepIndex];
   const side = stepIndex % 2 === 0 ? "right" : "left";
   const starts = steps.slice(0, count).reduce<number[]>((acc, _st, i) => {
@@ -120,7 +109,7 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
   }, []);
 
   return (
-    <div ref={sectionRef} id="journey" className="relative" style={{ height: `${100 + (STOPS - 1) * 90}dvh` }}>
+    <div ref={sectionRef} id="journey" className="relative" style={{ height: `${100 + (count - 1) * 90}dvh` }}>
       <div ref={stageRef} data-mode="stage" data-ready={ready} className="sticky top-0 h-dvh overflow-hidden bg-[#040208]">
         <canvas
           ref={canvasRef}
@@ -137,45 +126,8 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
           <span className="absolute bottom-0 right-0 size-5 border-b border-r border-cyan/50" />
         </div>
 
-        {/* Hero copy: inside the portal on wide screens, under it on phones */}
-        <div
-          className={cn(
-            "absolute inset-0 flex flex-col items-center justify-end px-5 pb-24 text-center sm:px-10 lg:justify-center lg:pb-4",
-            active === 0 ? "pointer-events-auto" : "pointer-events-none",
-          )}
-          style={{ opacity: active === 0 ? "var(--o, 1)" : 0 }}
-        >
-          <p className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-cyan sm:text-xs">{hero.badge}</p>
-          <h1 className="mt-4 max-w-[17ch] text-[1.75rem] font-semibold leading-[1.12] text-ink sm:text-5xl lg:max-w-[16ch] lg:text-[3.35rem]">
-            {hero.title}{" "}
-            <span className="bg-gradient-to-r from-cyan via-[#818cf8] to-[#e879f9] bg-clip-text text-transparent">{hero.titleAccent}</span>
-          </h1>
-          <p className="mt-5 max-w-md text-sm leading-7 text-ink-soft sm:text-base">{hero.lead}</p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/pesan" className={buttonStyles({ size: "lg" })}>
-              {hero.ctaPrimary}
-            </Link>
-            <button type="button" onClick={() => jump(1)} className={buttonStyles({ variant: "secondary", size: "lg" })}>
-              {hero.ctaSecondary}
-            </button>
-          </div>
-        </div>
-
-        {/* Hero readouts */}
-        <dl
-          className="pointer-events-none absolute inset-x-0 bottom-6 mx-auto hidden max-w-4xl grid-cols-4 gap-px px-10 font-mono sm:grid"
-          style={{ opacity: active === 0 ? "var(--o, 1)" : 0 }}
-        >
-          {hero.hud.map((item, i) => (
-            <div key={i} className="border-l border-cyan/30 pl-4 text-left">
-              <dd className="text-sm font-medium text-ink">{item.value}</dd>
-              <dt className="text-[0.625rem] uppercase tracking-[0.16em] text-muted">{item.label}</dt>
-            </div>
-          ))}
-        </dl>
-
         {/* Chapter copy */}
-        {active > 0 && step ? (
+        {step ? (
           <div
             key={active}
             className={cn(
@@ -187,7 +139,7 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
           >
             <div className="max-w-md">
               <p className="font-mono text-xs font-medium uppercase tracking-[0.2em] text-cyan">
-                CH.{String(active).padStart(2, "0")} / {String(count).padStart(2, "0")}
+                CH.{String(stepIndex + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
                 <span aria-hidden className="mx-2 text-muted">{"//"}</span>
                 <span className="text-ink-soft">{step.mood}</span>
               </p>
@@ -206,31 +158,28 @@ export function ExperienceStage({ hero, steps }: { hero: StageHero; steps: Stage
         {/* Chapter timeline */}
         <nav
           aria-label="Babak journey"
-          className={cn(
-            "absolute inset-x-0 bottom-5 mx-auto max-w-4xl px-6 transition-opacity duration-500 sm:bottom-7 sm:px-10",
-            active === 0 ? "pointer-events-none opacity-0" : "opacity-100",
-          )}
+          className="absolute inset-x-0 bottom-5 mx-auto max-w-4xl px-6 sm:bottom-7 sm:px-10"
         >
           <ol className="grid" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`, gap: "0.375rem" }}>
             {steps.slice(0, count).map((st, i) => (
               <li key={i}>
                 <button
                   type="button"
-                  onClick={() => jump(i + 1)}
+                  onClick={() => jump(i)}
                   aria-label={`Babak ${i + 1}: ${st.title}`}
-                  aria-current={i + 1 === active ? "true" : undefined}
+                  aria-current={i === stepIndex ? "true" : undefined}
                   className="group block w-full py-2 text-left"
                 >
                   <span className="block h-[3px] overflow-hidden rounded-full bg-white/10">
                     <span
                       className="block h-full origin-left bg-gradient-to-r from-cyan to-[#a855f7]"
-                      style={{ transform: `scaleX(clamp(0, calc(var(--t, 0) - ${i}), 1))` }}
+                      style={{ transform: `scaleX(clamp(0, calc(var(--t, 0) - ${i - 1}), 1))` }}
                     />
                   </span>
                   <span
                     className={cn(
                       "mt-1.5 block font-mono text-[0.625rem] uppercase tracking-[0.12em] transition-colors",
-                      i + 1 === active ? "text-cyan" : "text-muted group-hover:text-ink-soft",
+                      i === stepIndex ? "text-cyan" : "text-muted group-hover:text-ink-soft",
                     )}
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -281,26 +230,9 @@ const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: str
 ];
 
 /** Fallback with no WebGL or motion: the same chapters as a plain illustrated list. */
-function StaticExperience({ hero, steps }: { hero: StageHero; steps: StageStep[] }) {
+function StaticExperience({ steps }: { steps: StageStep[] }) {
   return (
     <div id="journey" data-mode="static">
-      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden px-5 py-28 text-center sm:px-10">
-        <div
-          aria-hidden
-          className="absolute left-1/2 top-1/2 size-[min(80vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan/40 shadow-[0_0_80px_rgb(124_58_237/0.35)]"
-        />
-        <div className="relative max-w-2xl">
-          <p className="font-mono text-xs font-medium uppercase tracking-[0.26em] text-cyan">{hero.badge}</p>
-          <h1 className="mt-5 text-3xl font-semibold leading-[1.12] text-ink sm:text-5xl">
-            {hero.title}{" "}
-            <span className="bg-gradient-to-r from-cyan via-[#818cf8] to-[#e879f9] bg-clip-text text-transparent">{hero.titleAccent}</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-md text-base leading-8 text-ink-soft">{hero.lead}</p>
-          <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8" })}>
-            {hero.ctaPrimary}
-          </Link>
-        </div>
-      </section>
       <ol className="mx-auto max-w-5xl space-y-16 px-5 py-16 sm:px-10">
         {steps.map((s, i) => {
           const v = STATIC_VISUALS[i % STATIC_VISUALS.length];

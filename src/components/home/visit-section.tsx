@@ -20,11 +20,8 @@ export async function VisitSection() {
   const address = contact.address.split("\n").map((l) => l.trim()).filter(Boolean).join(", ");
 
   return (
-    <section id="reservasi" className="relative overflow-hidden border-t border-line py-20 sm:py-28">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 top-10 -z-10 size-[36rem] rounded-full bg-brand/15 blur-[120px]"
-      />
+    <section id="reservasi" className="bg-hall-flip relative isolate overflow-hidden py-20 sm:py-28">
+      <div aria-hidden className="hall-seam" />
       <Container>
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
           <div>
@@ -114,7 +111,7 @@ export async function VisitSection() {
         </div>
 
         <div className="mt-20 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-2">
-          <Reveal className="bg-canvas">
+          <Reveal className="bg-[#07041a]/90">
             <div className="flex h-full flex-col p-7 sm:p-10">
               <h3 className="text-xl font-semibold text-ink sm:text-2xl">{visit.personalTitle}</h3>
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.personalBody}</p>
@@ -130,7 +127,7 @@ export async function VisitSection() {
               </Link>
             </div>
           </Reveal>
-          <Reveal delay={90} className="bg-canvas">
+          <Reveal delay={90} className="bg-[#07041a]/90">
             <div className="flex h-full flex-col p-7 sm:p-10">
               <h3 className="text-xl font-semibold text-ink sm:text-2xl">{visit.groupTitle}</h3>
               <p className="mt-3 max-w-md leading-8 text-ink-soft">{visit.groupBody}</p>

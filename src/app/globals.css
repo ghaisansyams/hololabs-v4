@@ -360,6 +360,58 @@
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Homepage backgrounds, echoing the hall in the hero photo            */
+/* ------------------------------------------------------------------ */
+@keyframes hero-zoom {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@layer utilities {
+  /* Blue glow low-left, violet high-right, magenta underneath. */
+  .bg-hall {
+    background-color: #050308;
+    background-image:
+      radial-gradient(52rem 30rem at 8% 100%, rgb(37 99 235 / 0.2), transparent 62%),
+      radial-gradient(48rem 28rem at 92% 0%, rgb(168 85 247 / 0.2), transparent 62%),
+      radial-gradient(36rem 20rem at 55% 110%, rgb(232 121 249 / 0.12), transparent 65%);
+  }
+  .bg-hall-flip {
+    background-color: #050308;
+    background-image:
+      radial-gradient(48rem 28rem at 6% 0%, rgb(168 85 247 / 0.18), transparent 62%),
+      radial-gradient(52rem 30rem at 96% 100%, rgb(37 99 235 / 0.2), transparent 62%);
+  }
+  /* A glossy LED floor in perspective along the bottom of a section. */
+  .hall-floor {
+    position: absolute;
+    inset: auto -20% 0 -20%;
+    height: 55%;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(103 232 249 / 0.13) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(129 140 248 / 0.13) 1px, transparent 1px);
+    background-size: 56px 56px;
+    transform: perspective(700px) rotateX(64deg);
+    transform-origin: bottom;
+    mask-image: linear-gradient(to top, black 10%, transparent 85%);
+    -webkit-mask-image: linear-gradient(to top, black 10%, transparent 85%);
+  }
+  /* Thin glowing seam where one section meets the next. */
+  .hall-seam {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgb(34 211 238 / 0.6), rgb(168 85 247 / 0.6), rgb(232 121 249 / 0.5), transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

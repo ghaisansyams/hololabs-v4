@@ -165,7 +165,8 @@ function ticketChapter(ctx: Ctx): Chapter {
   return {
     group,
     layout(width) {
-      w = width;
+      // a touch smaller than the panels: the card tilts toward the camera and its scanner sits above it
+      w = width * 0.84;
       h = w / 1.25;
       box.scale.set(w, h, 0.08);
       brackets.scale.set(w * 1.05, h * 1.05, 1);

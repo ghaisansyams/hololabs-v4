@@ -1,9 +1,7 @@
 import * as THREE from "three";
-import { matcap, softDot } from "./art";
+import { ledWall, matcap, nightSky, softDot } from "./art";
 import { chapterFactories, type Chapter, type Ctx } from "./chapters";
-import { createPortal } from "./portal";
 
-export const STOPS = 8; // hero + 7 chapters
 const SPACING = 11;
 const FIRST_Z = -14;
 const VIEW_DIST = 8.5;
@@ -13,13 +11,15 @@ const smooth = (v: number) => v * v * (3 - 2 * v);
 /** 1 while the camera rests at a stop, fading to 0 as it travels away. */
 const restOpacity = (distance: number) => clamp(1 - (distance - 0.12) / 0.2);
 
+/** One stop per chapter: the camera rests VIEW_DIST in front of it. */
 function stopZ(index: number) {
-  return index === 0 ? 9 : FIRST_Z - (index - 1) * SPACING + VIEW_DIST;
+  return FIRST_Z - index * SPACING + VIEW_DIST;
 }
 
-/** Camera depth for a scroll position t in [0, STOPS-1], dwelling at each stop. */
-function cameraZ(t: number) {
-  const s = Math.min(STOPS - 2, Math.floor(t));
+/** Camera depth for a scroll position t in [0, stops-1], dwelling at each stop. */
+function cameraZ(t: number, stops: number) {
+  if (stops < 2) return stopZ(0);
+  const s = Math.min(stops - 2, Math.floor(t));
   const u = smooth(clamp((t - s - 0.18) / 0.64));
   return stopZ(s) + (stopZ(s + 1) - stopZ(s)) * u;
 }
@@ -48,7 +48,7 @@ export function createStage(o: StageOptions): () => void {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x040208, 0.016);
+  scene.fog = new THREE.FogExp2(0x070414, 0.016);
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 160);
 
   const disposables: { dispose: () => void }[] = [];
@@ -92,6 +92,35 @@ export function createStage(o: StageOptions): () => void {
   cap.colorSpace = THREE.SRGBColorSpace;
   const ctx: Ctx = { track, tex, dot, matcap: cap, mobile };
 
+  // ---- backdrop: the hall from the hero photo -------------------------
+  // A night-sky gradient behind everything, then LED walls down both sides
+  // of the runway and a glossy floor catching their colour.
+  const sky = track(new THREE.CanvasTexture(nightSky()));
+  sky.colorSpace = THREE.SRGBColorSpace;
+  scene.background = sky;
+  const wallTex = track(new THREE.CanvasTexture(ledWall()));
+  wallTex.colorSpace = THREE.SRGBColorSpace;
+  const wallGeo = track(new THREE.PlaneGeometry(7, 11));
+  const wallMat = track(
+    new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }),
+  );
+  const wallStep = mobile ? 14 : 9;
+  for (let z = 6; z > -96; z -= wallStep) {
+    for (const sideX of [-1, 1]) {
+      const wall = new THREE.Mesh(wallGeo, wallMat);
+      wall.position.set(sideX * 11.5, 1.6, z + (sideX > 0 ? wallStep / 2 : 0));
+      wall.rotation.y = -sideX * Math.PI * 0.42;
+      scene.add(wall);
+    }
+  }
+  const floorMat = track(
+    new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending }),
+  );
+  const floor = new THREE.Mesh(track(new THREE.PlaneGeometry(26, 110)), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(0, -3.5, -40);
+  scene.add(floor);
+
   // ---- ambient: star field + floor runway -------------------------------
   const starCount = mobile ? 700 : 1600;
   const pos = new Float32Array(starCount * 3);
@@ -128,10 +157,7 @@ export function createStage(o: StageOptions): () => void {
   );
   scene.add(new THREE.Points(runwayGeo, runwayMat));
 
-  // ---- hero portal + chapters -------------------------------------------
-  const portal = createPortal(ctx, pixelRatio);
-  scene.add(portal.group);
-
+  // ---- chapters --------------------------------------------------------
   const chapters: (Chapter & { side: number })[] = [];
   for (let i = 0; i < o.count; i++) {
     const ch = chapterFactories[i % chapterFactories.length](ctx);
@@ -148,7 +174,6 @@ export function createStage(o: StageOptions): () => void {
     portrait = camera.aspect < 0.95;
     camera.fov = portrait ? 62 : 48;
     camera.updateProjectionMatrix();
-    portal.layout(portrait);
     for (const ch of chapters) ch.layout(portrait ? 3.5 : 4.4, portrait ? 0 : ch.side);
   };
   layout();
@@ -187,16 +212,15 @@ export function createStage(o: StageOptions): () => void {
 
     const rect = o.section.getBoundingClientRect();
     const vh = window.innerHeight;
+    const stops = chapters.length;
     const p = clamp(-rect.top / Math.max(1, rect.height - vh));
-    smoothT += (p * (STOPS - 1) - smoothT) * (1 - Math.exp(-dt * 5));
+    smoothT += (p * (stops - 1) - smoothT) * (1 - Math.exp(-dt * 5));
     ptr.x += (ptr.tx - ptr.x) * (1 - Math.exp(-dt * 4));
     ptr.y += (ptr.ty - ptr.y) * (1 - Math.exp(-dt * 4));
 
-    const camZ = cameraZ(smoothT);
+    const camZ = cameraZ(smoothT, stops);
     camera.position.set(ptr.x * 0.55, -ptr.y * 0.3, camZ);
     camera.lookAt(ptr.x * 0.15, -ptr.y * 0.08, camZ - 10);
-
-    portal.update(time, clamp((camZ - 1.5) / 5), ptr.x, ptr.y);
 
     for (let i = 0; i < chapters.length; i++) {
       const ch = chapters[i];
@@ -221,7 +245,7 @@ export function createStage(o: StageOptions): () => void {
     o.stage.style.setProperty("--t", smoothT.toFixed(3));
     if (rounded !== lastActive) {
       lastActive = rounded;
-      o.onActive(Math.min(rounded, o.count));
+      o.onActive(Math.min(rounded, stops - 1));
     }
   };
 

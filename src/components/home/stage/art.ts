@@ -374,3 +374,92 @@ export function drawSouvenir(g: CanvasRenderingContext2D, W = 900, H = 560) {
     x += w + 3 + Math.floor(rnd() * 4);
   }
 }
+
+/**
+ * Backdrop for the journey: deep violet night with a blue glow low on the
+ * left and a magenta one high on the right, the palette of the hero photo.
+ * Used as scene.background, so it stays fixed while the camera flies.
+ */
+export function nightSky() {
+  const [c, g] = canvas(512, 512);
+  const base = g.createLinearGradient(0, 0, 0, 512);
+  base.addColorStop(0, "#0b0722");
+  base.addColorStop(0.55, "#060312");
+  base.addColorStop(1, "#0a0620");
+  g.fillStyle = base;
+  g.fillRect(0, 0, 512, 512);
+  const glow = (x: number, y: number, r: number, color: string) => {
+    const rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, color);
+    rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg;
+    g.fillRect(0, 0, 512, 512);
+  };
+  glow(90, 380, 260, "rgba(37,99,235,0.28)");
+  glow(430, 110, 240, "rgba(192,38,211,0.22)");
+  glow(256, 470, 220, "rgba(124,58,237,0.22)");
+  return c;
+}
+
+/**
+ * One LED wall panel like those lining the hall in the hero photo: a
+ * blue → violet → magenta field with ridge lines and a bright horizon arc.
+ */
+export function ledWall() {
+  const [c, g] = canvas(256, 512);
+  const bg = g.createLinearGradient(0, 0, 0, 512);
+  bg.addColorStop(0, "#1e1b6b");
+  bg.addColorStop(0.45, "#4c1d95");
+  bg.addColorStop(0.75, "#7e22ce");
+  bg.addColorStop(1, "#1d4ed8");
+  g.fillStyle = bg;
+  g.fillRect(0, 0, 256, 512);
+  // mountain ridges
+  for (let k = 0; k < 4; k++) {
+    g.beginPath();
+    const base = 250 + k * 46;
+    g.moveTo(0, base);
+    for (let x = 0; x <= 256; x += 8) {
+      const y = base - 60 * Math.abs(Math.sin(x * 0.021 + k * 1.7)) * (1 - k * 0.15) - 18 * Math.sin(x * 0.09 + k);
+      g.lineTo(x, y);
+    }
+    g.lineTo(256, 512);
+    g.lineTo(0, 512);
+    g.closePath();
+    g.fillStyle = `rgba(${20 + k * 10},${10 + k * 6},${60 + k * 20},${0.35 + k * 0.1})`;
+    g.fill();
+    g.strokeStyle = `rgba(232,121,249,${0.55 - k * 0.1})`;
+    g.lineWidth = 1.5;
+    g.stroke();
+  }
+  // horizon arc
+  g.strokeStyle = "rgba(103,232,249,0.85)";
+  g.lineWidth = 3;
+  g.beginPath();
+  g.ellipse(200, 520, 260, 150, 0, Math.PI * 1.05, Math.PI * 1.6);
+  g.stroke();
+  // LED tile seams
+  g.strokeStyle = "rgba(0,0,0,0.25)";
+  g.lineWidth = 1;
+  for (let y = 0; y < 512; y += 32) {
+    g.beginPath();
+    g.moveTo(0, y);
+    g.lineTo(256, y);
+    g.stroke();
+  }
+  for (let x = 0; x < 256; x += 32) {
+    g.beginPath();
+    g.moveTo(x, 0);
+    g.lineTo(x, 512);
+    g.stroke();
+  }
+  // soft edge so panels don't end in a hard line
+  const fade = g.createLinearGradient(0, 0, 0, 512);
+  fade.addColorStop(0, "rgba(4,2,8,0.85)");
+  fade.addColorStop(0.15, "rgba(4,2,8,0)");
+  fade.addColorStop(0.9, "rgba(4,2,8,0)");
+  fade.addColorStop(1, "rgba(4,2,8,0.7)");
+  g.fillStyle = fade;
+  g.fillRect(0, 0, 256, 512);
+  return c;
+}
