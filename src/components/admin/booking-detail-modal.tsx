@@ -184,8 +184,22 @@ export function BookingDetailModal({
                     </div>
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted">Kursi</dt>
-                      <dd className="font-semibold text-ink">{booking.seats}</dd>
+                      <dd className="text-right font-semibold text-ink">
+                        {booking.seatLabels?.length ? `No. ${booking.seatLabels.join(", ")} (${booking.seats})` : booking.seats}
+                      </dd>
                     </div>
+                    {booking.uniqueCode ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted">Kode unik</dt>
+                        <dd className="font-semibold text-ink">− {formatRupiah(booking.uniqueCode)}</dd>
+                      </div>
+                    ) : null}
+                    {booking.note ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted">Catatan</dt>
+                        <dd className="max-w-[16rem] text-right text-ink">{booking.note}</dd>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between gap-3 border-t border-line pt-1.5">
                       <dt className="text-muted">Total</dt>
                       <dd className="font-extrabold text-ink">{formatRupiah(booking.amount)}</dd>

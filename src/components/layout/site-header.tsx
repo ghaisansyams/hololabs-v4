@@ -88,7 +88,7 @@ export function SiteHeader() {
             </ul>
           </nav>
 
-          <Link href="/pesan" className={buttonStyles({ size: "sm" })}>
+          <Link href="/booking" className={buttonStyles({ size: "sm" })}>
             <Ticket className="size-4" aria-hidden />
             {reservationLabel}
           </Link>

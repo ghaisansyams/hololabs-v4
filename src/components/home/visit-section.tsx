@@ -35,7 +35,7 @@ export async function VisitSection() {
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
             </Reveal>
             <Reveal delay={200}>
-              <Link href="/pesan" className={buttonStyles({ size: "lg", className: "mt-8" })}>
+              <Link href="/booking" className={buttonStyles({ size: "lg", className: "mt-8" })}>
                 {visit.cta}
               </Link>
             </Reveal>
@@ -122,7 +122,7 @@ export async function VisitSection() {
                   </li>
                 ))}
               </ul>
-              <Link href="/pesan" className={buttonStyles({ variant: "secondary", className: "mt-8 self-start" })}>
+              <Link href="/booking" className={buttonStyles({ variant: "secondary", className: "mt-8 self-start" })}>
                 {visit.personalCta}
               </Link>
             </div>

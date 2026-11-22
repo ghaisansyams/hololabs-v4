@@ -5,7 +5,7 @@ import { createContext, useContext, type ReactNode } from "react";
 /**
  * Site-wide settings from the CMS that client components need — the logo and
  * the header/menu. Read once in the root layout (server) and handed down
- * here, so the header, logo and booking wizard don't each need a data prop.
+ * here, so the header, logo and booking pages don't each need a data prop.
  */
 export interface Chrome {
   logoLockup: string;

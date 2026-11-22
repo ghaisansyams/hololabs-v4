@@ -60,4 +60,11 @@ export interface BookingView {
   paymentId: string | null;
   paymentStatusLive: PaymentStatus | null;
   paymentExpiresAt: string | null;
+  /** Seat numbers picked on the map ("1"…"18"); empty for older count-only bookings. */
+  seatLabels: string[];
+  note: string;
+  /** Rupiah taken off the transfer so the team can match it (0 for older bookings). */
+  uniqueCode: number;
+  customerEmail: string;
+  createdAt: string;
 }

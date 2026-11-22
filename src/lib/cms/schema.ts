@@ -186,6 +186,26 @@ export const sections = [
     ],
   },
   {
+    key: "booking",
+    label: "Booking & pembayaran",
+    description:
+      "Halaman /booking (sama dengan hololabs.id/booking): rekening tujuan transfer dan syarat & ketentuan yang harus disetujui tamu sebelum membayar.",
+    fields: [
+      t("bank", "Nama bank", 30),
+      t("holder", "Atas nama rekening", 80),
+      t("accountNumber", "Nomor rekening", 40),
+      {
+        key: "terms",
+        label: "Syarat & ketentuan",
+        type: "list",
+        itemLabel: "Poin",
+        min: 1,
+        max: 20,
+        fields: [ta("text", "Isi poin", 400)],
+      },
+    ],
+  },
+  {
     key: "contact",
     label: "Kontak & footer",
     description: "Nomor WhatsApp (dipakai juga untuk tombol konfirmasi pembayaran), Instagram, alamat, dan deskripsi singkat di footer.",
@@ -261,6 +281,22 @@ export const defaults = {
     eyebrow: "FAQ",
     title: "Pertanyaan umum",
     items: faqItems.map(({ question, answer }) => ({ question, answer })),
+  },
+  booking: {
+    bank: "BCA",
+    holder: "Chandra Kirana",
+    accountNumber: "",
+    terms: [
+      "Tiket berlaku untuk tanggal dan jam show yang dipilih. Datang paling lambat 15 menit sebelum show untuk check-in.",
+      "Show berlangsung sekitar 90 menit. Keterlambatan tidak memperpanjang durasi show.",
+      "Anak usia 2 tahun ke atas dihitung sebagai 1 pengunjung dan memerlukan tiket.",
+      "Selesaikan transfer dalam 120 menit dengan nominal persis sesuai tagihan (termasuk kode unik). Lewat dari itu, pesanan batal otomatis dan kursi dilepas.",
+      "Pesanan berlaku setelah pembayaran diverifikasi tim HOLOLABS. E-ticket dikirim ke email setelah terverifikasi.",
+      "Reschedule bisa dilakukan 1 kali, paling lambat 24 jam sebelum show, lewat WhatsApp HOLOLABS.",
+      "Tiket yang sudah dibayar tidak dapat diuangkan kembali, tetapi bisa dipindah ke jadwal lain sesuai aturan reschedule.",
+      "Demi keamanan, beberapa area hanya boleh dimasuki dengan pendampingan kru. Ikuti arahan kru selama show.",
+      "Data kontakmu hanya dipakai untuk keperluan reservasi dan kunjungan ke HOLOLABS.",
+    ].map((text) => ({ text })),
   },
   contact: {
     whatsapp: String(siteConfig.whatsapp),

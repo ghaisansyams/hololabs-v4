@@ -361,6 +361,67 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Booking flow, styled like hololabs.id/booking                       */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-hl-ink: #050308;
+  --color-hl-fg: #f4f2fa;
+  --color-hl-panel: #0d0a15;
+  --color-hl-violet: #8b5cf6;
+  --color-hl-magenta: #e040fb;
+  --color-hl-cyan: #22d3ee;
+}
+
+@keyframes hl-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .hl-scope {
+    font-family: var(--font-hl-sans), system-ui, sans-serif;
+    color: var(--color-hl-fg);
+    background: var(--color-hl-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .hl-scope h1,
+  .hl-scope h2,
+  .hl-scope h3 {
+    letter-spacing: normal;
+  }
+  .hl-display {
+    font-family: var(--font-hl-display), var(--font-hl-sans), sans-serif;
+  }
+  .hl-label {
+    font-family: var(--font-hl-label), var(--font-hl-sans), sans-serif;
+  }
+  .hl-eyebrow {
+    font-family: var(--font-hl-label), var(--font-hl-sans), sans-serif;
+    letter-spacing: 0.32em;
+    color: #9fe9f5;
+    font-size: 12px;
+  }
+  .hl-grad {
+    background: linear-gradient(90deg, var(--color-hl-cyan), var(--color-hl-violet) 55%, var(--color-hl-magenta));
+  }
+  .hl-text-grad {
+    background: linear-gradient(90deg, var(--color-hl-cyan), var(--color-hl-violet) 55%, var(--color-hl-magenta));
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .hl-rise {
+    animation: hl-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Homepage backgrounds, echoing the hall in the hero photo            */
 /* ------------------------------------------------------------------ */
 @keyframes hero-zoom {

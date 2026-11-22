@@ -59,7 +59,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Kursi</p>
               <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink">
                 <Users className="size-3.5 text-accent" aria-hidden />
-                {booking.seats} orang
+                {booking.seatLabels.length ? `No. ${booking.seatLabels.join(", ")}` : `${booking.seats} orang`}
               </p>
             </div>
           </div>

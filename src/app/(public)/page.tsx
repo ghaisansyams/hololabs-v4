@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * chapters of the show),
  * then what Hololabs is, how to reserve, and FAQ. The founder/team block
  * (PeopleSection, still editable in the CMS) is left off until real bios exist.
- * Reservation itself still lives at /pesan.
+ * Reservation itself lives at /booking (same flow as hololabs.id/booking).
  */
 export default async function HomePage() {
   const { brand, experience } = await getSiteContent();

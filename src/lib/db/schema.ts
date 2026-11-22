@@ -62,6 +62,7 @@ export const sessions = pgTable(
     endTime: time("end_time").notNull(),
     capacity: integer("capacity").notNull().default(13),
     seatsTaken: integer("seats_taken").notNull().default(0),
+    price: numeric("price").notNull().default("100000"),
   },
   (t) => [unique().on(t.sessionDate, t.slotIndex), index("sessions_date_idx").on(t.sessionDate, t.slotIndex)],
 );
@@ -84,6 +85,8 @@ export const bookings = pgTable(
     checkedInAt: timestamp("checked_in_at", { withTimezone: true, mode: "string" }),
     autoRouted: boolean("auto_routed").notNull().default(false),
     requestedSessionId: uuid("requested_session_id").references(() => sessions.id),
+    seatLabels: text("seat_labels").array().notNull().default([]),
+    note: text("note").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("bookings_customer_idx").on(t.customerId), index("bookings_session_idx").on(t.sessionId)],
@@ -104,6 +107,7 @@ export const payments = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
     proofSubmittedAt: timestamp("proof_submitted_at", { withTimezone: true, mode: "string" }),
     proofDataUrl: text("proof_data_url"),
+    uniqueCode: integer("unique_code").notNull().default(0),
   },
   (t) => [index("payments_booking_idx").on(t.bookingId)],
 );

@@ -14,7 +14,7 @@ const TIME = /^\d{2}:\d{2}$/;
 function done(message: string, tone: "ok" | "error" = "ok"): never {
   revalidatePath("/admin/sessions");
   revalidatePath("/admin");
-  revalidatePath("/pesan");
+  revalidatePath("/booking");
   revalidatePath("/", "layout");
   redirect(`/admin/sessions?${tone}=${encodeURIComponent(message)}`);
 }

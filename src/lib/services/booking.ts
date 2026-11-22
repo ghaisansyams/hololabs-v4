@@ -36,6 +36,11 @@ function mapBookingView(row: any): BookingView {
     paymentId: row.payment_id,
     paymentStatusLive: row.payment_status_live,
     paymentExpiresAt: row.payment_expires_at,
+    seatLabels: Array.isArray(row.seat_labels) ? row.seat_labels : [],
+    note: row.note ?? "",
+    uniqueCode: Number(row.unique_code ?? 0),
+    customerEmail: row.customer_email ?? "",
+    createdAt: row.created_at,
   };
 }
 
@@ -91,6 +96,7 @@ export async function createBooking(request: CreateBookingRequest): Promise<Crea
 
 export async function getBookingByToken(token: string): Promise<BookingView | null> {
   try {
+    await rows(sql`select expire_unpaid_bookings()`);
     const [row] = await rows(sql`select * from get_booking_by_token(${token}::uuid)`);
     if (!row) return null;
     return mapBookingView(row);

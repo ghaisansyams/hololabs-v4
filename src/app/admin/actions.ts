@@ -116,7 +116,7 @@ export async function updatePackage(formData: FormData): Promise<void> {
     .set({ name, description, price: String(price), active, includes })
     .where(eq(schema.packages.id, id));
   revalidatePath("/admin/packages");
-  revalidatePath("/pesan");
+  revalidatePath("/booking");
   revalidatePath("/");
 }
 
@@ -145,7 +145,7 @@ export async function deletePackage(formData: FormData): Promise<void> {
     redirect("/admin/packages?notice=used");
   }
   revalidatePath("/admin/packages");
-  revalidatePath("/pesan");
+  revalidatePath("/booking");
   revalidatePath("/");
   redirect("/admin/packages?notice=deleted");
 }
@@ -186,6 +186,6 @@ export async function createPackage(formData: FormData): Promise<void> {
     active: true,
   });
   revalidatePath("/admin/packages");
-  revalidatePath("/pesan");
+  revalidatePath("/booking");
   revalidatePath("/");
 }

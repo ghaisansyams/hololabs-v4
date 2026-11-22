@@ -497,3 +497,196 @@ begin
   where s.id = o.id;
 end;
 $$;
+
+-- ==================================================================
+-- Seat-map booking, cloned from hololabs.id/booking (23 Nov 2026)
+-- ==================================================================
+-- The public flow now matches hololabs.id/booking: pick a date and show,
+-- tap specific seats on an 18-seat map (max 6 per order), give contact
+-- details, accept the terms, then pay by bank transfer within 120 minutes.
+-- The transfer amount has a unique code (Rp1–999) taken off so the team can
+-- recognise it in the mutation list. Unpaid orders expire on their own and
+-- give their seats back. No auto-routing here: a guest gets exactly the
+-- seats they tapped, or an error naming the ones someone else just took.
+
+alter table sessions add column if not exists price numeric not null default 100000;
+alter table bookings add column if not exists seat_labels text[] not null default '{}';
+alter table bookings add column if not exists note text not null default '';
+alter table payments add column if not exists unique_code int not null default 0;
+
+-- One ticket type for the whole journey (the F&B packages stay for old orders).
+insert into packages (id, name, description, includes, price, sort_order, active)
+values ('journey', 'HOLOLABS Experience Journey', 'Satu tiket = satu kursi untuk seluruh journey 90 menit.', '{}', 100000, 0, true)
+on conflict (id) do nothing;
+
+-- Shows hold 18 seats now (client, Nov 2026); lift upcoming shows still on 13.
+update sessions set capacity = 18 where capacity = 13 and session_date >= current_date;
+
+-- price is appended, so CREATE OR REPLACE keeps the view's existing columns.
+create or replace view session_availability as
+select
+  s.id, s.session_date::text as session_date, s.slot_index,
+  s.start_time::text as start_time, s.end_time::text as end_time, s.capacity,
+  s.seats_taken, s.capacity - s.seats_taken as seats_left, s.price
+from sessions s;
+
+-- Rolling schedule: keeps shows on sale p_days ahead (2 shows a night,
+-- 18.00 and 19.30, 18 seats). It only appends days after the last scheduled
+-- one, so a day the team deleted in /admin/sessions stays deleted.
+create or replace function ensure_schedule(p_days int default 30)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_last date;
+begin
+  select max(session_date) into v_last from sessions;
+  insert into sessions (session_date, slot_index, start_time, end_time, capacity)
+  select d::date, t.slot, t.start_time, t.end_time, 18
+  from generate_series(greatest(coalesce(v_last + 1, current_date), current_date),
+                       current_date + p_days - 1, interval '1 day') as d
+  cross join (values (0, '18:00'::time, '19:30'::time), (1, '19:30'::time, '21:00'::time))
+    as t(slot, start_time, end_time)
+  on conflict (session_date, slot_index) do nothing;
+end;
+$$;
+
+-- Orders nobody paid for within the window give their seats back. Called at
+-- the start of every availability read and booking, so no cron is needed.
+-- "Saya sudah transfer" (SUBMITTED) orders never expire: a human checks them.
+create or replace function expire_unpaid_bookings()
+returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  r record;
+  v_count int := 0;
+begin
+  for r in
+    select b.id, b.session_id, b.seats
+    from bookings b join payments p on p.booking_id = b.id
+    where b.status = 'PENDING' and b.payment_status = 'PENDING'
+      and p.status = 'PENDING' and p.expires_at < now()
+    for update of b skip locked
+  loop
+    update sessions set seats_taken = greatest(0, seats_taken - r.seats) where id = r.session_id;
+    update bookings set status = 'CANCELLED', payment_status = 'EXPIRED' where id = r.id;
+    update payments set status = 'EXPIRED' where booking_id = r.id;
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+
+create or replace function session_taken_seats(p_session_id uuid)
+returns text[]
+language sql stable security definer set search_path = public as $$
+  select coalesce(array_agg(distinct label), '{}')
+  from bookings b, unnest(b.seat_labels) as label
+  where b.session_id = p_session_id and b.status <> 'CANCELLED';
+$$;
+
+-- Books exactly the tapped seats. The session row is locked first, so two
+-- guests tapping the same seat at the same moment are serialised: the second
+-- gets SEATS_TAKEN:<labels> and the page refreshes its map.
+create or replace function create_seat_booking(
+  p_customer_id uuid, p_session_id uuid, p_package_id text,
+  p_seat_labels text[], p_amount numeric, p_note text default ''
+) returns bookings
+language plpgsql security definer set search_path = public as $$
+declare
+  v_session sessions;
+  v_clash text[];
+  v_n int := coalesce(array_length(p_seat_labels, 1), 0);
+  v_booking bookings;
+begin
+  if v_n = 0 then
+    raise exception 'NO_SEATS' using errcode = 'P0010';
+  end if;
+  select * into v_session from sessions where id = p_session_id for update;
+  if v_session.id is null then
+    raise exception 'SESSION_NOT_FOUND' using errcode = 'P0002';
+  end if;
+  if (v_session.session_date + v_session.start_time) <= (now() at time zone 'Asia/Jakarta') then
+    raise exception 'SESSION_CLOSED' using errcode = 'P0011';
+  end if;
+  select coalesce(array_agg(x), '{}') into v_clash
+    from unnest(p_seat_labels) as x where x = any(session_taken_seats(p_session_id));
+  if coalesce(array_length(v_clash, 1), 0) > 0 then
+    raise exception 'SEATS_TAKEN:%', array_to_string(v_clash, ',') using errcode = 'P0012';
+  end if;
+  if v_session.capacity - v_session.seats_taken < v_n then
+    raise exception 'NO_AVAILABILITY' using errcode = 'P0005';
+  end if;
+
+  update sessions set seats_taken = seats_taken + v_n where id = p_session_id;
+  insert into bookings (
+    customer_id, session_id, package_id, seats, amount, requested_session_id, auto_routed, seat_labels, note
+  ) values (
+    p_customer_id, p_session_id, p_package_id, v_n, p_amount, p_session_id, false, p_seat_labels, coalesce(p_note, '')
+  ) returning * into v_booking;
+  return v_booking;
+end;
+$$;
+
+create or replace function create_payment_with_code(
+  p_booking_id uuid, p_amount numeric, p_unique_code int, p_expires_at timestamptz
+) returns payments
+language plpgsql security definer set search_path = public as $$
+declare
+  v_payment payments;
+begin
+  insert into payments (booking_id, amount, unique_code, expires_at)
+  values (p_booking_id, p_amount, p_unique_code, p_expires_at)
+  returning * into v_payment;
+  return v_payment;
+end;
+$$;
+
+-- Payment/e-ticket lookup, now with the seats, note and unique code.
+drop function if exists get_booking_by_token(uuid);
+create or replace function get_booking_by_token(p_token uuid)
+returns table (
+  booking_id uuid, booking_number text, status text, payment_status text,
+  checkin_status text, seats int, amount numeric, auto_routed boolean,
+  session_date text, start_time text, end_time text,
+  package_id text, package_name text,
+  customer_full_name text, customer_whatsapp text,
+  payment_id uuid, payment_status_live text, payment_expires_at timestamptz,
+  seat_labels text[], note text, unique_code int, customer_email text, created_at timestamptz
+)
+language sql security definer set search_path = public as $$
+  select b.id, b.booking_number, b.status, b.payment_status, b.checkin_status,
+         b.seats, b.amount, b.auto_routed,
+         s.session_date::text, s.start_time::text, s.end_time::text,
+         pk.id, pk.name,
+         c.full_name, c.whatsapp,
+         p.id, p.status, p.expires_at,
+         b.seat_labels, b.note, coalesce(p.unique_code, 0), c.email, b.created_at
+  from bookings b
+  join sessions s on s.id = b.session_id
+  join packages pk on pk.id = b.package_id
+  join customers c on c.id = b.customer_id
+  left join payments p on p.booking_id = b.id
+  where b.access_token = p_token;
+$$;
+
+-- A guest whose order expired can't confirm a transfer for it any more.
+create or replace function submit_payment_proof(p_token uuid, p_proof_data_url text default null)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking_id uuid;
+begin
+  perform expire_unpaid_bookings();
+  select id into v_booking_id from bookings
+    where access_token = p_token and payment_status = 'PENDING' and status <> 'CANCELLED';
+  if v_booking_id is null then
+    raise exception 'NOT_ELIGIBLE' using errcode = 'P0009';
+  end if;
+  update payments set status = 'SUBMITTED', proof_submitted_at = now(),
+      proof_data_url = coalesce(p_proof_data_url, proof_data_url)
+    where booking_id = v_booking_id;
+  update bookings set payment_status = 'SUBMITTED' where id = v_booking_id;
+end;
+$$;
+
+select ensure_schedule(30);

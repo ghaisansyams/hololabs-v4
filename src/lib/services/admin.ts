@@ -29,6 +29,9 @@ export interface AdminBookingRow {
   paymentMethod: string | null;
   proofDataUrl: string | null;
   proofSubmittedAt: string | null;
+  seatLabels: string[];
+  note: string;
+  uniqueCode: number | null;
 }
 
 export interface DashboardStats {
@@ -94,6 +97,9 @@ const bookingColumns = {
   paymentMethod: p.method,
   proofDataUrl: p.proofDataUrl,
   proofSubmittedAt: p.proofSubmittedAt,
+  seatLabels: b.seatLabels,
+  note: b.note,
+  uniqueCode: p.uniqueCode,
 };
 
 function bookingQuery() {

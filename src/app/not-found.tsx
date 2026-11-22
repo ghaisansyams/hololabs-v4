@@ -32,7 +32,7 @@ export default async function NotFound() {
             Kembali ke Beranda
           </Link>
           <Link
-            href="/pesan"
+            href="/booking"
             className={buttonStyles({ variant: "secondary", size: "lg", className: "w-full sm:w-auto" })}
           >
             <Ticket className="size-4" aria-hidden />
