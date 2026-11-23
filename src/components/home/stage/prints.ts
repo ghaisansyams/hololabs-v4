@@ -96,7 +96,7 @@ void main() {
 }`;
 
 /** Neutral studio matcap (soft key light top-left) so the tints keep their hue. */
-function neutralMatcap(ctx: Ctx) {
+export function neutralMatcap(ctx: Pick<Ctx, "track">) {
   const c = document.createElement("canvas");
   c.width = c.height = 256;
   const g = c.getContext("2d")!;

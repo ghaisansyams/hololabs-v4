@@ -2,13 +2,13 @@ import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
-import { TiltCard } from "@/components/ui/tilt-card";
+import { SeatScene } from "@/components/home/seat-scene";
 import { buttonStyles } from "@/components/ui/button";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 /**
- * Reservation block: a tilting sample e-ticket beside the pitch and the
+ * Reservation block: a scroll-driven 3D show room (18 seats) beside the pitch and the
  * show facts (when, where), then the two ways to come: booking online for
  * up to six people, or a private show for schools, companies and brands.
  */
@@ -73,40 +73,7 @@ export async function VisitSection() {
           </div>
 
           <Reveal variant="zoom" delay={120}>
-            <div className="mx-auto w-full max-w-sm">
-              <TiltCard max={9}>
-                <div className="relative overflow-hidden rounded-xl border border-accent/40 bg-gradient-to-br from-[#150d28] to-[#2a1450] p-7 shadow-lift">
-                  <div aria-hidden className="absolute -right-10 -top-10 size-40 rounded-full bg-brand/30 blur-3xl" />
-                  <div className="relative flex items-center justify-between">
-                    <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">E-ticket</p>
-                    <p className="rounded-pill bg-success-soft px-3 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-success">
-                      {visit.ticketBadge}
-                    </p>
-                  </div>
-                  <p className="relative mt-6 font-display text-3xl font-bold text-ink">HOLOLABS</p>
-                  <p className="relative mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted">Kode booking</p>
-                  <p className="relative text-xl font-bold tabular-nums text-ink">{visit.ticketCode}</p>
-                  <div className="relative mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
-                    {[
-                      ["Tanggal", visit.ticketDate],
-                      ["Show", visit.ticketShow],
-                      ["Tamu", visit.ticketGuests],
-                    ].map(([k, v]) => (
-                      <div key={k}>
-                        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted">{k}</p>
-                        <p className="mt-1 text-lg font-bold text-ink">{v}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div aria-hidden className="relative mt-6 flex h-10 items-stretch gap-[3px] opacity-70">
-                    {Array.from({ length: 38 }, (_, i) => (
-                      <span key={i} className="flex-1 rounded-[1px] bg-ink" style={{ opacity: [1, 0.35, 0.8, 0.5][i % 4], flexGrow: (i * 7) % 3 === 0 ? 2 : 1 }} />
-                    ))}
-                  </div>
-                </div>
-              </TiltCard>
-              <p className="mt-4 text-center text-xs font-medium text-muted">{visit.ticketNote}</p>
-            </div>
+            <SeatScene note={visit.ticketNote} />
           </Reveal>
         </div>
 
