@@ -6,8 +6,7 @@ import { getSiteContent } from "@/lib/cms";
 
 /**
  * First screen: the headline centred over a dark field of curved light lines
- * with chips naming parts of the show riding on them (after the pattern on
- * polygon.technology). Its bottom edge fades into the colour of the 3D
+ * rising from a glowing portal (after the pattern on polygon.technology). Its bottom edge fades into the colour of the 3D
  * journey that follows.
  */
 export async function HeroSection() {
