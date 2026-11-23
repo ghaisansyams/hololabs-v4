@@ -170,9 +170,8 @@ export const sections = [
   {
     key: "faq",
     label: "FAQ",
-    description: "Pertanyaan yang sering diajukan. Jawaban pertama tampil terbuka.",
+    description: "Pertanyaan yang sering diajukan. Judul di kiri, daftar pertanyaan di kanan; jawaban terbuka saat pertanyaan diklik.",
     fields: [
-      t("eyebrow", "Label section"),
       t("title", "Judul section"),
       {
         key: "items",
@@ -278,7 +277,6 @@ export const defaults = {
     cardCta: "Buka di Google Maps",
   },
   faq: {
-    eyebrow: "FAQ",
     title: "Pertanyaan umum",
     items: faqItems.map(({ question, answer }) => ({ question, answer })),
   },
