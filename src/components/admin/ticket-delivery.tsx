@@ -75,7 +75,8 @@ export function TicketDelivery({ booking, templates }: { booking: AdminBookingRo
   const subject = fillETicketTemplate(templates.emailSubject, booking, link);
   const body = fillETicketTemplate(templates.emailBody, booking, link);
   const waHref = `https://wa.me/${toWhatsappE164(booking.whatsapp)}?text=${encodeURIComponent(waText)}`;
-  const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(booking.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const sender = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((templates.gmailSender ?? "").trim()) ? (templates.gmailSender ?? "").trim() : "";
+  const gmailHref = `https://mail.google.com/mail/?${sender ? `authuser=${encodeURIComponent(sender)}&` : ""}view=cm&fs=1&to=${encodeURIComponent(booking.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
   function record(channel: "wa" | "email") {
     setSent((s) => ({ ...s, [channel]: new Date().toISOString() }));
@@ -134,6 +135,11 @@ export function TicketDelivery({ booking, templates }: { booking: AdminBookingRo
         {channelButton("wa")}
         {channelButton("email")}
       </div>
+      {sender ? (
+        <p className="mt-2 text-xs text-muted">
+          Email dikirim dari <span className="font-semibold text-ink-soft">{sender}</span>. Admin harus sudah login ke akun Google itu di browser ini.
+        </p>
+      ) : null}
       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <div>
           <dt className="text-muted">WhatsApp {booking.whatsapp}</dt>

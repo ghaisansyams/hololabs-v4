@@ -249,6 +249,7 @@ export const sections = [
       "Teks yang terisi otomatis saat admin menekan Kirim e-ticket di halaman Booking. Pesan dikirim lewat WhatsApp dan Gmail milik admin, bukan lewat sistem otomatis. Kata dalam kurung kurawal diganti otomatis: {nama}, {booking}, {link}, {jadwal}, {kursi}, {jumlah}.",
     fields: [
       { key: "waMessage", label: "Pesan WhatsApp", type: "textarea", max: 900, hint: "Tanda *teks* membuat huruf tebal di WhatsApp. Pastikan {link} ada, karena itu tautan e-ticket." },
+      { key: "gmailSender", label: "Akun Gmail pengirim (opsional)", type: "text", max: 80, hint: "Alamat Gmail yang dipakai mengirim, mis. halo@gmail.com. Layar tulis Gmail dibuka dari akun ini kalau browser admin sudah login ke beberapa akun Google. Kosongkan untuk memakai akun yang sedang aktif." },
       t("emailSubject", "Email: subjek", 120),
       { key: "emailBody", label: "Email: isi", type: "textarea", max: 1200, hint: "Pastikan {link} ada." },
     ],
@@ -410,6 +411,7 @@ export const defaults = {
       "Tunjukkan QR di e-ticket saat check-in, dan datang 10 menit sebelum show dimulai.",
       "Sampai ketemu di HOLOLABS!",
     ].join("\n"),
+    gmailSender: "",
     emailSubject: "E-Ticket HOLOLABS · {booking}",
     emailBody: [
       "Halo {nama},",

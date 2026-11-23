@@ -5,6 +5,8 @@ import { formatTimeRange } from "@/lib/utils/format";
 /** Message templates for sending an e-ticket; edited in Admin -> Konten Website -> Pesan e-ticket. */
 export interface ETicketTemplates {
   waMessage: string;
+  /** Gmail account the compose window opens from; empty = whichever account is active. */
+  gmailSender?: string;
   emailSubject: string;
   emailBody: string;
 }
