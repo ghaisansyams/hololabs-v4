@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { canvas, drawCheckBadge, drawHolomedis, drawHomeTile, drawSouvenir, drawTicket, ecg, type HomeTile } from "./art";
+import { canvas, drawCheckBadge, drawHolomedis, drawHomeTile, drawTicket, ecg, type HomeTile } from "./art";
+import { buildPrints } from "./prints";
 
 /**
  * The seven chapters of the show, each with its own 3D treatment:
@@ -8,8 +9,8 @@ import { canvas, drawCheckBadge, drawHolomedis, drawHomeTile, drawSouvenir, draw
  *   3 DJ           a beat-driven equaliser, shockwave rings, stage beams
  *   4 Holomedis    a holographic assistant screen with a floating ECG
  *   5 Smart Living a voice command switching on 3D control tiles
- *   6 3D printing  the photo prints layer by layer beside a growing vase
- *   7 Keepsake     the finished vase on a turntable with rising sparks
+ *   6 3D printing  the photo prints layer by layer beside objects rising from the plate
+ *   7 Keepsake     a showcase of printed objects in a hologram column with sparks
  * The engine places each group in the tunnel; a chapter only animates its
  * own contents from `act` (0 far, 1 in focus) and `vis` (fade in/out).
  */
@@ -777,13 +778,8 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   };
 }
 
-/** Profile shared by the vase being printed (ch.6) and the finished one (ch.7). */
-function vaseRadius(f: number) {
-  return 0.22 + 0.11 * Math.sin(f * Math.PI * 1.3 + 0.4) + 0.05 * Math.cos(f * Math.PI * 4);
-}
-
 /* ------------------------------------------------------------------ */
-/* 6. 3D printing: photo prints layer by layer, vase grows beside it   */
+/* 6. 3D printing: photo prints layer by layer, objects rise beside it  */
 /* ------------------------------------------------------------------ */
 function printChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
@@ -819,23 +815,25 @@ function printChapter(ctx: Ctx): Chapter {
   const brackets = new THREE.LineSegments(bracketGeometry(ctx), fader.add(ctx.track(new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 1 }))));
   group.add(glow, photo, brackets);
 
-  const LAYERS = 40;
-  const sliceMat = fader.add(ctx.track(new THREE.MeshMatcapMaterial({ matcap: ctx.matcap, transparent: true, opacity: 1 })));
-  const slices = new THREE.InstancedMesh(ctx.track(new THREE.CylinderGeometry(1, 1, 1, 40)), sliceMat, LAYERS);
-  const vase = new THREE.Group();
-  vase.add(slices);
-  const ringMat = fader.add(additive(ctx, 0x67e8f9, 1, THREE.DoubleSide));
-  const ring = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(1, 0.03, 8, 64)), ringMat);
-  ring.rotation.x = Math.PI / 2;
-  const nozzle = new THREE.Mesh(ctx.track(new THREE.ConeGeometry(0.06, 0.16, 16)), fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0xe2e8f0, transparent: true }))));
+  // three objects rise layer by layer: everything above the cut is hidden
+  const cut = { value: 99 };
+  const prints = buildPrints(ctx, fader, ["latticeVase", "rocket", "twistVase"], cut);
+  prints.meshes.latticeVase.position.x = -0.64;
+  prints.meshes.twistVase.position.x = 0.64;
+  const printer = new THREE.Group();
+  printer.add(...Object.values(prints.meshes));
+  const layerMat = fader.add(additive(ctx, 0x67e8f9, 0.45, THREE.DoubleSide));
+  const layer = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(2.3, 0.75)), layerMat);
+  layer.rotation.x = -Math.PI / 2;
+  const nozzle = new THREE.Mesh(ctx.track(new THREE.ConeGeometry(0.07, 0.18, 16)), fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0xe2e8f0, transparent: true }))));
   nozzle.rotation.x = Math.PI;
-  const plate = new THREE.Mesh(ctx.track(new THREE.BoxGeometry(1.1, 0.04, 1.1)), fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0x1e1b4b, transparent: true }))));
-  plate.position.y = -0.02;
-  vase.add(ring, nozzle, plate);
-  group.add(vase);
+  const plate = new THREE.Mesh(ctx.track(new THREE.BoxGeometry(2.5, 0.04, 0.95)), fader.add(ctx.track(new THREE.MeshBasicMaterial({ color: 0x1e1b4b, transparent: true }))));
+  plate.position.y = -0.08;
+  printer.add(layer, nozzle, plate);
+  group.add(printer);
 
-  const m = new THREE.Matrix4();
-  const layerH = 1.3 / LAYERS;
+  const BOTTOM = 0;
+  const TOP = 0.84;
   let w = 4.4;
   let h = w / aspect;
   return {
@@ -847,8 +845,8 @@ function printChapter(ctx: Ctx): Chapter {
       glow.scale.set(w * 1.6, h * 1.9, 1);
       brackets.scale.set(w * 1.04, h * 1.04, 1);
       const inner = side === 0 ? 1 : -side;
-      vase.scale.setScalar(w * 0.17);
-      vase.position.set(inner * w * 0.42, -h * 0.5 - 0.05, 0.8);
+      printer.scale.setScalar(w * 0.13);
+      printer.position.set(inner * w * 0.38, -h * 0.5 + 0.02, 0.8);
     },
     update({ act, vis, time }) {
       fader.apply(vis);
@@ -857,126 +855,145 @@ function printChapter(ctx: Ctx): Chapter {
       const p = act > 0.3 ? clamp(cyc / 5) : 1;
       printMat.uniforms.uProgress.value = p * 1.02;
       printMat.uniforms.uFade.value = vis * (0.35 + 0.65 * act);
-      const built = p * LAYERS;
-      for (let i = 0; i < LAYERS; i++) {
-        const r = vaseRadius(i / (LAYERS - 1));
-        const s = clamp(built - i);
-        m.makeScale(r * s, layerH * 0.82 * s, r * s);
-        m.setPosition(0, (i + 0.5) * layerH, 0);
-        slices.setMatrixAt(i, m);
-      }
-      slices.instanceMatrix.needsUpdate = true;
-      const top = Math.min(LAYERS - 1, Math.floor(built));
-      const ry = (top + 0.5) * layerH;
-      const rr = vaseRadius(top / (LAYERS - 1));
-      ring.position.y = ry;
-      ring.scale.set(rr * 1.08, rr * 1.08, 1);
-      ring.visible = p < 1;
-      nozzle.position.set(Math.cos(time * 9) * rr, ry + 0.12, Math.sin(time * 9) * rr);
-      nozzle.visible = p < 1;
-      vase.rotation.y = time * 0.3;
+      const printing = p < 1;
+      const y = BOTTOM + (TOP - BOTTOM) * p;
+      cut.value = printing ? y : 99;
+      prints.update(time);
+      layer.position.y = y;
+      layer.visible = printing;
+      nozzle.position.set(Math.sin(time * 3.1) * 0.8, y + 0.13, Math.sin(time * 7.3) * 0.16);
+      nozzle.visible = printing;
+      printer.rotation.y = -0.5 + Math.sin(time * 0.4) * 0.35;
     },
   };
 }
 
 /* ------------------------------------------------------------------ */
-/* 7. Keepsake: finished vase on a turntable, souvenir tag, sparks     */
+/* 7. Keepsake: printed objects on a turntable inside a hologram column */
 /* ------------------------------------------------------------------ */
 function keepsakeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
 
-  const profile: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
-  for (let i = 0; i <= 32; i++) {
-    const f = i / 32;
-    profile.push(new THREE.Vector2(vaseRadius(f), f * 1.3));
-  }
-  profile.push(new THREE.Vector2(vaseRadius(1) - 0.03, 1.3));
-  const vaseGeo = ctx.track(new THREE.LatheGeometry(profile, 72));
-  // a gentle twist so the matcap shows the print's spiral
-  const pos = vaseGeo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const y = pos.getY(i);
-    const a = y * 1.1;
-    const x = pos.getX(i);
-    const z = pos.getZ(i);
-    const k = 1 + 0.015 * Math.sin(Math.atan2(z, x) * 8 + y * 6);
-    pos.setXYZ(i, (x * Math.cos(a) - z * Math.sin(a)) * k, y, (x * Math.sin(a) + z * Math.cos(a)) * k);
-  }
-  vaseGeo.computeVertexNormals();
-  const vaseMat = fader.add(ctx.track(new THREE.MeshMatcapMaterial({ matcap: ctx.matcap, transparent: true, opacity: 1, side: THREE.DoubleSide })));
-  const vase = new THREE.Mesh(vaseGeo, vaseMat);
+  // a little gallery of typical prints; lattice pieces show their holes against the light
+  const prints = buildPrints(ctx, fader, ["torso", "latticeVase", "twistVase", "ball", "rocket", "knot", "star"]);
+  const P = prints.meshes;
+  P.torso.position.set(0.04, 0, -0.36);
+  P.latticeVase.position.set(-0.6, 0, -0.12);
+  P.twistVase.position.set(0.6, 0, -0.14);
+  P.ball.position.set(-0.3, 0, 0.42);
+  P.rocket.position.set(0.4, 0, 0.4);
+  P.rocket.scale.setScalar(0.85);
+  P.knot.position.set(0.6, 0.8, -0.14);
+  P.star.rotation.x = Math.PI / 2;
+  P.star.scale.setScalar(0.75);
+  P.star.position.set(-0.62, 1.12, -0.22);
+  const cluster = new THREE.Group();
+  cluster.add(...Object.values(P));
+  cluster.scale.setScalar(1.3);
 
   const pedestal = new THREE.Mesh(
-    ctx.track(new THREE.CylinderGeometry(0.55, 0.62, 0.22, 64)),
+    ctx.track(new THREE.CylinderGeometry(1.26, 1.36, 0.22, 96)),
     fader.add(ctx.track(new THREE.MeshMatcapMaterial({ matcap: ctx.matcap, color: 0x3b3355, transparent: true, opacity: 1 }))),
   );
   pedestal.position.y = -0.11;
-  const rim = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(0.56, 0.012, 8, 96)), fader.add(additive(ctx, 0x67e8f9, 1)));
+  const rim = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(1.27, 0.014, 8, 128)), fader.add(additive(ctx, 0x67e8f9, 1)));
   rim.rotation.x = Math.PI / 2;
-  const orbit = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(0.85, 0.008, 8, 128)), fader.add(additive(ctx, 0xe879f9, 0.8)));
+
+  // hologram column rising from the rim: fades upward, thin vertical streaks
+  const COL_H = 2.6;
+  const columnMat = ctx.track(
+    new THREE.ShaderMaterial({
+      uniforms: { uOpacity: { value: 1 }, uTime: { value: 0 } },
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: `uniform float uOpacity; uniform float uTime; varying vec2 vUv;
+        void main(){
+          float fade = pow(1.0 - vUv.y, 2.2);
+          float streak = 0.35 + 0.65 * smoothstep(0.82, 1.0, sin(vUv.x * 6.2832 * 36.0 + uTime * 0.6) * 0.5 + 0.5);
+          float flicker = 0.85 + 0.15 * sin(uTime * 9.0 + vUv.y * 40.0);
+          vec3 col = vec3(0.35, 0.85, 1.0) * fade * streak * flicker * 0.5;
+          gl_FragColor = vec4(col * uOpacity, 1.0);
+        }`,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  columnMat.opacity = 1;
+  fader.add(columnMat);
+  const column = new THREE.Mesh(ctx.track(new THREE.CylinderGeometry(1.27, 1.27, COL_H, 96, 1, true).translate(0, COL_H / 2, 0)), columnMat);
+  const scanMat = fader.add(additive(ctx, 0x67e8f9, 0.9));
+  const scan = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(1.27, 0.01, 6, 128)), scanMat);
+  scan.rotation.x = Math.PI / 2;
+  const scanDisc = new THREE.Mesh(ctx.track(new THREE.CircleGeometry(1.27, 96)), fader.add(additive(ctx, 0x67e8f9, 0.08, THREE.DoubleSide)));
+  scanDisc.rotation.x = -Math.PI / 2;
+
+  const ORBIT_R = 1.5;
+  const GY = 0.95;
+  const orbit = new THREE.Mesh(ctx.track(new THREE.TorusGeometry(ORBIT_R, 0.008, 8, 160)), fader.add(additive(ctx, 0xe879f9, 0.7)));
   const orbitNode = new THREE.Sprite(
     fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0xf5d0fe, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
   );
-  orbitNode.scale.set(0.22, 0.22, 1);
+  orbitNode.scale.set(0.26, 0.26, 1);
+  // backlight so the lattice openings read as holes
   const spot = new THREE.Sprite(
-    fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0x7c3aed, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
+    fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0x7c3aed, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
   );
-  spot.scale.set(3.2, 3.2, 1);
-  spot.position.set(0, 0.7, -0.5);
+  spot.scale.set(5, 5, 1);
+  spot.position.set(0, 1.1, -1.1);
 
   const stand = new THREE.Group();
-  stand.add(spot, pedestal, rim, vase, orbit, orbitNode);
+  stand.add(spot, pedestal, rim, column, scan, scanDisc, cluster, orbit, orbitNode);
   group.add(stand);
 
-  const [c, g] = canvas(900, 560);
-  drawSouvenir(g);
-  const tag = new THREE.Mesh(
-    ctx.track(new THREE.PlaneGeometry(1, 560 / 900)),
-    fader.add(ctx.track(new THREE.MeshBasicMaterial({ map: canvasTexture(ctx, c), transparent: true })), 1),
-  );
-  group.add(tag);
-
-  const SN = ctx.mobile ? 60 : 120;
+  const SN = ctx.mobile ? 90 : 180;
   const sparkGeo = ctx.track(new THREE.BufferGeometry());
   const sparkPos = new Float32Array(SN * 3);
-  const seeds = Array.from({ length: SN }, () => [Math.random(), Math.random() * Math.PI * 2, 0.35 + Math.random() * 0.6]);
+  const seeds = Array.from({ length: SN }, () => [Math.random(), Math.random() * Math.PI * 2, 0.3 + Math.random() * 1.0]);
   sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPos, 3));
   const sparks = new THREE.Points(
     sparkGeo,
-    fader.add(ctx.track(new THREE.PointsMaterial({ size: 0.07, map: ctx.dot, color: 0xf0abfc, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }))),
+    fader.add(ctx.track(new THREE.PointsMaterial({ size: 0.07, map: ctx.dot, color: 0x99f6e4, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }))),
   );
   stand.add(sparks);
 
-  let w = 4.4;
   return {
     group,
     layout(width) {
-      w = width;
-      stand.scale.setScalar(w * 0.42);
-      stand.position.set(w * 0.2, -w * 0.3, 0.5);
-      tag.scale.set(w * 0.62, w * 0.62, 1);
-      tag.position.set(-w * 0.22, w * 0.12, -0.35);
-      tag.rotation.y = 0.22;
+      stand.scale.setScalar(width * 0.31);
+      stand.position.set(width * (ctx.mobile ? 0.08 : 0.2), -width * 0.3, 0.4);
     },
     update({ act, vis, time, dt }) {
       fader.apply(vis);
-      vase.rotation.y = time * 0.6;
-      vase.position.y = 0.02 + Math.sin(time * 1.2) * 0.03 * act;
-      orbit.rotation.set(Math.PI / 2 + 0.35, 0, time * 0.5);
-      const a = time * 1.4;
-      orbitNode.position.set(Math.cos(a) * 0.85, 0.55 + Math.sin(a) * 0.85 * Math.sin(0.35), Math.sin(a) * 0.85 * Math.cos(0.35));
-      orbit.position.y = 0.55;
+      prints.update(time);
+      columnMat.uniforms.uOpacity.value = columnMat.opacity;
+      columnMat.uniforms.uTime.value = time;
+      cluster.rotation.y = Math.sin(time * 0.3) * 0.55;
+      cluster.position.y = 0.04 + Math.sin(time * 1.1) * 0.03 * act;
+      P.knot.rotation.set(time * 0.7, time * 0.9, 0);
+      P.knot.position.y = 0.8 + Math.sin(time * 1.4) * 0.04;
+      P.star.rotation.y = time * 0.8;
+      P.star.position.y = 1.12 + Math.sin(time * 1.2 + 1) * 0.04;
+      // scan ring sweeps up through the prints every 3.2 s
+      const k = (time % 3.2) / 3.2;
+      const sy = k * COL_H * 0.75;
+      scan.position.y = sy;
+      scanDisc.position.y = sy;
+      scanMat.opacity = 0.9 * vis * Math.sin(k * Math.PI);
+      orbit.rotation.set(Math.PI / 2 + 0.3, 0, time * 0.5);
+      orbit.position.y = GY;
+      const a = time * 1.2;
+      orbitNode.position.set(Math.cos(a) * ORBIT_R, GY + Math.sin(a) * ORBIT_R * Math.sin(0.3), Math.sin(a) * ORBIT_R * Math.cos(0.3));
       for (let i = 0; i < SN; i++) {
         const s = seeds[i];
-        s[0] = (s[0] + dt * (0.12 + (i % 5) * 0.02)) % 1;
-        const ang = s[1] + time * 0.4;
+        s[0] = (s[0] + dt * (0.1 + (i % 5) * 0.02)) % 1;
+        const ang = s[1] + time * 0.35;
         sparkPos[i * 3] = Math.cos(ang) * s[2];
-        sparkPos[i * 3 + 1] = s[0] * 2.2;
+        sparkPos[i * 3 + 1] = s[0] * COL_H;
         sparkPos[i * 3 + 2] = Math.sin(ang) * s[2];
       }
       sparkGeo.attributes.position.needsUpdate = true;
-      tag.position.y = w * 0.12 + Math.sin(time * 0.7) * 0.05;
     },
   };
 }
