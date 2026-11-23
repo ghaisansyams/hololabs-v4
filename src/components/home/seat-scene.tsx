@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { neutralMatcap } from "@/components/home/stage/prints";
 
 /**
- * Reservation illustration: the show room in 3D. One curved row of 18 seats
- * faces an immersive wrap-around screen. The section's scroll progress drives
- * it: the camera swings round the room, the seats rise one by one from the
- * middle out, the screen lights up and seats fill until a few are left
- * glowing. Pointer movement adds a little parallax. Rendering pauses while
- * the canvas is off screen; reduced motion shows the settled state.
+ * Reservation illustration: an isometric miniature of the HOLOLABS show
+ * room. A round glowing platform carries a curved LED wall, a hologram
+ * stage in the middle and one curved row of 18 cinema chairs facing the
+ * wall. The section's scroll progress builds it: the wall rises, the chairs
+ * drop into place from the centre out, the wall and hologram light up, and
+ * chairs fill until six stay free. Pointer movement turns the model a
+ * little. Rendering pauses off screen; reduced motion shows the end state.
  */
 
 const SEATS = 18;
@@ -26,27 +26,29 @@ const smooth = (v: number) => {
 };
 const backOut = (v: number) => {
   const t = clamp(v) - 1;
-  return 1 + t * t * (2.6 * t + 1.6);
+  return 1 + t * t * (2.4 * t + 1.4);
 };
 
-const SCREEN_FRAG = /* glsl */ `
+const WALL_FRAG = /* glsl */ `
 uniform float uTime;
 uniform float uLight;
 varying vec2 vUv;
 void main() {
-  vec2 p = vUv * vec2(6.0, 2.0);
-  float t = uTime * 0.25;
-  float n = sin(p.x * 1.3 + t * 2.0) + sin(p.y * 2.1 - t * 1.6) + sin((p.x + p.y) * 1.7 + t);
-  n += sin(length(p - vec2(3.0 + sin(t) * 2.0, 1.0)) * 3.0 - t * 4.0);
-  vec3 a = vec3(0.30, 0.10, 0.75);
-  vec3 b = vec3(0.10, 0.75, 0.95);
-  vec3 c = vec3(0.85, 0.25, 0.85);
+  vec2 p = vUv * vec2(7.0, 2.2);
+  float t = uTime * 0.3;
+  float n = sin(p.x * 1.2 + t * 1.8) + sin(p.y * 2.3 - t * 1.4) + sin((p.x + p.y) * 1.6 + t);
+  n += sin(length(p - vec2(3.5 + sin(t * 0.7) * 2.5, 1.1)) * 3.2 - t * 3.5);
+  vec3 a = vec3(0.24, 0.08, 0.62);
+  vec3 b = vec3(0.08, 0.72, 0.92);
+  vec3 c = vec3(0.86, 0.28, 0.86);
   vec3 col = mix(a, b, 0.5 + 0.5 * sin(n));
-  col = mix(col, c, (0.5 + 0.5 * sin(n * 0.7 + 1.5)) * 0.35);
-  col *= 0.9 + 0.1 * smoothstep(0.3, 0.7, abs(fract(vUv.y * 36.0) - 0.5) * 2.0);
-  float edge = smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x) * smoothstep(0.0, 0.12, vUv.y) * smoothstep(1.0, 0.9, vUv.y);
-  float lit = 0.12 + 0.88 * uLight;
-  gl_FragColor = vec4(col * edge * lit, 1.0);
+  col = mix(col, c, (0.5 + 0.5 * sin(n * 0.7 + 1.5)) * 0.4);
+  // LED panel seams
+  float seam = step(0.04, fract(vUv.x * 16.0)) * step(0.05, fract(vUv.y * 4.0));
+  col *= 0.55 + 0.45 * seam;
+  float fade = smoothstep(0.0, 0.18, vUv.y) * (0.75 + 0.25 * smoothstep(1.0, 0.7, vUv.y));
+  float lit = 0.06 + 0.94 * uLight;
+  gl_FragColor = vec4(col * fade * lit * 1.25, 1.0);
   #include <colorspace_fragment>
 }`;
 
@@ -69,6 +71,8 @@ export function SeatScene({ note }: { note?: string }) {
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.setClearColor(0x000000, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
     renderer.domElement.setAttribute("aria-hidden", "true");
     renderer.domElement.className = "absolute inset-0 size-full";
     host.prepend(renderer.domElement);
@@ -78,11 +82,14 @@ export function SeatScene({ note }: { note?: string }) {
       disposables.push(d);
       return d;
     };
+    const std = (color: number, extra: THREE.MeshStandardMaterialParameters = {}) =>
+      track(new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.15, ...extra }));
+    const glow = (color: number, opacity = 1) =>
+      track(new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x07041a, 11, 22);
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
-    const target = new THREE.Vector3(0, 0.55, -2.7);
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+    const target = new THREE.Vector3(0, 1.0, 0);
 
     // soft round sprite for glows and particles
     const dotCanvas = document.createElement("canvas");
@@ -95,134 +102,200 @@ export function SeatScene({ note }: { note?: string }) {
     dg.fillStyle = grad;
     dg.fillRect(0, 0, 64, 64);
     const dot = track(new THREE.CanvasTexture(dotCanvas));
-    const matcap = neutralMatcap({ track });
 
-    // floor with glowing rings
+    // lights
+    scene.add(new THREE.HemisphereLight(0xb9a6ff, 0x0b0620, 1.4));
+    const key = new THREE.DirectionalLight(0xffffff, 1.6);
+    key.position.set(5, 9, 6);
+    scene.add(key);
+    const holoLight = new THREE.PointLight(0x67e8f9, 0, 7, 1.4);
+    holoLight.position.set(0, 1.3, 0);
+    const wallLight = new THREE.PointLight(0xd946ef, 0, 7, 1.4);
+    wallLight.position.set(-1.6, 1.4, -1.6);
+    scene.add(holoLight, wallLight);
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    // platform with glowing rims
+    const R = 3.6;
+    const base = new THREE.Mesh(track(new THREE.CylinderGeometry(R, R + 0.15, 0.42, 96)), std(0x150b36, { roughness: 0.4, metalness: 0.35 }));
+    base.position.y = -0.21;
+    const rim = new THREE.Mesh(track(new THREE.TorusGeometry(R, 0.025, 8, 160)), glow(0x67e8f9, 0.95));
+    rim.rotation.x = Math.PI / 2;
+    const rimLow = new THREE.Mesh(track(new THREE.TorusGeometry(R + 0.15, 0.018, 8, 160)), glow(0x8b5cf6, 0.7));
+    rimLow.rotation.x = Math.PI / 2;
+    rimLow.position.y = -0.42;
+    root.add(base, rim, rimLow);
+
+    // floor grid
+    const gridCanvas = document.createElement("canvas");
+    gridCanvas.width = gridCanvas.height = 512;
+    const gg = gridCanvas.getContext("2d")!;
+    gg.strokeStyle = "rgba(167,139,250,0.35)";
+    gg.lineWidth = 1.5;
+    for (let i = 0; i <= 512; i += 32) {
+      gg.beginPath();
+      gg.moveTo(i, 0);
+      gg.lineTo(i, 512);
+      gg.moveTo(0, i);
+      gg.lineTo(512, i);
+      gg.stroke();
+    }
+    const fadeGrad = gg.createRadialGradient(256, 256, 60, 256, 256, 256);
+    fadeGrad.addColorStop(0, "rgba(0,0,0,0)");
+    fadeGrad.addColorStop(1, "rgba(0,0,0,1)");
+    gg.globalCompositeOperation = "destination-out";
+    gg.fillStyle = fadeGrad;
+    gg.fillRect(0, 0, 512, 512);
     const floor = new THREE.Mesh(
-      track(new THREE.CircleGeometry(4.6, 96)),
-      track(new THREE.MeshBasicMaterial({ color: 0x0c0724 })),
+      track(new THREE.CircleGeometry(R - 0.05, 96)),
+      track(new THREE.MeshBasicMaterial({ map: track(new THREE.CanvasTexture(gridCanvas)), transparent: true, depthWrite: false })),
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.z = -1.6;
-    scene.add(floor);
-    const ringMat = (color: number, opacity: number) =>
-      track(new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
-    for (const [r, c, o] of [
-      [2.2, 0x67e8f9, 0.55],
-      [2.75, 0x8b5cf6, 0.35],
-      [3.6, 0x67e8f9, 0.18],
-    ] as const) {
-      const ring = new THREE.Mesh(track(new THREE.RingGeometry(r - 0.012, r + 0.012, 160)), ringMat(c, o));
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.005;
-      scene.add(ring);
-    }
+    floor.position.y = 0.005;
+    root.add(floor);
 
-    // wrap-around screen beyond the seats
-    const SCREEN_R = 3.5;
-    const screenMat = track(
+    // curved LED wall at the back (away from the camera), rising from the floor
+    const WALL_R = 3.25;
+    const WALL_H = 2.5;
+    const span = 3.3;
+    const start = (5 * Math.PI) / 4 - span / 2;
+    const wallGeo = track(new THREE.CylinderGeometry(WALL_R, WALL_R, WALL_H, 96, 1, true, start, span));
+    wallGeo.translate(0, WALL_H / 2, 0);
+    const wallMat = track(
       new THREE.ShaderMaterial({
         uniforms: { uTime: { value: 0 }, uLight: { value: 0 } },
         vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-        fragmentShader: SCREEN_FRAG,
-        side: THREE.BackSide,
+        fragmentShader: WALL_FRAG,
+        side: THREE.DoubleSide,
       }),
     );
-    const screen = new THREE.Mesh(track(new THREE.CylinderGeometry(SCREEN_R, SCREEN_R, 1.9, 96, 1, true, Math.PI - 1.45, 2.9)), screenMat);
-    screen.position.y = 1.05;
-    scene.add(screen);
-    const screenGlow = new THREE.Sprite(
-      track(new THREE.SpriteMaterial({ map: dot, color: 0x7c3aed, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })),
-    );
-    screenGlow.scale.set(9, 4.5, 1);
-    screenGlow.position.set(0, 1.1, -3.9);
-    scene.add(screenGlow);
+    const wall = new THREE.Mesh(wallGeo, wallMat);
+    const shellGeo = track(new THREE.CylinderGeometry(WALL_R + 0.08, WALL_R + 0.08, WALL_H + 0.08, 96, 1, true, start - 0.02, span + 0.04));
+    shellGeo.translate(0, WALL_H / 2, 0);
+    const shell = new THREE.Mesh(shellGeo, std(0x1c1145, { side: THREE.BackSide, roughness: 0.3, metalness: 0.5 }));
+    const arcPts = Array.from({ length: 65 }, (_, i) => {
+      const th = start + (span * i) / 64;
+      return new THREE.Vector3(Math.sin(th) * (WALL_R + 0.04), WALL_H + 0.02, Math.cos(th) * (WALL_R + 0.04));
+    });
+    const wallTop = new THREE.Mesh(track(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arcPts), 96, 0.03, 8, false)), glow(0x67e8f9, 0.9));
+    const wallRig = new THREE.Group();
+    wallRig.add(shell, wall, wallTop);
+    root.add(wallRig);
 
-    // one curved row of seats facing the screen
-    const SEAT_R = 2.2;
-    const SPAN = 2.55;
-    const cushionGeo = track(new RoundedBoxGeometry(0.27, 0.09, 0.27, 3, 0.035));
-    const backGeo = track(new RoundedBoxGeometry(0.27, 0.32, 0.06, 3, 0.028));
-    const baseGeo = track(new THREE.CylinderGeometry(0.035, 0.06, 0.18, 16));
+    // hologram stage in the middle
+    const stage = new THREE.Group();
+    const stageBase = new THREE.Mesh(track(new THREE.CylinderGeometry(0.62, 0.7, 0.14, 64)), std(0x22164f, { roughness: 0.3, metalness: 0.6 }));
+    stageBase.position.y = 0.07;
+    const stageRing = new THREE.Mesh(track(new THREE.TorusGeometry(0.6, 0.02, 8, 96)), glow(0x67e8f9, 1));
+    stageRing.rotation.x = Math.PI / 2;
+    stageRing.position.y = 0.145;
+    const beamGeo = track(new THREE.CylinderGeometry(0.12, 0.58, 1.5, 48, 1, true));
+    beamGeo.translate(0, 0.9, 0);
+    const beamMat = glow(0x67e8f9, 0.16);
+    beamMat.side = THREE.DoubleSide;
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    const holoMat = glow(0xa5f3fc, 0.9);
+    const holo = new THREE.LineSegments(
+      track(new THREE.EdgesGeometry(track(new THREE.IcosahedronGeometry(0.42, 1)))),
+      track(new THREE.LineBasicMaterial({ color: 0xa5f3fc, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })),
+    );
+    holo.position.y = 1.55;
+    const core = new THREE.Mesh(track(new THREE.IcosahedronGeometry(0.2, 2)), holoMat);
+    core.position.y = 1.55;
+    const orbit = new THREE.Mesh(track(new THREE.TorusGeometry(0.62, 0.008, 6, 128)), glow(0xe879f9, 0.85));
+    orbit.position.y = 1.55;
+    const coreGlow = new THREE.Sprite(
+      track(new THREE.SpriteMaterial({ map: dot, color: 0x67e8f9, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })),
+    );
+    coreGlow.scale.setScalar(2.2);
+    coreGlow.position.y = 1.55;
+    stage.add(stageBase, stageRing, beam, holo, core, orbit, coreGlow);
+    root.add(stage);
+
+    // one curved row of 18 cinema chairs in front, facing the wall
+    const SEAT_R = 2.3;
+    const seatSpan = 2.75;
+    const mid = Math.PI / 4;
+    const cushionGeo = track(new RoundedBoxGeometry(0.22, 0.07, 0.2, 3, 0.03));
+    const backGeo = track(new RoundedBoxGeometry(0.22, 0.28, 0.06, 3, 0.03));
+    const armGeo = track(new RoundedBoxGeometry(0.035, 0.05, 0.19, 2, 0.015));
+    const legGeo = track(new THREE.CylinderGeometry(0.03, 0.05, 0.13, 12));
     const availColor = new THREE.Color(0x22d3ee);
     const takenColor = new THREE.Color(0x6d28d9);
+    const availEmissive = new THREE.Color(0x0e7490);
+    const takenEmissive = new THREE.Color(0x1e0b45);
+    const frameMat = std(0x241845, { roughness: 0.4, metalness: 0.5 });
     const seats = Array.from({ length: SEATS }, (_, i) => {
-      const theta = Math.PI - SPAN / 2 + (SPAN * i) / (SEATS - 1);
-      const mat = track(new THREE.MeshMatcapMaterial({ matcap, color: availColor.clone() }));
-      const seat = new THREE.Group();
-      const base = new THREE.Mesh(baseGeo, mat);
-      base.position.y = 0.09;
+      const th = mid - seatSpan / 2 + (seatSpan * i) / (SEATS - 1);
+      const mat = std(0x22d3ee, { emissive: 0x0e7490, emissiveIntensity: 0.6, roughness: 0.45 });
+      const chair = new THREE.Group();
+      const leg = new THREE.Mesh(legGeo, frameMat);
+      leg.position.y = 0.065;
       const cushion = new THREE.Mesh(cushionGeo, mat);
-      cushion.position.y = 0.22;
+      cushion.position.y = 0.165;
       const back = new THREE.Mesh(backGeo, mat);
-      back.position.set(0, 0.39, 0.12);
-      back.rotation.x = -0.12;
-      seat.add(base, cushion, back);
+      back.position.set(0, 0.32, -0.085);
+      back.rotation.x = -0.1;
+      const armL = new THREE.Mesh(armGeo, frameMat);
+      armL.position.set(-0.13, 0.22, 0);
+      const armR = armL.clone();
+      armR.position.x = 0.13;
+      chair.add(leg, cushion, back, armL, armR);
       const pivot = new THREE.Group();
-      pivot.position.set(Math.sin(theta) * SEAT_R, 0, Math.cos(theta) * SEAT_R);
-      pivot.rotation.y = theta + Math.PI;
-      pivot.add(seat);
-      scene.add(pivot);
+      pivot.position.set(Math.sin(th) * SEAT_R, 0, Math.cos(th) * SEAT_R);
+      pivot.rotation.y = th + Math.PI; // local +z faces the centre / wall
+      chair.scale.setScalar(1.45);
+      pivot.add(chair);
+      root.add(pivot);
       const beacon = new THREE.Sprite(
         track(new THREE.SpriteMaterial({ map: dot, color: 0x67e8f9, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })),
       );
-      beacon.scale.setScalar(0.55);
-      beacon.position.set(pivot.position.x, 0.55, pivot.position.z);
-      scene.add(beacon);
+      beacon.scale.setScalar(0.5);
+      beacon.position.set(pivot.position.x, 0.75, pivot.position.z);
+      root.add(beacon);
       const fromMiddle = Math.abs(i - (SEATS - 1) / 2) / ((SEATS - 1) / 2);
-      return { seat, mat, beacon, delay: fromMiddle, taken: 0 };
+      return { chair, mat, beacon, delay: fromMiddle, taken: 0 };
     });
     const fillRank = new Array<number>(SEATS);
     FILL_ORDER.forEach((seatIndex, rank) => (fillRank[seatIndex] = rank));
 
-    // particles drifting up from the seats that are still free
-    const PN = 120;
+    // particles rising from the hologram stage
+    const PN = 90;
     const pPos = new Float32Array(PN * 3);
-    const pSeed = Array.from({ length: PN }, () => [Math.floor(Math.random() * SEATS), Math.random(), (Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25]);
+    const pSeed = Array.from({ length: PN }, () => [Math.random(), Math.random() * Math.PI * 2, 0.1 + Math.random() * 0.5]);
     const pGeo = track(new THREE.BufferGeometry());
     pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
     const pMat = track(
-      new THREE.PointsMaterial({ map: dot, size: 0.07, color: 0x99f6e4, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.PointsMaterial({ map: dot, size: 0.09, color: 0x99f6e4, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }),
     );
-    scene.add(new THREE.Points(pGeo, pMat));
+    root.add(new THREE.Points(pGeo, pMat));
 
-    // holographic rings floating in front of the screen
-    const holo = new THREE.Group();
-    const holoMat = ringMat(0x67e8f9, 0.8);
-    const holoMat2 = ringMat(0xe879f9, 0.7);
-    const h1 = new THREE.Mesh(track(new THREE.TorusGeometry(0.42, 0.012, 8, 96)), holoMat);
-    const h2 = new THREE.Mesh(track(new THREE.TorusGeometry(0.3, 0.01, 8, 96)), holoMat2);
-    const core = new THREE.Sprite(
-      track(new THREE.SpriteMaterial({ map: dot, color: 0xa5f3fc, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })),
-    );
-    core.scale.setScalar(0.5);
-    holo.add(h1, h2, core);
-    holo.position.set(0, 1.25, -3.05);
-    scene.add(holo);
-
-    // sizing
+    // sizing: an orthographic camera framing the whole platform
+    const VIEW = 8.2;
     const resize = () => {
       const w = host.clientWidth || 1;
       const h = host.clientHeight || 1;
       renderer.setSize(w, h, false);
-      camera.aspect = w / h;
+      const aspect = w / h;
+      camera.left = (-VIEW * aspect) / 2;
+      camera.right = (VIEW * aspect) / 2;
+      camera.top = VIEW / 2;
+      camera.bottom = -VIEW / 2;
       camera.updateProjectionMatrix();
+      if (reduced) requestAnimationFrame(frame);
     };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(host);
 
-    // scroll progress of the section through the viewport, eased
-    let goal = reduced ? 0.85 : 0;
+    // scroll progress of the illustration through the viewport, eased
+    let goal = reduced ? 0.95 : 0;
     let prog = goal;
     const readScroll = () => {
       if (reduced) return;
-      // 0 when the canvas peeks in at the bottom, about 0.9 once it is centred
       const r = host.getBoundingClientRect();
       const vh = window.innerHeight || 1;
       goal = clamp((vh - r.top) / (vh * 0.6 + r.height * 0.5));
     };
-    readScroll();
     window.addEventListener("scroll", readScroll, { passive: true });
 
     const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -239,78 +312,95 @@ export function SeatScene({ note }: { note?: string }) {
     host.addEventListener("pointerleave", onLeave);
 
     let visible = true;
+    let raf = 0;
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible && !raf) raf = requestAnimationFrame(frame);
+      if (visible && !raf && !reduced) raf = requestAnimationFrame(frame);
     });
-    io.observe(host);
 
     let lastLeft = SEATS;
-    let raf = 0;
     let last = performance.now();
     let time = 0;
     function frame(now: number) {
       raf = 0;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      time += reduced ? 0 : dt;
-      prog += (goal - prog) * Math.min(1, dt * 4);
+      if (!reduced) time += dt;
+      prog += (goal - prog) * Math.min(1, reduced ? 1 : dt * 4);
       pointer.x += (pointer.tx - pointer.x) * Math.min(1, dt * 3);
       pointer.y += (pointer.ty - pointer.y) * Math.min(1, dt * 3);
       const p = prog;
 
-      // camera swings from a low side view to a high three-quarter view
-      const az = -0.9 + 1.0 * smooth(p / 0.9) + pointer.x * 0.12 + (reduced ? 0 : Math.sin(time * 0.2) * 0.04);
-      const el = 0.2 + 0.36 * smooth(p / 0.85) - pointer.y * 0.06;
-      const dist = 13.5 - 1.8 * smooth(p);
-      camera.position.set(target.x + Math.sin(az) * Math.cos(el) * dist, target.y + Math.sin(el) * dist, target.z + Math.cos(az) * Math.cos(el) * dist);
+      // isometric-ish camera, the model turning a little with scroll and pointer
+      const el = 0.6 - pointer.y * 0.05;
+      camera.position.set(Math.cos(el) * 14 * Math.SQRT1_2, Math.sin(el) * 14 + target.y, Math.cos(el) * 14 * Math.SQRT1_2);
       camera.lookAt(target);
+      root.rotation.y = -0.55 + 0.55 * smooth(p / 0.85) + pointer.x * 0.18 + (reduced ? 0 : Math.sin(time * 0.18) * 0.05);
+      root.scale.setScalar(0.88 + 0.12 * smooth(p / 0.3));
 
-      // seats rise from the middle outward, then fill until a few stay free
-      const filled = Math.round(FILLED * smooth((p - 0.4) / 0.4));
+      // wall rises, chairs drop in, lights come on, chairs fill
+      const wallUp = smooth((p - 0.04) / 0.3);
+      wallRig.scale.y = Math.max(0.001, wallUp);
+      const light = smooth((p - 0.32) / 0.35);
+      wallMat.uniforms.uLight.value = light;
+      wallMat.uniforms.uTime.value = time;
+      holoLight.intensity = 9 * light;
+      wallLight.intensity = 7 * light;
+
+      const filled = Math.round(FILLED * smooth((p - 0.55) / 0.35));
       let free = 0;
       for (let i = 0; i < SEATS; i++) {
         const s = seats[i];
-        const rise = backOut((p - 0.05 - s.delay * 0.25) / 0.2);
-        s.seat.scale.set(1, Math.max(0.001, rise), 1);
-        s.seat.position.y = (1 - clamp(rise)) * -0.3;
+        const drop = backOut((p - 0.18 - s.delay * 0.22) / 0.2);
+        s.chair.position.y = (1 - clamp(drop)) * 1.2;
+        s.chair.scale.setScalar(1.45 * Math.max(0.001, Math.min(drop, 1.08)));
         const isTaken = fillRank[i] < filled ? 1 : 0;
         if (!isTaken) free++;
-        s.taken += (isTaken - s.taken) * Math.min(1, dt * 6);
+        s.taken += (isTaken - s.taken) * Math.min(1, reduced ? 1 : dt * 6);
         s.mat.color.copy(availColor).lerp(takenColor, s.taken);
+        s.mat.emissive.copy(availEmissive).lerp(takenEmissive, s.taken);
+        s.mat.emissiveIntensity = 0.5 + 0.5 * light * (1 - s.taken);
         const pulse = 0.55 + 0.45 * Math.sin(time * 3 + i);
-        (s.beacon.material as THREE.SpriteMaterial).opacity = (1 - s.taken) * clamp(rise) * pulse * 0.75;
+        (s.beacon.material as THREE.SpriteMaterial).opacity = (1 - s.taken) * clamp(drop) * light * pulse * 0.7;
       }
       if (free !== lastLeft) {
         lastLeft = free;
         setLeft(free);
       }
 
-      const light = smooth((p - 0.15) / 0.45);
-      screenMat.uniforms.uLight.value = light;
-      screenMat.uniforms.uTime.value = time;
-      (screenGlow.material as THREE.SpriteMaterial).opacity = light * 0.55;
+      // hologram
+      const holoOn = smooth((p - 0.38) / 0.3);
+      holo.scale.setScalar(Math.max(0.001, holoOn));
+      core.scale.setScalar(Math.max(0.001, holoOn));
+      orbit.scale.setScalar(Math.max(0.001, holoOn));
+      holo.rotation.set(time * 0.5, time * 0.7, 0);
+      orbit.rotation.set(Math.PI / 2 + 0.4 * Math.sin(time * 0.6), time * 0.4, 0);
+      const bob = Math.sin(time * 1.4) * 0.05;
+      holo.position.y = core.position.y = orbit.position.y = coreGlow.position.y = 1.55 + bob;
+      (coreGlow.material as THREE.SpriteMaterial).opacity = 0.55 * holoOn;
+      beamMat.opacity = 0.16 * holoOn;
+      holoMat.opacity = 0.9 * holoOn;
 
       for (let k = 0; k < PN; k++) {
         const s = pSeed[k];
-        const seat = seats[s[0]];
-        s[1] = (s[1] + dt * 0.25) % 1;
-        const base = seat.beacon.position;
-        pPos[k * 3] = base.x + s[2];
-        pPos[k * 3 + 1] = 0.25 + s[1] * 1.6;
-        pPos[k * 3 + 2] = base.z + s[3];
+        if (!reduced) s[0] = (s[0] + dt * 0.22) % 1;
+        const a = s[1] + time * 0.6;
+        pPos[k * 3] = Math.cos(a) * s[2] * (1 - s[0] * 0.6);
+        pPos[k * 3 + 1] = 0.15 + s[0] * 1.9;
+        pPos[k * 3 + 2] = Math.sin(a) * s[2] * (1 - s[0] * 0.6);
       }
       pGeo.attributes.position.needsUpdate = true;
-      pMat.opacity = 0.2 + 0.7 * (free / SEATS) * light + 0.1;
-
-      h1.rotation.set(time * 0.8, time * 0.5, 0);
-      h2.rotation.set(-time * 0.6, 0, time * 0.9);
-      holo.position.y = 1.25 + Math.sin(time * 1.3) * 0.06;
-      holo.scale.setScalar(0.4 + 0.6 * light);
+      pMat.opacity = 0.85 * holoOn;
 
       renderer.render(scene, camera);
       if (visible && !reduced) raf = requestAnimationFrame(frame);
     }
+
+    readScroll();
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(host);
+    io.observe(host);
     raf = requestAnimationFrame(frame);
 
     return () => {
@@ -328,7 +418,10 @@ export function SeatScene({ note }: { note?: string }) {
 
   return (
     <figure className="mx-auto w-full max-w-md">
-      <div ref={wrap} className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_50%_35%,#2a1458_0%,#0b0620_60%,#07041a_100%)] shadow-lift">
+      <div
+        ref={wrap}
+        className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_50%_40%,#2a1458_0%,#0b0620_62%,#07041a_100%)] shadow-lift"
+      >
         {failed ? (
           <div aria-hidden className="absolute inset-0 grid place-items-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
             18 kursi · 1 show
