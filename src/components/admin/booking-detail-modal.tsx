@@ -215,6 +215,12 @@ export function BookingDetailModal({
                       {booking.paymentMethod === "TRANSFER" ? "Transfer bank" : (booking.paymentMethod ?? "—")}
                     </span>
                   </div>
+                  {booking.senderName ? (
+                    <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-muted">Nama pengirim</span>
+                      <span className="font-semibold text-ink">{booking.senderName}</span>
+                    </div>
+                  ) : null}
                   <div className="mt-3">
                     {booking.proofDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image can't optimize it

@@ -30,9 +30,10 @@ export const MAX_PROOF_BYTES = 3 * 1024 * 1024;
 export async function submitPaymentProof(
   token: string,
   proofDataUrl?: string | null,
+  senderName?: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    await rows(sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null}::text)`);
+    await rows(sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null}::text, ${senderName ?? null}::text)`);
     return { ok: true };
   } catch (cause) {
     const message = dbErrorMessage(cause);
@@ -40,5 +41,18 @@ export async function submitPaymentProof(
       return { ok: false, error: "Booking ini sudah ditransfer atau statusnya sudah berubah." };
     }
     return { ok: false, error: "Gagal menyimpan konfirmasi. Coba lagi sebentar lagi." };
+  }
+}
+
+/** Guest self-service: "Batalkan pesanan" before any transfer; the seats are released. */
+export async function cancelBookingByToken(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await rows(sql`select cancel_booking_by_token(${token}::uuid)`);
+    return { ok: true };
+  } catch (cause) {
+    if (dbErrorMessage(cause).includes("NOT_ELIGIBLE")) {
+      return { ok: false, error: "Pesanan ini tidak bisa dibatalkan lagi karena statusnya sudah berubah." };
+    }
+    return { ok: false, error: "Gagal membatalkan pesanan. Coba lagi sebentar lagi." };
   }
 }

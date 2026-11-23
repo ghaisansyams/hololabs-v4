@@ -1,34 +1,12 @@
-"use client";
-
-import { useState } from "react";
-import { Paperclip } from "lucide-react";
-
-/** Optional transfer screenshot for the payment page; shows the chosen file name. */
+/** Optional transfer screenshot for the payment page (the browser shows the chosen file name itself). */
 export function HlProofUpload() {
-  const [fileName, setFileName] = useState<string | null>(null);
   return (
-    <label
-      htmlFor="proof"
-      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-white/20 bg-hl-ink/50 px-4 py-4 text-[15px] text-[#c9c4d9] transition hover:border-cyan-300/60"
-    >
-      <Paperclip className="size-4 shrink-0 text-cyan-200" aria-hidden />
-      <span className="truncate">
-        {fileName ? (
-          <span className="font-semibold text-hl-fg">{fileName}</span>
-        ) : (
-          <>
-            <span className="font-semibold text-hl-fg">Unggah bukti transfer</span> (opsional, gambar maks. 3 MB)
-          </>
-        )}
-      </span>
-      <input
-        id="proof"
-        name="proof"
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
-      />
-    </label>
+    <input
+      id="proof"
+      name="proof"
+      type="file"
+      accept="image/*"
+      className="w-full cursor-pointer text-[14px] text-[#c9c4d9] file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-white/10 file:px-4 file:py-2.5 file:text-[14px] file:text-hl-fg file:transition hover:file:bg-white/15"
+    />
   );
 }

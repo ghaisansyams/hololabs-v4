@@ -107,6 +107,7 @@ export const payments = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
     proofSubmittedAt: timestamp("proof_submitted_at", { withTimezone: true, mode: "string" }),
     proofDataUrl: text("proof_data_url"),
+    senderName: text("sender_name"),
     uniqueCode: integer("unique_code").notNull().default(0),
   },
   (t) => [index("payments_booking_idx").on(t.bookingId)],

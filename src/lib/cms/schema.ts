@@ -283,7 +283,7 @@ export const defaults = {
   booking: {
     bank: "BCA",
     holder: "Chandra Kirana",
-    accountNumber: "",
+    accountNumber: "527 159 4608",
     terms: [
       "Tiket berlaku untuk tanggal dan jam show yang dipilih. Datang paling lambat 15 menit sebelum show untuk check-in.",
       "Show berlangsung sekitar 90 menit. Keterlambatan tidak memperpanjang durasi show.",

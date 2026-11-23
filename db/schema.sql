@@ -689,4 +689,48 @@ begin
 end;
 $$;
 
+-- Payment page ("Sudah transfer?"): the guest can name the sending account's
+-- owner so the team can match the transfer, and can cancel an unpaid order.
+alter table payments add column if not exists sender_name text;
+
+drop function if exists submit_payment_proof(uuid, text);
+create or replace function submit_payment_proof(p_token uuid, p_proof_data_url text default null, p_sender_name text default null)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking_id uuid;
+begin
+  perform expire_unpaid_bookings();
+  select id into v_booking_id from bookings
+    where access_token = p_token and payment_status = 'PENDING' and status <> 'CANCELLED';
+  if v_booking_id is null then
+    raise exception 'NOT_ELIGIBLE' using errcode = 'P0009';
+  end if;
+  update payments set status = 'SUBMITTED', proof_submitted_at = now(),
+      proof_data_url = coalesce(p_proof_data_url, proof_data_url),
+      sender_name = coalesce(nullif(btrim(p_sender_name), ''), sender_name)
+    where booking_id = v_booking_id;
+  update bookings set payment_status = 'SUBMITTED' where id = v_booking_id;
+end;
+$$;
+
+-- "Batalkan pesanan": only while nothing has been transferred yet; the seats go back.
+create or replace function cancel_booking_by_token(p_token uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_booking bookings;
+begin
+  select * into v_booking from bookings
+    where access_token = p_token and status <> 'CANCELLED' and payment_status = 'PENDING'
+    for update;
+  if v_booking.id is null then
+    raise exception 'NOT_ELIGIBLE' using errcode = 'P0009';
+  end if;
+  update sessions set seats_taken = greatest(0, seats_taken - v_booking.seats) where id = v_booking.session_id;
+  update bookings set status = 'CANCELLED', payment_status = 'CANCELLED' where id = v_booking.id;
+  update payments set status = 'CANCELLED' where booking_id = v_booking.id and status <> 'PAID';
+end;
+$$;
+
 select ensure_schedule(30);

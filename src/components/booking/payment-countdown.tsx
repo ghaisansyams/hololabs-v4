@@ -22,7 +22,7 @@ export function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
 
   if (left === null) return <span className="tabular-nums">--:--:--</span>;
   const s = Math.floor(left / 1000);
-  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const hh = String(Math.floor(s / 3600));
   const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
   const ss = String(s % 60).padStart(2, "0");
   return (
