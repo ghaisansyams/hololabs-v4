@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Disc3, Gift, House, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
+import { Disc3, Flag, Gift, House, LogIn, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
 import { canvas, drawHolomedis, drawSouvenir, drawTicket } from "@/components/home/stage/art";
 import { cn } from "@/lib/utils/cn";
 
@@ -15,6 +15,16 @@ export interface StageStep {
 
 /** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
 const CHAPTER_ICONS: LucideIcon[] = [Ticket, Projector, Disc3, Stethoscope, House, Printer, Gift];
+
+/**
+ * The first and last chapters are the arrival and the send-off, not show acts,
+ * so the timeline gives them their own names and a START / END marker instead
+ * of a number. The acts in between are numbered from 1.
+ */
+const TIMELINE_ENDS = {
+  start: { label: "Regist & Check-in", tag: "Start", Icon: LogIn },
+  end: { label: "Finale", tag: "End", Icon: Flag },
+} as const;
 
 const MAX_CHAPTERS = 7; // one per chapter factory in stage/chapters.ts
 
@@ -161,7 +171,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
 
         {/* Chapter timeline: a tilted glass dock, glossy spheres on a glowing tube */}
         <nav aria-label="Babak journey" className="absolute inset-x-0 bottom-4 mx-auto max-w-4xl px-4 [perspective:1100px] sm:bottom-7 sm:px-10">
-          <div className="tl-dock rounded-[1.75rem] border border-white/10 px-3 pb-3 pt-5 backdrop-blur-xl [transform-origin:50%_100%] [transform:rotateX(9deg)] sm:px-6 sm:pb-4 sm:pt-6">
+          <div className="tl-dock rounded-[1.75rem] border border-white/10 px-3 pb-3 pt-5 backdrop-blur-xl [transform-origin:50%_100%] [transform:rotateX(9deg)] sm:px-6 sm:pb-4 sm:pt-9">
             <div className="relative">
               {/* tube between the first and last sphere, filled as the page scrolls */}
               <div
@@ -178,6 +188,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                 {steps.slice(0, count).map((st, i) => {
                   const done = i < stepIndex;
                   const current = i === stepIndex;
+                  const edge = count > 2 ? (i === 0 ? TIMELINE_ENDS.start : i === count - 1 ? TIMELINE_ENDS.end : null) : null;
                   return (
                     <li key={i} className="flex justify-center">
                       <button
@@ -190,6 +201,15 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                         <span className="relative flex size-7 items-center justify-center sm:size-11">
                           {current ? (
                             <span aria-hidden className="absolute inset-0 rounded-full border border-cyan/60 motion-safe:animate-ping" />
+                          ) : null}
+                          {edge ? (
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "tl-gate absolute -inset-1.5 rounded-full border border-dashed transition-colors sm:-inset-2",
+                                current || done ? "border-cyan/60" : "border-white/20",
+                              )}
+                            />
                           ) : null}
                           <span
                             className={cn(
@@ -207,24 +227,37 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                               return <Icon aria-hidden strokeWidth={2.3} className={cn("size-3.5 sm:size-5", current || done ? "tl-icon" : "tl-icon-dim")} />;
                             })()}
                           </span>
-                          <span
-                            aria-hidden
-                            className={cn(
-                              "absolute -right-1.5 -top-1.5 hidden size-[1.125rem] items-center justify-center rounded-full border text-[0.5625rem] font-bold tabular-nums sm:flex",
-                              current ? "border-cyan/70 bg-[#0a0716] text-cyan" : "border-white/15 bg-[#0a0716] text-muted",
-                            )}
-                          >
-                            {i + 1}
-                          </span>
+                          {edge ? (
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "tl-edge-badge absolute -top-7 left-1/2 hidden -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full py-0.5 pl-1.5 pr-2 font-mono text-[0.5625rem] font-semibold uppercase tracking-[0.16em] sm:flex",
+                                current || done ? "tl-edge-badge-on" : "",
+                              )}
+                            >
+                              <edge.Icon strokeWidth={2.6} className="size-2.5" />
+                              {edge.tag}
+                            </span>
+                          ) : (
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "absolute -right-1.5 -top-1.5 hidden size-[1.125rem] items-center justify-center rounded-full border text-[0.5625rem] font-bold tabular-nums sm:flex",
+                                current ? "border-cyan/70 bg-[#0a0716] text-cyan" : "border-white/15 bg-[#0a0716] text-muted",
+                              )}
+                            >
+                              {i}
+                            </span>
+                          )}
                         </span>
                         <span className="hidden flex-col items-center gap-0.5 lg:flex">
                           <span
                             className={cn(
-                              "font-display text-[0.625rem] font-medium uppercase tracking-[0.1em] transition-colors",
+                              "text-balance text-center font-display text-[0.625rem] font-medium uppercase leading-tight tracking-[0.1em] transition-colors",
                               current ? "text-ink" : done ? "text-ink-soft" : "text-muted group-hover:text-ink-soft",
                             )}
                           >
-                            {st.mood}
+                            {edge ? edge.label : st.mood}
                           </span>
                           {st.minutes ? (
                             <span className={cn("font-mono text-[0.625rem] transition-colors", current ? "text-cyan" : "text-muted/70")}>{st.minutes}</span>
@@ -238,9 +271,16 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
             </div>
             {/* phones and tablets have no room for seven labels, so only the current chapter is named */}
             <p className="mt-3 text-center font-display text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-ink lg:hidden">
-              <span className="text-cyan">{String(stepIndex + 1).padStart(2, "0")}</span>
-              <span aria-hidden className="mx-2 text-muted">/</span>
-              {step?.mood}
+              {(() => {
+                const edge = count > 2 ? (stepIndex === 0 ? TIMELINE_ENDS.start : stepIndex === count - 1 ? TIMELINE_ENDS.end : null) : null;
+                return (
+                  <>
+                    <span className="text-cyan">{edge ? edge.tag : String(stepIndex).padStart(2, "0")}</span>
+                    <span aria-hidden className="mx-2 text-muted">/</span>
+                    {edge ? edge.label : step?.mood}
+                  </>
+                );
+              })()}
               {step?.minutes ? <span className="ml-2 font-mono normal-case tracking-normal text-muted">· {step.minutes}</span> : null}
             </p>
           </div>

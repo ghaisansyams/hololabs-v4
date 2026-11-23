@@ -582,4 +582,30 @@
     color: #9d97b4;
     filter: drop-shadow(0 1px 0 #1c1533) drop-shadow(0 2px 0 #0f0a20) drop-shadow(0 4px 3px rgb(0 0 0 / 0.6));
   }
+
+  /* Start and end of the journey: a dashed gate ring, an icon badge and a START / END tag. */
+  .tl-gate {
+    animation: tl-gate-spin 14s linear infinite;
+  }
+  @keyframes tl-gate-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .tl-edge-badge {
+    color: #9d97b4;
+    background: #0a0716;
+    border: 1px solid rgb(255 255 255 / 0.18);
+  }
+  .tl-edge-badge-on {
+    color: #0a0716;
+    border-color: rgb(255 255 255 / 0.6);
+    background: linear-gradient(135deg, #67e8f9, #a78bfa);
+    box-shadow: 0 0 10px rgb(103 232 249 / 0.6);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tl-gate {
+      animation: none;
+    }
+  }
 }
