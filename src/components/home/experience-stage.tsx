@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Disc3, Flag, Gift, House, LogIn, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
+import { ChevronRight, Clock3, Disc3, Flag, Gift, House, Info, LogIn, Printer, Projector, Stethoscope, Ticket, X, type LucideIcon } from "lucide-react";
 import { canvas, drawHolomedis, drawSouvenir, drawTicket } from "@/components/home/stage/art";
 import { cn } from "@/lib/utils/cn";
 
@@ -11,6 +11,7 @@ export interface StageStep {
   title: string;
   description: string;
   minutes: string;
+  flow?: string[];
 }
 
 /** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
@@ -28,8 +29,46 @@ const TIMELINE_ENDS = {
 
 const MAX_CHAPTERS = 7; // one per chapter factory in stage/chapters.ts
 
-/** What each chapter's 3D effect is about, shown under the title. */
-const EFFECT_TAGS = ["QR scan", "Projection mapping", "Audio reactive", "AI hologram", "Voice control", "Layer by layer", "Souvenir"];
+/** "±15 menit" -> 15, for the running clock (T+mm') on each chapter. */
+const minutesOf = (m: string) => parseInt(m.replace(/[^0-9]/g, ""), 10) || 0;
+
+/** Start/end chapters get their own name; acts in between are numbered from 1. */
+function chapterLabel(i: number, count: number) {
+  if (count > 2 && i === 0) return { edge: TIMELINE_ENDS.start, num: null };
+  if (count > 2 && i === count - 1) return { edge: TIMELINE_ENDS.end, num: null };
+  return { edge: null, num: count > 2 ? i : i + 1 };
+}
+
+/** The guest's path through a chapter: numbered steps joined by a glowing line. */
+function FlowSteps({ flow, vertical = false }: { flow: string[]; vertical?: boolean }) {
+  if (flow.length === 0) return null;
+  if (vertical) {
+    return (
+      <ol className="relative space-y-3 pl-1">
+        <span aria-hidden className="absolute bottom-3 left-[0.9rem] top-3 w-px bg-gradient-to-b from-cyan/70 via-[#a78bfa]/60 to-[#e879f9]/50" />
+        {flow.map((f, i) => (
+          <li key={i} className="relative flex items-center gap-3">
+            <span className="flow-dot relative flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-[0.625rem] font-bold text-[#0a0716]">{i + 1}</span>
+            <span className="text-[0.9375rem] font-medium text-ink">{f}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+  return (
+    <ol className="flex flex-wrap items-center gap-x-1 gap-y-2">
+      {flow.map((f, i) => (
+        <li key={i} className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] py-1 pl-1 pr-2.5 text-xs font-medium text-ink">
+            <span className="flow-dot flex size-[1.125rem] items-center justify-center rounded-full font-mono text-[0.5625rem] font-bold text-[#0a0716]">{i + 1}</span>
+            {f}
+          </span>
+          {i < flow.length - 1 ? <ChevronRight aria-hidden className="size-3.5 text-cyan/70" /> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function webglAvailable() {
   try {
@@ -55,6 +94,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
   const [mode, setMode] = useState<"stage" | "static">("stage");
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(0);
+  const [detailOpen, setDetailOpen] = useState(false);
   const count = Math.min(steps.length, MAX_CHAPTERS);
 
   useEffect(() => {
@@ -102,6 +142,15 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
     };
   }, [mode, count]);
 
+  useEffect(() => {
+    if (!detailOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDetailOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detailOpen]);
+
   function jump(index: number) {
     const section = sectionRef.current;
     if (!section) return;
@@ -118,7 +167,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
   const step = steps[stepIndex];
   const side = stepIndex % 2 === 0 ? "right" : "left";
   const starts = steps.slice(0, count).reduce<number[]>((acc, _st, i) => {
-    acc.push(i === 0 ? 0 : acc[i - 1] + (parseInt(steps[i - 1].minutes, 10) || 0));
+    acc.push(i === 0 ? 0 : acc[i - 1] + minutesOf(steps[i - 1].minutes));
     return acc;
   }, []);
 
@@ -140,31 +189,111 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
           <span className="absolute bottom-0 right-0 size-5 border-b border-r border-cyan/50" />
         </div>
 
-        {/* Chapter copy */}
-        {step ? (
-          <div
-            key={active}
-            className={cn(
-              "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-36 pt-24 sm:px-10",
-              "bg-gradient-to-t from-[#040208] via-[#040208]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[42%] lg:items-center lg:bg-none lg:p-0",
-              side === "right" ? "lg:left-auto lg:right-0 lg:pr-20" : "lg:left-0 lg:pl-20",
-            )}
-            style={{ opacity: "var(--o, 0)" }}
-          >
-            <div className="max-w-md">
-              <p className="font-mono text-xs font-medium uppercase tracking-[0.2em] text-cyan">
-                CH.{String(stepIndex + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
-                <span aria-hidden className="mx-2 text-muted">{"//"}</span>
-                <span className="text-ink-soft">{step.mood}</span>
-              </p>
-              <h2 className="mt-4 text-2xl font-semibold leading-[1.15] text-ink sm:text-3xl lg:text-[2.6rem]">{step.title}</h2>
-              <p className="mt-4 text-base leading-8 text-ink-soft">{step.description}</p>
-              <p className="mt-5 flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-[0.12em]">
-                <span className="rounded-md border border-cyan/30 bg-cyan-soft/60 px-3 py-1.5 text-cyan">
-                  T+{String(starts[stepIndex] ?? 0).padStart(2, "0")}&apos;{step.minutes ? ` · ${step.minutes}` : ""}
-                </span>
-                <span className="rounded-md border border-line px-3 py-1.5 text-ink-soft">{EFFECT_TAGS[stepIndex % EFFECT_TAGS.length]}</span>
-              </p>
+        {/* Chapter copy: name, what it is, and on wide screens a glass card with the story and the guest's flow */}
+        {step
+          ? (() => {
+              const { edge, num } = chapterLabel(stepIndex, count);
+              const flow = step.flow ?? [];
+              const acts = count > 2 ? count - 2 : count;
+              return (
+                <div
+                  key={active}
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-40 pt-24 sm:px-10",
+                    "bg-gradient-to-t from-[#040208] via-[#040208]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[44%] lg:items-center lg:bg-none lg:p-0 lg:pb-32",
+                    side === "right" ? "lg:left-auto lg:right-0 lg:pr-16" : "lg:left-0 lg:pl-16",
+                  )}
+                  style={{ opacity: "var(--o, 0)" }}
+                >
+                  <div className="max-w-[30rem]">
+                    <p className="flex flex-wrap items-center gap-2 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.18em]">
+                      <span className="rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-1 text-cyan">
+                        {edge ? edge.tag : `Babak ${String(num).padStart(2, "0")} / ${String(acts).padStart(2, "0")}`}
+                      </span>
+                      {step.minutes ? (
+                        <span className="flex items-center gap-1.5 text-ink-soft">
+                          <Clock3 aria-hidden className="size-3.5 text-cyan/80" />
+                          {step.minutes}
+                          <span className="text-muted">· T+{String(starts[stepIndex] ?? 0).padStart(2, "0")}&apos;</span>
+                        </span>
+                      ) : null}
+                    </p>
+                    <h2 className="jc-h2 mt-4 font-display text-[1.65rem] font-semibold uppercase leading-[1.08] text-ink sm:text-4xl lg:text-[2.75rem]">
+                      {edge ? edge.label : step.mood}
+                    </h2>
+                    <p className="mt-2 bg-gradient-to-r from-cyan via-[#a5b4fc] to-[#f0abfc] bg-clip-text text-sm font-semibold text-transparent sm:text-base">
+                      {step.title}
+                    </p>
+
+                    {/* wide screens: the full story in a glass card */}
+                    <div className="journey-card jc-card mt-5 hidden rounded-2xl border border-white/10 p-5 lg:block">
+                      <p className="jc-desc text-[0.9375rem] leading-7 text-ink-soft">{step.description}</p>
+                      {flow.length > 0 ? (
+                        <div className="jc-flow mt-4 border-t border-white/10 pt-4">
+                          <p className="mb-2.5 font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted">Yang kamu alami</p>
+                          <FlowSteps flow={flow} />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* phones and tablets: two lines of the story, the rest in a sheet */}
+                    <div className="lg:hidden">
+                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-ink-soft">{step.description}</p>
+                      <button
+                        type="button"
+                        onClick={() => setDetailOpen(true)}
+                        className="pointer-events-auto mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full border border-cyan/40 bg-[#07041a]/80 px-4 text-xs font-semibold text-cyan backdrop-blur-sm"
+                      >
+                        <Info aria-hidden className="size-3.5" />
+                        Lihat detail babak
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
+          : null}
+
+        {/* Detail sheet for phones and tablets */}
+        {detailOpen && step ? (
+          <div className="absolute inset-0 z-30 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="journey-detail-title">
+            <button type="button" aria-label="Tutup detail" onClick={() => setDetailOpen(false)} className="absolute inset-0 bg-[#040208]/70 backdrop-blur-[2px]" />
+            <div className="journey-sheet absolute inset-x-0 bottom-0 max-h-[78dvh] overflow-y-auto rounded-t-3xl border-t border-white/12 px-5 pb-8 pt-3 sm:px-8">
+              <span aria-hidden className="mx-auto mb-4 block h-1 w-10 rounded-full bg-white/20" />
+              {(() => {
+                const { edge, num } = chapterLabel(stepIndex, count);
+                const flow = step.flow ?? [];
+                const acts = count > 2 ? count - 2 : count;
+                return (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-cyan">
+                        {edge ? edge.tag : `Babak ${String(num).padStart(2, "0")} / ${String(acts).padStart(2, "0")}`}
+                        {step.minutes ? <span className="text-ink-soft"> · {step.minutes}</span> : null}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setDetailOpen(false)}
+                        aria-label="Tutup detail"
+                        className="-mr-2 -mt-2 flex size-10 shrink-0 items-center justify-center rounded-full text-ink-soft hover:text-ink"
+                      >
+                        <X className="size-5" aria-hidden />
+                      </button>
+                    </div>
+                    <h3 id="journey-detail-title" className="mt-1 font-display text-2xl font-semibold uppercase leading-tight text-ink">
+                      {edge ? edge.label : step.mood}
+                    </h3>
+                    <p className="mt-1.5 bg-gradient-to-r from-cyan via-[#a5b4fc] to-[#f0abfc] bg-clip-text text-sm font-semibold text-transparent">{step.title}</p>
+                    <p className="mt-4 text-[0.9375rem] leading-7 text-ink-soft">{step.description}</p>
+                    {flow.length > 0 ? (
+                      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <p className="mb-3 font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted">Yang kamu alami</p>
+                        <FlowSteps flow={flow} vertical />
+                      </div>
+                    ) : null}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ) : null}
@@ -291,6 +420,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
         {steps.slice(0, count).map((st, i) => (
           <li key={i}>
             {st.mood}: {st.title}. {st.description} {st.minutes}
+            {st.flow?.length ? ` Alur: ${st.flow.join(", ")}.` : ""}
           </li>
         ))}
       </ol>
@@ -341,12 +471,26 @@ function StaticExperience({ steps }: { steps: StageStep[] }) {
                 )}
               </div>
               <div>
-                <p className="font-mono text-xs uppercase tracking-[0.2em] text-cyan">
-                  CH.{String(i + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")} <span className="text-ink-soft">{s.mood}</span>
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold text-ink sm:text-3xl">{s.title}</h2>
-                <p className="mt-4 text-base leading-8 text-ink-soft">{s.description}</p>
-                {s.minutes ? <p className="mt-4 font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">{s.minutes}</p> : null}
+                {(() => {
+                  const { edge, num } = chapterLabel(i, steps.length);
+                  const acts = steps.length > 2 ? steps.length - 2 : steps.length;
+                  return (
+                    <>
+                      <p className="font-mono text-xs uppercase tracking-[0.2em] text-cyan">
+                        {edge ? edge.tag : `Babak ${String(num).padStart(2, "0")} / ${String(acts).padStart(2, "0")}`}
+                        {s.minutes ? <span className="text-ink-soft"> · {s.minutes}</span> : null}
+                      </p>
+                      <h2 className="mt-3 font-display text-2xl font-semibold uppercase text-ink sm:text-3xl">{edge ? edge.label : s.mood}</h2>
+                      <p className="mt-1.5 text-sm font-semibold text-cyan">{s.title}</p>
+                      <p className="mt-4 text-base leading-8 text-ink-soft">{s.description}</p>
+                      {s.flow?.length ? (
+                        <div className="mt-5">
+                          <FlowSteps flow={s.flow} />
+                        </div>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
             </li>
           );

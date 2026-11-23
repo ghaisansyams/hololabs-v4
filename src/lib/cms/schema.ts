@@ -89,7 +89,7 @@ export const sections = [
     key: "experience",
     label: "Journey 3D (7 babak)",
     description:
-      "Tujuh babak yang dilewati kamera 3D saat halaman di-scroll. Urutan gambar tiap babak tetap; teks, durasi, dan kata suasana bisa diubah.",
+      "Tujuh babak yang dilewati kamera 3D saat halaman di-scroll. Urutan gambar tiap babak tetap; nama babak, subjudul, penjelasan, durasi, dan alur bisa diubah. Babak pertama dan terakhir tampil di timeline sebagai START dan END.",
     fields: [
       {
         key: "steps",
@@ -99,10 +99,11 @@ export const sections = [
         min: 3,
         max: 7,
         fields: [
-          t("mood", "Kata suasana (mis. Amazed)", 30),
-          t("title", "Judul babak", 60),
-          ta("description", "Penjelasan", 240),
-          t("minutes", "Durasi (mis. 15 menit)", 20),
+          t("mood", "Nama babak di timeline (mis. Feel the Beat)", 30),
+          t("title", "Subjudul babak (mis. Interactive DJ Performance)", 70),
+          ta("description", "Penjelasan", 360),
+          t("minutes", "Durasi (mis. ±15 menit)", 20),
+          { key: "flow", label: "Alur yang dialami pengunjung", type: "tags", hint: "Satu langkah per baris, 3 sampai 5 langkah. Kosongkan untuk babak pertama dan terakhir." },
         ],
       },
     ],
@@ -278,7 +279,7 @@ export const defaults = {
     ctaSecondary: "Lihat Journey",
   },
   experience: {
-    steps: experienceSteps.map(({ mood, title, description, minutes }) => ({ mood, title, description, minutes })),
+    steps: experienceSteps.map(({ mood, title, description, minutes, flow }) => ({ mood, title, description, minutes, flow })),
   },
   visit: {
     stats: visitStats.map(({ value, label }) => ({ value, label })),
