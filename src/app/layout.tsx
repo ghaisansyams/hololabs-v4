@@ -23,6 +23,14 @@ const space = localFont({
   display: "swap",
 });
 
+// Wide labels above section titles (as on hololabs.id).
+const label = localFont({
+  src: "./fonts/michroma-latin-400-normal.woff2",
+  weight: "400",
+  variable: "--font-michroma",
+  display: "swap",
+});
+
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -92,7 +100,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="id"
       data-scroll-behavior="smooth"
-      className={`${jakarta.variable} ${space.variable} ${mono.variable}`}
+      className={`${jakarta.variable} ${space.variable} ${mono.variable} ${label.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
         <ChromeProvider

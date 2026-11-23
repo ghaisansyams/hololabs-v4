@@ -17,7 +17,7 @@ export async function AboutSection() {
       <Container className="grid items-end gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
         <div>
           <Reveal>
-            <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">{"// "}{about.eyebrow}</p>
+            <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-cyan sm:text-sm">{about.eyebrow}</p>
           </Reveal>
           <Reveal delay={70}>
             <h2 className="mt-5 text-3xl font-semibold leading-[1.12] text-ink sm:text-4xl lg:text-5xl">{about.title}</h2>

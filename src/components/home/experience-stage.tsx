@@ -131,7 +131,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
           <div
             key={active}
             className={cn(
-              "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-32 pt-24 sm:px-10",
+              "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-36 pt-24 sm:px-10",
               "bg-gradient-to-t from-[#040208] via-[#040208]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[42%] lg:items-center lg:bg-none lg:p-0",
               side === "right" ? "lg:left-auto lg:right-0 lg:pr-20" : "lg:left-0 lg:pl-20",
             )}
@@ -155,18 +155,18 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
           </div>
         ) : null}
 
-        {/* Chapter timeline: a glass bar with a node per chapter on a progress line */}
-        <nav aria-label="Babak journey" className="absolute inset-x-0 bottom-4 mx-auto max-w-4xl px-4 sm:bottom-7 sm:px-10">
-          <div className="rounded-2xl border border-white/10 bg-[#0a0716]/60 px-3 pb-3 pt-4 shadow-[0_10px_40px_rgb(0_0_0/0.45)] backdrop-blur-md sm:px-5 sm:pb-4 sm:pt-5">
+        {/* Chapter timeline: a tilted glass dock, glossy spheres on a glowing tube */}
+        <nav aria-label="Babak journey" className="absolute inset-x-0 bottom-4 mx-auto max-w-4xl px-4 [perspective:1100px] sm:bottom-7 sm:px-10">
+          <div className="tl-dock rounded-[1.75rem] border border-white/10 px-3 pb-3 pt-5 backdrop-blur-xl [transform-origin:50%_100%] [transform:rotateX(9deg)] sm:px-6 sm:pb-4 sm:pt-6">
             <div className="relative">
-              {/* line between the first and last node centres, filled as the page scrolls */}
+              {/* tube between the first and last sphere, filled as the page scrolls */}
               <div
                 aria-hidden
-                className="absolute top-3 h-[2px] -translate-y-1/2 overflow-hidden rounded-full bg-white/12 sm:top-[1.125rem]"
+                className="tl-tube absolute top-3.5 h-2 -translate-y-1/2 rounded-full sm:top-5"
                 style={{ left: `${50 / count}%`, right: `${50 / count}%` }}
               >
                 <span
-                  className="block h-full origin-left bg-gradient-to-r from-cyan to-[#a855f7]"
+                  className="tl-fill block h-full origin-left rounded-full"
                   style={{ transform: `scaleX(clamp(0, calc(var(--t, 0) / ${Math.max(1, count - 1)}), 1))` }}
                 />
               </div>
@@ -181,28 +181,38 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                         onClick={() => jump(i)}
                         aria-label={`Babak ${i + 1}: ${st.title}`}
                         aria-current={current ? "step" : undefined}
-                        className="group flex w-full cursor-pointer flex-col items-center gap-2 outline-none"
+                        className="group flex w-full cursor-pointer flex-col items-center gap-2.5 outline-none"
                       >
-                        <span
-                          className={cn(
-                            "flex size-6 items-center justify-center rounded-full border text-[0.625rem] font-semibold tabular-nums transition-all duration-300 sm:size-9 sm:text-xs",
-                            current
-                              ? "scale-110 border-transparent bg-gradient-to-br from-cyan to-[#a855f7] text-[#040208] shadow-[0_0_0_4px_rgb(34_211_238/0.18),0_0_26px_rgb(168_85_247/0.65)]"
-                              : done
-                                ? "border-transparent bg-gradient-to-br from-cyan/80 to-[#a855f7]/80 text-[#040208]"
-                                : "border-white/15 bg-[#0a0716] text-muted group-hover:border-cyan/50 group-hover:text-ink",
-                            "group-focus-visible:ring-2 group-focus-visible:ring-cyan",
-                          )}
-                        >
-                          {i + 1}
+                        <span className="relative flex size-7 items-center justify-center sm:size-10">
+                          {current ? (
+                            <span aria-hidden className="absolute inset-0 rounded-full border border-cyan/60 motion-safe:animate-ping" />
+                          ) : null}
+                          <span
+                            className={cn(
+                              "tl-orb relative flex size-full items-center justify-center rounded-full border text-[0.6875rem] font-bold tabular-nums transition-all duration-300 sm:text-sm",
+                              current
+                                ? "tl-orb-done tl-orb-active -translate-y-1 scale-125 border-white/40 text-[#1a0a3a]"
+                                : done
+                                  ? "tl-orb-done border-white/25 text-[#1a0a3a]"
+                                  : "border-white/12 text-muted group-hover:-translate-y-0.5 group-hover:border-cyan/50 group-hover:text-ink",
+                              "group-focus-visible:ring-2 group-focus-visible:ring-cyan",
+                            )}
+                          >
+                            {i + 1}
+                          </span>
                         </span>
-                        <span
-                          className={cn(
-                            "hidden font-display text-[0.625rem] font-medium uppercase tracking-[0.1em] transition-colors lg:block",
-                            current ? "text-ink" : done ? "text-ink-soft" : "text-muted group-hover:text-ink-soft",
-                          )}
-                        >
-                          {st.mood}
+                        <span className="hidden flex-col items-center gap-0.5 lg:flex">
+                          <span
+                            className={cn(
+                              "font-display text-[0.625rem] font-medium uppercase tracking-[0.1em] transition-colors",
+                              current ? "text-ink" : done ? "text-ink-soft" : "text-muted group-hover:text-ink-soft",
+                            )}
+                          >
+                            {st.mood}
+                          </span>
+                          {st.minutes ? (
+                            <span className={cn("font-mono text-[0.625rem] transition-colors", current ? "text-cyan" : "text-muted/70")}>{st.minutes}</span>
+                          ) : null}
                         </span>
                       </button>
                     </li>
@@ -210,11 +220,12 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                 })}
               </ol>
             </div>
-            {/* phones and tablets have no room for seven labels, so only the current chapter's mood is named */}
-            <p className="mt-2.5 text-center font-display text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-ink lg:hidden">
+            {/* phones and tablets have no room for seven labels, so only the current chapter is named */}
+            <p className="mt-3 text-center font-display text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-ink lg:hidden">
               <span className="text-cyan">{String(stepIndex + 1).padStart(2, "0")}</span>
               <span aria-hidden className="mx-2 text-muted">/</span>
               {step?.mood}
+              {step?.minutes ? <span className="ml-2 font-mono normal-case tracking-normal text-muted">· {step.minutes}</span> : null}
             </p>
           </div>
         </nav>
