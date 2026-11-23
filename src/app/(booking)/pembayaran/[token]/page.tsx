@@ -245,7 +245,7 @@ export default async function PaymentPage({
           ) : null}
         </div>
 
-        <aside className="rounded-3xl border border-white/10 bg-hl-panel/85 p-6 backdrop-blur lg:sticky lg:top-6">
+        <aside className="rounded-3xl border border-white/10 bg-hl-panel/85 p-6 backdrop-blur lg:sticky lg:top-8">
           <p className="hl-eyebrow">DETAIL PESANAN</p>
           <dl className="mt-4 flex flex-col gap-3 text-[15px]">
             {(

@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic";
 /** Standalone chrome for /booking and the payment page, as on hololabs.id: wordmark, a way home, two soft glows. */
 export default function BookingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${display.variable} ${sans.variable} ${label.variable} hl-scope relative min-h-dvh flex-1 overflow-hidden`}>
+    <div className={`${display.variable} ${sans.variable} ${label.variable} hl-scope relative min-h-dvh flex-1 overflow-clip`}>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_500px_at_75%_10%,rgba(139,92,246,.18),transparent_70%),radial-gradient(600px_400px_at_10%_60%,rgba(34,211,238,.08),transparent_70%)] print:hidden"
