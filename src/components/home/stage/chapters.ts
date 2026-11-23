@@ -5,7 +5,7 @@ import { buildPrints } from "./prints";
 /**
  * The seven chapters of the show, each with its own 3D treatment:
  *   1 Check-in     a thick e-ticket whose QR is read by a scanner window
- *   2 Journey      a curved video-mapping wall assembled from flying tiles, lit by a projector cone
+ *   2 Journey      a curved video-mapping wall assembled from flying tiles
  *   3 DJ           a beat-driven equaliser, shockwave rings, stage beams
  *   4 Holomedis    a holographic assistant screen with a floating ECG
  *   5 Smart Living a voice command switching on 3D control tiles
@@ -360,46 +360,8 @@ function projectionChapter(ctx: Ctx): Chapter {
   halo.position.z = -0.4;
   group.add(halo);
 
-  // projector beam: four faces from the lens to the screen corners, brighter at the lens
-  const beamGeo = ctx.track(new THREE.BufferGeometry());
-  const beamPos = new Float32Array(12 * 3);
-  const beamAlpha = new Float32Array(12);
-  for (let i = 0; i < 4; i++) {
-    beamAlpha.set([0.3, 0.015, 0.015], i * 3);
-  }
-  beamGeo.setAttribute("position", new THREE.BufferAttribute(beamPos, 3));
-  beamGeo.setAttribute("alpha", new THREE.BufferAttribute(beamAlpha, 1));
-  const beamMat = ctx.track(
-    new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(0x93c5fd) }, uOpacity: { value: 1 } },
-      vertexShader: "attribute float alpha; varying float vA; void main(){ vA = alpha; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform vec3 uColor; uniform float uOpacity; varying float vA; void main(){ gl_FragColor = vec4(uColor, vA * uOpacity); }",
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    }),
-  );
-  const beam = new THREE.Mesh(beamGeo, beamMat);
-  const lens = new THREE.Sprite(
-    fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0xe0f2fe, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
-  );
-  group.add(beam, lens);
-
-  // dust drifting inside the beam
-  const dustN = ctx.mobile ? 70 : 140;
-  const dustGeo = ctx.track(new THREE.BufferGeometry());
-  const dustPos = new Float32Array(dustN * 3);
-  const dustSeed = Array.from({ length: dustN }, () => [Math.random(), Math.random() - 0.5, Math.random() - 0.5]);
-  dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-  const dustMat = fader.add(
-    ctx.track(new THREE.PointsMaterial({ size: 0.06, map: ctx.dot, color: 0xbfdbfe, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })),
-  );
-  group.add(new THREE.Points(dustGeo, dustMat));
-
   let w = 4.4;
   let h = w / aspect;
-  const lensPos = new THREE.Vector3();
   return {
     group,
     layout(width) {
@@ -409,25 +371,9 @@ function projectionChapter(ctx: Ctx): Chapter {
       h *= 0.92;
       band.scale.set(w, h, 1);
       halo.scale.set(w * 1.9, h * 1.9, 1);
-      lensPos.set(0, h * 0.75, 3.0);
-      lens.position.copy(lensPos);
-      lens.scale.set(0.7, 0.7, 1);
-      const corners = [
-        [-0.5, -0.5],
-        [0.5, -0.5],
-        [0.5, 0.5],
-        [-0.5, 0.5],
-      ].map(([x, y]) => [x * w, y * h, bendZ(x)]);
-      for (let i = 0; i < 4; i++) {
-        const a = corners[i];
-        const b = corners[(i + 1) % 4];
-        beamPos.set([lensPos.x, lensPos.y, lensPos.z, a[0], a[1], a[2], b[0], b[1], b[2]], i * 9);
-      }
-      beamGeo.attributes.position.needsUpdate = true;
     },
-    update({ act, vis, time, dt }) {
+    update({ act, vis, time }) {
       fader.apply(vis);
-      beamMat.uniforms.uOpacity.value = vis * (0.2 + 0.5 * act);
       for (const t of tiles) {
         const e = smoothstep01((act * 1.15 - t.delay) / 0.5);
         const k = 1 - e;
@@ -438,17 +384,6 @@ function projectionChapter(ctx: Ctx): Chapter {
       }
       bandMat.uniforms.uPos.value = ((time * 0.16) % 1.5) - 0.25;
       bandMat.uniforms.uOpacity.value = vis * smoothstep01((act - 0.55) / 0.45);
-      for (let i = 0; i < dustN; i++) {
-        const s = dustSeed[i];
-        s[0] = (s[0] + dt * 0.05) % 1;
-        const t = s[0];
-        const tx = s[1] * w;
-        const ty = s[2] * h;
-        dustPos[i * 3] = lensPos.x + (tx - lensPos.x) * t + Math.sin(time + i) * 0.05;
-        dustPos[i * 3 + 1] = lensPos.y + (ty - lensPos.y) * t;
-        dustPos[i * 3 + 2] = lensPos.z + (0.2 - lensPos.z) * t;
-      }
-      dustGeo.attributes.position.needsUpdate = true;
     },
   };
 }
@@ -845,8 +780,8 @@ function printChapter(ctx: Ctx): Chapter {
       glow.scale.set(w * 1.6, h * 1.9, 1);
       brackets.scale.set(w * 1.04, h * 1.04, 1);
       const inner = side === 0 ? 1 : -side;
-      printer.scale.setScalar(w * 0.13);
-      printer.position.set(inner * w * 0.38, -h * 0.5 + 0.02, 0.8);
+      printer.scale.setScalar(w * 0.19);
+      printer.position.set(inner * w * (ctx.mobile ? 0.26 : 0.38), -h * 0.5 + 0.02, 0.8);
     },
     update({ act, vis, time }) {
       fader.apply(vis);
