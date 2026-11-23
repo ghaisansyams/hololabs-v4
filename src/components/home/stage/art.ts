@@ -164,7 +164,7 @@ const HOLO_REPLY =
   "Kurang tidur memang bisa memicu pusing. Aku catat keluhanmu dulu, lalu kusiapkan jadwal konsultasi dengan dokter ya.";
 
 /**
- * Chapter 4: the Holomedis AI assistant screen (a demo, as on hololabs.id).
+ * Chapter 4: the AI Health Assistant screen (a demo, as on hololabs.id).
  * `t` is seconds; it drives the heart rate and the typing reply. The ECG
  * strip is left empty here: in 3D a real line floats in front of it.
  */
@@ -202,7 +202,7 @@ export function drawHolomedis(g: CanvasRenderingContext2D, t: number, withEcg = 
 
   g.fillStyle = "#ffffff";
   g.font = `700 42px ${SANS}`;
-  g.fillText("Holomedis AI", 196, 108);
+  g.fillText("AI Health Assistant", 196, 108, W - 232 - 196 - 28);
   g.fillStyle = "#34d399";
   g.beginPath();
   g.arc(206, 144, 7, 0, Math.PI * 2);

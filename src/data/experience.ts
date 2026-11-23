@@ -47,7 +47,7 @@ export const experienceSteps: ExperienceStep[] = [
     mood: "Meet AI",
     title: "Asisten Virtual AI Berwujud Avatar 3D",
     description:
-      "Saatnya bicara dengan teknologi. Kamu bisa bertanya dan mengobrol langsung dengan Doocoon AI, asisten virtual berwujud avatar 3D yang mendengarkan suaramu lalu menjawab. Coba ceritakan keluhan kesehatanmu, dan ia membantu mencatatnya sebelum kamu berkonsultasi dengan dokter.",
+      "Saatnya bicara dengan teknologi. Kamu bisa bertanya dan mengobrol langsung dengan AI Health Assistant, asisten virtual berwujud avatar 3D yang mendengarkan suaramu lalu menjawab. Coba ceritakan keluhan kesehatanmu, dan ia membantu mencatatnya sebelum kamu berkonsultasi dengan dokter.",
     minutes: "±15 menit",
     flow: ["Tanya", "Bicara", "Interaksi", "Temukan"],
   },
