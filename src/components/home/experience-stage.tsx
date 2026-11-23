@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Disc3, Gift, House, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
 import { canvas, drawHolomedis, drawSouvenir, drawTicket } from "@/components/home/stage/art";
 import { cn } from "@/lib/utils/cn";
 
@@ -11,6 +12,9 @@ export interface StageStep {
   description: string;
   minutes: string;
 }
+
+/** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
+const CHAPTER_ICONS: LucideIcon[] = [Ticket, Projector, Disc3, Stethoscope, House, Printer, Gift];
 
 const MAX_CHAPTERS = 7; // one per chapter factory in stage/chapters.ts
 
@@ -162,7 +166,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
               {/* tube between the first and last sphere, filled as the page scrolls */}
               <div
                 aria-hidden
-                className="tl-tube absolute top-3.5 h-2 -translate-y-1/2 rounded-full sm:top-5"
+                className="tl-tube absolute top-3.5 h-2 -translate-y-1/2 rounded-full sm:top-[1.375rem]"
                 style={{ left: `${50 / count}%`, right: `${50 / count}%` }}
               >
                 <span
@@ -183,19 +187,31 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                         aria-current={current ? "step" : undefined}
                         className="group flex w-full cursor-pointer flex-col items-center gap-2.5 outline-none"
                       >
-                        <span className="relative flex size-7 items-center justify-center sm:size-10">
+                        <span className="relative flex size-7 items-center justify-center sm:size-11">
                           {current ? (
                             <span aria-hidden className="absolute inset-0 rounded-full border border-cyan/60 motion-safe:animate-ping" />
                           ) : null}
                           <span
                             className={cn(
-                              "tl-orb relative flex size-full items-center justify-center rounded-full border text-[0.6875rem] font-bold tabular-nums transition-all duration-300 sm:text-sm",
+                              "tl-orb relative flex size-full items-center justify-center rounded-full border transition-all duration-300",
                               current
-                                ? "tl-orb-done tl-orb-active -translate-y-1 scale-125 border-white/40 text-[#1a0a3a]"
+                                ? "tl-orb-done tl-orb-active -translate-y-1 scale-125 border-white/40 text-white"
                                 : done
-                                  ? "tl-orb-done border-white/25 text-[#1a0a3a]"
+                                  ? "tl-orb-done border-white/25 text-white"
                                   : "border-white/12 text-muted group-hover:-translate-y-0.5 group-hover:border-cyan/50 group-hover:text-ink",
                               "group-focus-visible:ring-2 group-focus-visible:ring-cyan",
+                            )}
+                          >
+                            {(() => {
+                              const Icon = CHAPTER_ICONS[i % CHAPTER_ICONS.length];
+                              return <Icon aria-hidden strokeWidth={2.3} className={cn("size-3.5 sm:size-5", current || done ? "tl-icon" : "tl-icon-dim")} />;
+                            })()}
+                          </span>
+                          <span
+                            aria-hidden
+                            className={cn(
+                              "absolute -right-1.5 -top-1.5 hidden size-[1.125rem] items-center justify-center rounded-full border text-[0.5625rem] font-bold tabular-nums sm:flex",
+                              current ? "border-cyan/70 bg-[#0a0716] text-cyan" : "border-white/15 bg-[#0a0716] text-muted",
                             )}
                           >
                             {i + 1}

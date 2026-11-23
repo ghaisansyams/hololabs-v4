@@ -571,3 +571,15 @@
       inset 0 -4px 7px rgb(30 10 80 / 0.5);
   }
 }
+
+@layer components {
+  /* Chapter icons on the spheres: raised by stacking offset shadows into an extrusion. */
+  .tl-icon {
+    color: #12062e;
+    filter: drop-shadow(0 1px 0 rgb(255 255 255 / 0.8)) drop-shadow(0 3px 2px rgb(60 20 140 / 0.4));
+  }
+  .tl-icon-dim {
+    color: #9d97b4;
+    filter: drop-shadow(0 1px 0 #1c1533) drop-shadow(0 2px 0 #0f0a20) drop-shadow(0 4px 3px rgb(0 0 0 / 0.6));
+  }
+}

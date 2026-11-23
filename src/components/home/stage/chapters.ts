@@ -4,7 +4,7 @@ import { canvas, drawCheckBadge, drawHolomedis, drawHomeTile, drawSouvenir, draw
 /**
  * The seven chapters of the show, each with its own 3D treatment:
  *   1 Check-in     a thick e-ticket whose QR is read by a scanner window
- *   2 Journey      a curved projection screen lit by a projector cone
+ *   2 Journey      a curved video-mapping wall assembled from flying tiles, lit by a projector cone
  *   3 DJ           a beat-driven equaliser, shockwave rings, stage beams
  *   4 Holomedis    a holographic assistant screen with a floating ECG
  *   5 Smart Living a voice command switching on 3D control tiles
@@ -286,12 +286,71 @@ function projectionChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
   const aspect = 1400 / 1253;
-  const screenGeo = ctx.track(new THREE.PlaneGeometry(1, 1, 48, 1));
-  const base = Float32Array.from(screenGeo.attributes.position.array as Float32Array);
+  const cols = ctx.mobile ? 6 : 8;
+  const rows = ctx.mobile ? 4 : 5;
+  const curve = 0.28;
+  const bendZ = (x: number) => curve * 4 * x * x;
+
+  // The projection wall is cut into tiles that fly in from scattered
+  // positions and lock together as the chapter comes into focus, the way a
+  // video-mapping rig stitches many surfaces into one picture.
   const screenMat = fader.add(photoMaterial(ctx, "/experience/journey-of-life.jpg"), 1);
   screenMat.side = THREE.DoubleSide;
-  const screen = new THREE.Mesh(screenGeo, screenMat);
-  group.add(screen);
+  type Tile = { mesh: THREE.Mesh; x: number; y: number; delay: number; off: THREE.Vector3; spin: THREE.Vector3 };
+  const tiles: Tile[] = [];
+  const tileGroup = new THREE.Group();
+  group.add(tileGroup);
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      const g = ctx.track(new THREE.PlaneGeometry(1 / cols, 1 / rows));
+      const uv = g.attributes.uv as THREE.BufferAttribute;
+      for (let k = 0; k < uv.count; k++) uv.setXY(k, (i + uv.getX(k)) / cols, (j + uv.getY(k)) / rows);
+      const mesh = new THREE.Mesh(g, screenMat);
+      tileGroup.add(mesh);
+      const x = (i + 0.5) / cols - 0.5;
+      const y = (j + 0.5) / rows - 0.5;
+      tiles.push({
+        mesh,
+        x,
+        y,
+        // tiles near the centre lock first, the rest follow outward
+        delay: Math.hypot(x, y) * 0.5 + Math.random() * 0.14,
+        off: new THREE.Vector3((Math.random() - 0.5) * 2.4, (Math.random() - 0.5) * 1.8, 0.8 + Math.random() * 2.2),
+        spin: new THREE.Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.2),
+      });
+    }
+  }
+
+  // light sweeping across the wall and glowing along the tile seams
+  const bandGeo = ctx.track(new THREE.PlaneGeometry(1, 1, 48, 1));
+  const bandPos = bandGeo.attributes.position as THREE.BufferAttribute;
+  for (let k = 0; k < bandPos.count; k++) bandPos.setZ(k, bendZ(bandPos.getX(k)) + 0.03);
+  const bandMat = ctx.track(
+    new THREE.ShaderMaterial({
+      uniforms: {
+        uPos: { value: 0 },
+        uOpacity: { value: 0 },
+        uGrid: { value: new THREE.Vector2(cols, rows) },
+        uColor: { value: new THREE.Color(0x7dd3fc) },
+      },
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: `uniform float uPos; uniform float uOpacity; uniform vec2 uGrid; uniform vec3 uColor; varying vec2 vUv;
+        float seam(float v){ float f = fract(v); return smoothstep(0.035, 0.0, min(f, 1.0 - f)); }
+        void main(){
+          float d = vUv.x - uPos;
+          float band = exp(-d * d * 120.0);
+          float lines = max(seam(vUv.x * uGrid.x), seam(vUv.y * uGrid.y));
+          float a = band * 0.5 + lines * (0.16 + band * 0.5);
+          gl_FragColor = vec4(uColor, a * uOpacity);
+        }`,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const band = new THREE.Mesh(bandGeo, bandMat);
+  group.add(band);
 
   const haloMat = fader.add(
     ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0x3b82f6, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })),
@@ -340,8 +399,6 @@ function projectionChapter(ctx: Ctx): Chapter {
   let w = 4.4;
   let h = w / aspect;
   const lensPos = new THREE.Vector3();
-  const curve = 0.28;
-  const bendZ = (x: number) => curve * 4 * x * x;
   return {
     group,
     layout(width) {
@@ -349,7 +406,7 @@ function projectionChapter(ctx: Ctx): Chapter {
       h = w / aspect;
       w *= 0.92;
       h *= 0.92;
-      screen.scale.set(w, h, 1);
+      band.scale.set(w, h, 1);
       halo.scale.set(w * 1.9, h * 1.9, 1);
       lensPos.set(0, h * 0.75, 3.0);
       lens.position.copy(lensPos);
@@ -369,13 +426,17 @@ function projectionChapter(ctx: Ctx): Chapter {
     },
     update({ act, vis, time, dt }) {
       fader.apply(vis);
-      beamMat.uniforms.uOpacity.value = vis * (0.35 + 0.65 * act);
-      const p = screenGeo.attributes.position.array as Float32Array;
-      for (let i = 0; i < p.length; i += 3) {
-        const x = base[i];
-        p[i + 2] = bendZ(x) + Math.sin(x * 9 + time * 1.4) * 0.03 * act;
+      beamMat.uniforms.uOpacity.value = vis * (0.2 + 0.5 * act);
+      for (const t of tiles) {
+        const e = smoothstep01((act * 1.15 - t.delay) / 0.5);
+        const k = 1 - e;
+        const ripple = Math.sin(t.x * 9 + time * 1.4) * 0.03 * e;
+        t.mesh.position.set(t.x * w + t.off.x * k, t.y * h + t.off.y * k, bendZ(t.x) + ripple + t.off.z * k);
+        t.mesh.rotation.set(t.spin.x * k, t.spin.y * k, t.spin.z * k);
+        t.mesh.scale.set(w * 0.965, h * 0.965, 1);
       }
-      screenGeo.attributes.position.needsUpdate = true;
+      bandMat.uniforms.uPos.value = ((time * 0.16) % 1.5) - 0.25;
+      bandMat.uniforms.uOpacity.value = vis * smoothstep01((act - 0.55) / 0.45);
       for (let i = 0; i < dustN; i++) {
         const s = dustSeed[i];
         s[0] = (s[0] + dt * 0.05) % 1;
