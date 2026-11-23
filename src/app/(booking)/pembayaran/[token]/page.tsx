@@ -72,39 +72,10 @@ export default async function PaymentPage({
   const amountTail = amountText.slice(-3);
 
   const account = cfg.accountNumber || `nomor rekening ${cfg.bank} di atas`;
-  const same = "Masukkan nominal PERSIS seperti tagihan, termasuk 3 digit terakhir.";
-  const guides: { title: string; steps: string[] }[] = [
-    {
-      title: "myBCA / BCA mobile",
-      steps: [
-        "Buka myBCA atau BCA mobile (m-BCA), pilih Transfer.",
-        `Pilih Antar Rekening BCA, masukkan nomor ${account}.`,
-        `Pastikan nama penerima ${cfg.holder}.`,
-        same,
-        "Konfirmasi, lalu simpan bukti transfer.",
-      ],
-    },
-    {
-      title: "Dari bank lain / e-wallet",
-      steps: [
-        "Pilih Transfer ke bank lain (BI-FAST atau online).",
-        `Pilih bank tujuan ${cfg.bank}, nomor rekening ${account}.`,
-        `Pastikan nama penerima ${cfg.holder}.`,
-        same,
-        "Biaya transfer antarbank (bila ada) ditanggung pengirim.",
-      ],
-    },
-    {
-      title: "ATM",
-      steps: [
-        `Pilih Transfer, lalu ke rekening ${cfg.bank} (atau bank lain dari ATM non-${cfg.bank}).`,
-        `Masukkan nomor rekening ${account} dan nominal persis.`,
-        `Pastikan nama penerima ${cfg.holder}, lalu konfirmasi. Simpan struknya.`,
-      ],
-    },
-  ];
+  const fill = (text: string) => text.replaceAll("{rekening}", account).replaceAll("{atasnama}", cfg.holder).replaceAll("{bank}", cfg.bank);
+  const guides = cfg.guides.filter((g) => g.title).map((g) => ({ title: g.title, steps: g.steps.map(fill) }));
 
-  const eyebrow = cancelled ? "PESANAN DIBATALKAN" : expired ? "PESANAN KEDALUWARSA" : waiting ? "MENUNGGU VERIFIKASI" : "PESANAN DIBUAT";
+  const eyebrow = cancelled ? "PESANAN DIBATALKAN" : expired ? "PESANAN KEDALUWARSA" : waiting ? "MENUNGGU VERIFIKASI" : cfg.payEyebrow;
 
   return (
     <>
@@ -121,7 +92,7 @@ export default async function PaymentPage({
             </>
           ) : (
             <>
-              Kursimu <span className="hl-text-grad">sudah ditahan.</span>
+              {cfg.payTitle} <span className="hl-text-grad">{cfg.payTitleAccent}</span>
             </>
           )}
         </h1>
@@ -130,7 +101,7 @@ export default async function PaymentPage({
             ? "Kursinya sudah dilepas lagi dan bisa dipesan orang lain."
             : waiting
               ? `Tim HOLOLABS sedang memverifikasi transfermu. Kalau sudah cocok, e-ticket bisa dilihat lewat "Cek status tiket".`
-              : `Transfer sesuai nominal di bawah, lalu tekan "Saya sudah transfer".`}
+              : cfg.payLead}
         </p>
       </div>
 
@@ -243,7 +214,7 @@ export default async function PaymentPage({
             )}
           </section>
 
-          {!closed ? (
+          {!closed && guides.length > 0 ? (
             <section className="rounded-3xl border border-white/10 bg-hl-panel/85 p-6 backdrop-blur">
               <h2 className="hl-display text-xl font-semibold">Cara transfer</h2>
               <div className="mt-5 flex flex-col gap-3">

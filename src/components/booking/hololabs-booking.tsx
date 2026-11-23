@@ -32,7 +32,16 @@ export interface BookingDayView {
 type Contact = { name: string; email: string; whatsapp: string; note: string };
 type Errors = Partial<Record<keyof Contact | "sessionId" | "seats" | "agree", string>>;
 
-const STEPS = ["Jadwal", "Data diri", "Ketentuan", "Pembayaran"];
+export type BookingCopy = {
+  stepLabels: string[];
+  dateTitle: string;
+  timeTitle: string;
+  seatTitle: string;
+  dataTitle: string;
+  dataNote: string;
+  termsTitle: string;
+  paymentTitle: string;
+};
 
 const fmtDate = (date: string, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat("id-ID", { ...options, timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
@@ -65,7 +74,9 @@ export function HololabsBooking({
   paymentMinutes,
   bank,
   whatsapp,
+  copy,
 }: {
+  copy: BookingCopy;
   initialDays: BookingDayView[];
   maxGuests: number;
   terms: string[];
@@ -215,7 +226,7 @@ export function HololabsBooking({
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <div className="flex flex-col gap-5">
         <ol className="grid grid-cols-4 gap-2" aria-label="Langkah booking">
-          {STEPS.map((label, i) => {
+          {copy.stepLabels.map((label, i) => {
             const done = i < step;
             const current = i === step;
             return (
@@ -242,7 +253,7 @@ export function HololabsBooking({
           {step === 0 ? (
             <div className="flex flex-col gap-6">
               <div>
-                <h2 className="hl-display text-2xl font-semibold">Pilih tanggal</h2>
+                <h2 className="hl-display text-2xl font-semibold">{copy.dateTitle}</h2>
                 <div className="-mx-1 mt-4 flex snap-x gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
                   {days.map((d) => {
                     const open = d.sessions.filter((s) => s.bookable);
@@ -276,7 +287,7 @@ export function HololabsBooking({
               </div>
 
               <div>
-                <h2 className="hl-display text-2xl font-semibold">Pilih jam show</h2>
+                <h2 className="hl-display text-2xl font-semibold">{copy.timeTitle}</h2>
                 <p className="mt-1 text-[15px] text-[#a9a3bc]">
                   {date && fmtDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                 </p>
@@ -325,7 +336,7 @@ export function HololabsBooking({
               {session ? (
                 <div>
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 className="hl-display text-2xl font-semibold">Pilih kursi</h2>
+                    <h2 className="hl-display text-2xl font-semibold">{copy.seatTitle}</h2>
                     <span className="text-[14px] text-[#a9a3bc]">
                       {count ? `${count} kursi: ${seatList(seats)}` : `Ketuk kursi bar yang kamu mau (maks. ${limit})`}
                     </span>
@@ -351,8 +362,8 @@ export function HololabsBooking({
 
           {step === 1 ? (
             <div className="flex flex-col gap-4">
-              <h2 className="hl-display text-2xl font-semibold">Data pemesan</h2>
-              <p className="-mt-2 text-[15px] text-[#a9a3bc]">E-ticket dikirim ke email dan nomor ini.</p>
+              <h2 className="hl-display text-2xl font-semibold">{copy.dataTitle}</h2>
+              <p className="-mt-2 text-[15px] text-[#a9a3bc]">{copy.dataNote}</p>
               {(
                 [
                   { k: "name", label: "Nama lengkap", type: "text", ac: "name", ph: "Nama sesuai identitas", im: "text" },
@@ -392,7 +403,7 @@ export function HololabsBooking({
 
           {step === 2 ? (
             <div className="flex flex-col gap-4">
-              <h2 className="hl-display text-2xl font-semibold">Syarat &amp; ketentuan</h2>
+              <h2 className="hl-display text-2xl font-semibold">{copy.termsTitle}</h2>
               <ol className="flex max-h-[46vh] list-decimal flex-col gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-hl-ink/60 py-4 pl-9 pr-4 text-[15px] leading-relaxed text-[#d3cee2]">
                 {terms.map((t) => (
                   <li key={t}>{t}</li>
@@ -412,7 +423,7 @@ export function HololabsBooking({
 
           {step === 3 ? (
             <div className="flex flex-col gap-4">
-              <h2 className="hl-display text-2xl font-semibold">Pembayaran</h2>
+              <h2 className="hl-display text-2xl font-semibold">{copy.paymentTitle}</h2>
               <div
                 role="radiogroup"
                 aria-label="Metode pembayaran"

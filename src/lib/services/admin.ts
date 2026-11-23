@@ -74,6 +74,10 @@ export interface CustomerRow {
   createdAt: string;
   bookingCount: number;
   paidTotal: number;
+  /** Most recent show date among their non-cancelled bookings (YYYY-MM-DD), if any. */
+  lastShowDate: string | null;
+  /** Seats across their non-cancelled bookings. */
+  seatCount: number;
 }
 
 const { bookings: b, sessions: s, packages: pk, customers: c, payments: p } = schema;
@@ -217,8 +221,10 @@ export async function listAllPackages(): Promise<PackageRow[]> {
   }));
 }
 
-export async function listCustomers(): Promise<CustomerRow[]> {
-  const list = await getDb()
+/** Customers newest first; `q` matches name, WhatsApp or email. `limit` 0 means everyone (for the CSV). */
+export async function listCustomers(q = "", limit = 300): Promise<CustomerRow[]> {
+  const needle = `%${q.trim().replace(/[%_\\]/g, "\\$&")}%`;
+  const query = getDb()
     .select({
       id: c.id,
       fullName: c.fullName,
@@ -226,14 +232,23 @@ export async function listCustomers(): Promise<CustomerRow[]> {
       email: c.email,
       createdAt: c.createdAt,
       bookingCount: sql<number>`count(${b.id}) filter (where ${b.status} <> 'CANCELLED')::int`,
+      seatCount: sql<number>`coalesce(sum(${b.seats}) filter (where ${b.status} <> 'CANCELLED'), 0)::int`,
       paidTotal: sql<string>`coalesce(sum(${b.amount}) filter (where ${b.paymentStatus} = 'PAID'), 0)::text`,
+      lastShowDate: sql<string | null>`max(${s.sessionDate}) filter (where ${b.status} <> 'CANCELLED')::text`,
     })
     .from(c)
     .leftJoin(b, eq(b.customerId, c.id))
+    .leftJoin(s, eq(s.id, b.sessionId))
+    .where(needle === "%%" ? undefined : or(ilike(c.fullName, needle), ilike(c.whatsapp, needle), ilike(c.email, needle)))
     .groupBy(c.id)
-    .orderBy(desc(c.createdAt))
-    .limit(300);
-  return list.map((r) => ({ ...r, bookingCount: Number(r.bookingCount), paidTotal: Number(r.paidTotal) }));
+    .orderBy(desc(c.createdAt));
+  const list = await (limit > 0 ? query.limit(limit) : query);
+  return list.map((r) => ({
+    ...r,
+    bookingCount: Number(r.bookingCount),
+    seatCount: Number(r.seatCount),
+    paidTotal: Number(r.paidTotal),
+  }));
 }
 
 export interface ReportByPackage {

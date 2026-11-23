@@ -80,17 +80,17 @@ export async function VisitSection() {
                   <div className="relative flex items-center justify-between">
                     <p className="font-mono text-xs font-medium uppercase tracking-[0.22em] text-cyan">E-ticket</p>
                     <p className="rounded-pill bg-success-soft px-3 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-success">
-                      Confirmed
+                      {visit.ticketBadge}
                     </p>
                   </div>
                   <p className="relative mt-6 font-display text-3xl font-bold text-ink">HOLOLABS</p>
                   <p className="relative mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted">Kode booking</p>
-                  <p className="relative text-xl font-bold tabular-nums text-ink">HL-2611-X7K2</p>
+                  <p className="relative text-xl font-bold tabular-nums text-ink">{visit.ticketCode}</p>
                   <div className="relative mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
                     {[
-                      ["Tanggal", "13 Nov"],
-                      ["Show", "18.00"],
-                      ["Tamu", "2"],
+                      ["Tanggal", visit.ticketDate],
+                      ["Show", visit.ticketShow],
+                      ["Tamu", visit.ticketGuests],
                     ].map(([k, v]) => (
                       <div key={k}>
                         <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted">{k}</p>

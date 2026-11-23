@@ -18,9 +18,9 @@ export default async function BookingPage() {
   return (
     <>
       <div>
-        <p className="hl-eyebrow">BOOKING</p>
+        <p className="hl-eyebrow">{booking.pageEyebrow}</p>
         <h1 className="hl-display mt-3 text-[clamp(32px,4.4vw,52px)] font-bold leading-[1.05]">
-          Pesan <span className="hl-text-grad">Experience Journey</span>
+          {booking.pageTitle} <span className="hl-text-grad">{booking.pageTitleAccent}</span>
         </h1>
       </div>
       <HololabsBooking
@@ -30,6 +30,17 @@ export default async function BookingPage() {
         paymentMinutes={PAYMENT_MINUTES}
         bank={{ bank: booking.bank, holder: booking.holder }}
         whatsapp={toWhatsappE164(contact.whatsapp)}
+        copy={{
+          // Four steps drive the progress bar; an incomplete edit falls back to the built-in names.
+          stepLabels: booking.stepLabels.length === 4 ? booking.stepLabels : ["Jadwal", "Data diri", "Ketentuan", "Pembayaran"],
+          dateTitle: booking.dateTitle,
+          timeTitle: booking.timeTitle,
+          seatTitle: booking.seatTitle,
+          dataTitle: booking.dataTitle,
+          dataNote: booking.dataNote,
+          termsTitle: booking.termsTitle,
+          paymentTitle: booking.paymentTitle,
+        }}
       />
     </>
   );

@@ -55,7 +55,7 @@ export async function HeroSection() {
         aria-label="Gulir ke journey"
         className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 font-mono text-[0.625rem] uppercase tracking-[0.3em] text-muted transition-colors hover:text-cyan [@media(max-height:520px)]:hidden"
       >
-        Scroll
+        {hero.scrollLabel}
         <ArrowDown className="size-4 motion-safe:animate-bounce" aria-hidden />
       </a>
     </section>
