@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { SeatMap } from "@/components/booking/seat-map";
 
 /**
- * The four-step booking flow of hololabs.id/booking: Jadwal (date, show and
- * seats on the map), Data diri, Ketentuan, Pembayaran, with a running
+ * The five-step booking flow: Jadwal (month calendar beside the show times),
+ * Pilih kursi (seat map), Data diri, Ketentuan, Pembayaran, with a running
  * summary beside it. Availability refreshes every 30 s and the open seat map
  * every 15 s; seats someone else just took drop out of the selection with a
  * message. Placing the order calls POST /api/booking, which answers with the
@@ -51,6 +51,7 @@ const endTime = (start: string, minutes: number) => {
   const t = h * 60 + m + minutes;
   return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}.${String(t % 60).padStart(2, "0")}`;
 };
+const LAST_STEP = 4;
 const sortSeats = (list: string[]) => [...list].sort((a, b) => Number(a) - Number(b));
 const seatList = (list: string[]) => sortSeats(list).join(", ");
 
@@ -137,7 +138,7 @@ export function HololabsBooking({
   }, []);
 
   useEffect(() => {
-    if (!sessionId || step !== 0) return;
+    if (!sessionId || step !== 1) return;
     const timer = setInterval(() => loadSeats(sessionId), 15_000);
     return () => clearInterval(timer);
   }, [sessionId, step, loadSeats]);
@@ -149,7 +150,8 @@ export function HololabsBooking({
   const limit = session ? Math.min(maxGuests, session.left) : maxGuests;
   const count = seats.length;
   const total = session ? session.price * count : 0;
-  const scheduleReady = !!session && session.bookable && count > 0 && session.left >= count;
+  const sessionReady = !!session && session.bookable;
+  const seatsReady = sessionReady && count > 0 && session.left >= count;
   const seatLabels = session ? Array.from({ length: session.capacity }, (_, i) => String(i + 1)) : [];
 
   function toggleSeat(label: string) {
@@ -170,20 +172,24 @@ export function HololabsBooking({
 
   function next() {
     setMessage("");
-    if (step === 0 && !scheduleReady) {
-      setMessage(session ? "Pilih kursi dulu di denah." : "Pilih jadwal show yang masih tersedia.");
+    if (step === 0 && !sessionReady) {
+      setMessage("Pilih tanggal dan jam show yang masih tersedia.");
       return;
     }
-    if (step === 1) {
+    if (step === 1 && !seatsReady) {
+      setMessage("Pilih kursi dulu di denah.");
+      return;
+    }
+    if (step === 2) {
       const e = validateContact(contact);
       setErrors(e);
       if (Object.keys(e).length) return;
     }
-    if (step === 2 && !agree) {
+    if (step === 3 && !agree) {
       setMessage("Centang persetujuan syarat & ketentuan dulu.");
       return;
     }
-    setStep((s) => Math.min(3, s + 1));
+    setStep((s) => Math.min(LAST_STEP, s + 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -211,9 +217,9 @@ export function HololabsBooking({
           setTaken(json.taken);
           setSeats((current) => current.filter((s) => !json.taken.includes(s)));
         }
-        setStep(0);
+        setStep(fieldErrors.sessionId ? 0 : 1);
       } else if (fieldErrors.name || fieldErrors.email || fieldErrors.whatsapp || fieldErrors.note) {
-        setStep(1);
+        setStep(2);
       }
     } catch {
       setMessage("Koneksi terputus. Periksa internet kamu lalu coba lagi.");
@@ -225,7 +231,7 @@ export function HololabsBooking({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <div className="flex flex-col gap-5">
-        <ol className="grid grid-cols-4 gap-2" aria-label="Langkah booking">
+        <ol className="grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="Langkah booking">
           {copy.stepLabels.map((label, i) => {
             const done = i < step;
             const current = i === step;
@@ -239,7 +245,7 @@ export function HololabsBooking({
                   className="flex w-full flex-col items-start gap-2 text-left disabled:cursor-default"
                 >
                   <span className={`h-1 w-full rounded-full transition ${current || done ? "hl-grad" : "bg-white/10"}`} />
-                  <span className={`text-[12px] sm:text-[13px] ${current ? "text-hl-fg" : done ? "text-[#c9c4d9]" : "text-[#7d7790]"}`}>
+                  <span className={`text-[11px] leading-tight sm:text-[13px] ${current ? "text-hl-fg" : done ? "text-[#c9c4d9]" : "text-[#7d7790]"}`}>
                     <span className="max-sm:hidden">{i + 1}. </span>
                     {label}
                   </span>
@@ -251,116 +257,130 @@ export function HololabsBooking({
 
         <section key={step} className="hl-rise rounded-3xl border border-white/10 bg-hl-panel/85 p-5 backdrop-blur sm:p-7">
           {step === 0 ? (
-            <div className="flex flex-col gap-6">
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-7">
               <div>
                 <h2 className="hl-display text-2xl font-semibold">{copy.dateTitle}</h2>
-                <div className="-mx-1 mt-4 flex snap-x gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
-                  {days.map((d) => {
-                    const open = d.sessions.filter((s) => s.bookable);
-                    const left = open.reduce((sum, s) => sum + s.left, 0);
-                    const active = d.date === date;
-                    return (
-                      <button
-                        key={d.date}
-                        type="button"
-                        onClick={() => {
-                          setDate(d.date);
-                          setSessionId(null);
-                          setSeats([]);
-                          setTaken([]);
-                        }}
-                        className={`flex min-w-[76px] snap-start flex-col items-center gap-0.5 rounded-2xl border px-3 py-3 transition ${
-                          active ? "border-hl-violet bg-hl-violet/20" : open.length ? "border-white/15 hover:border-white/35" : "border-white/5 opacity-45"
-                        }`}
-                      >
-                        <span className="text-[12px] uppercase tracking-wide text-[#a9a3bc]">{fmtDate(d.date, { weekday: "short" })}</span>
-                        <span className="hl-display text-2xl font-semibold">{fmtDate(d.date, { day: "numeric" })}</span>
-                        <span className="text-[12px] text-[#a9a3bc]">{fmtDate(d.date, { month: "short" })}</span>
-                        <span
-                          className={`mt-1 size-1.5 rounded-full ${!open.length ? "bg-white/20" : left <= 3 ? "bg-amber-300" : "bg-emerald-300"}`}
-                          aria-label={open.length ? (left <= 3 ? "hampir penuh" : "tersedia") : "tidak tersedia"}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
+                <BookingCalendar
+                  days={days}
+                  value={date}
+                  onChange={(d) => {
+                    setDate(d);
+                    setSessionId(null);
+                    setSeats([]);
+                    setTaken([]);
+                  }}
+                />
               </div>
 
-              <div>
+              <div className="md:border-l md:border-white/10 md:pl-7">
                 <h2 className="hl-display text-2xl font-semibold">{copy.timeTitle}</h2>
                 <p className="mt-1 text-[15px] text-[#a9a3bc]">
-                  {date && fmtDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                  {date ? fmtDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Pilih tanggal dulu"}
                 </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div role="radiogroup" aria-label={copy.timeTitle} className="mt-4 flex flex-col gap-3">
                   {day?.sessions.length ? (
                     day.sessions.map((s) => {
                       const active = s.id === sessionId;
                       const filled = Math.round(((s.capacity - s.left) / s.capacity) * 100);
-                      const status = s.bookable ? (s.left <= 3 ? `Sisa ${s.left} kursi` : `${s.left} kursi tersedia`) : s.left === 0 ? "Penuh" : "Ditutup";
+                      const low = s.bookable && s.left <= 3;
+                      const status = s.bookable ? (low ? `Sisa ${s.left} kursi` : `${s.left} kursi tersedia`) : s.left === 0 ? "Penuh" : "Ditutup";
                       return (
                         <button
                           key={s.id}
                           type="button"
+                          role="radio"
+                          aria-checked={active}
                           disabled={!s.bookable}
                           onClick={() => {
+                            setMessage("");
                             setSessionId(s.id);
                             setSeats([]);
                             setTaken([]);
                             setLoadingSeats(true);
                             loadSeats(s.id);
                           }}
-                          className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          className={`group flex items-center gap-4 rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                             active ? "border-hl-violet bg-hl-violet/15 shadow-[0_0_30px_rgba(139,92,246,.25)]" : "border-white/15 hover:border-white/35"
                           }`}
                         >
-                          <span className="flex w-full items-baseline justify-between gap-3">
-                            <span className="hl-display text-2xl font-semibold">
-                              {s.startTime.replace(":", ".")}
-                              <span className="text-base font-normal text-[#a9a3bc]"> – {endTime(s.startTime, s.durationMinutes)} WIB</span>
+                          <span
+                            aria-hidden
+                            className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                              active ? "border-hl-violet" : "border-white/30 group-hover:border-white/50"
+                            }`}
+                          >
+                            {active ? <span className="hl-grad size-2.5 rounded-full" /> : null}
+                          </span>
+                          <span className="flex min-w-0 flex-1 flex-col gap-2">
+                            <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                              <span className="hl-display text-xl font-semibold">
+                                {s.startTime.replace(":", ".")}
+                                <span className="text-[15px] font-normal text-[#a9a3bc]"> – {endTime(s.startTime, s.durationMinutes)} WIB</span>
+                              </span>
+                              <span className="text-[14px] text-[#d3cee2]">{rupiah(s.price)}</span>
                             </span>
-                            <span className="text-[15px] text-[#d3cee2]">{rupiah(s.price)}</span>
+                            <span className="block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                              <span className="hl-grad block h-full rounded-full" style={{ width: `${filled}%` }} />
+                            </span>
+                            <span className="flex items-center justify-between gap-2 text-[13px]">
+                              <span className={low ? "text-amber-200" : s.bookable ? "text-emerald-200" : "text-[#a9a3bc]"}>{status}</span>
+                              <span className="text-[#7d7790]">{s.durationMinutes} menit</span>
+                            </span>
                           </span>
-                          <span className="block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                            <span className="hl-grad block h-full rounded-full" style={{ width: `${filled}%` }} />
-                          </span>
-                          <span className={`text-[13px] ${s.bookable && s.left <= 3 ? "text-amber-200" : "text-[#a9a3bc]"}`}>{status}</span>
                         </button>
                       );
                     })
                   ) : (
-                    <p className="text-[15px] text-[#a9a3bc]">Tidak ada show di tanggal ini. Pilih tanggal lain.</p>
+                    <p className="rounded-2xl border border-dashed border-white/15 px-4 py-6 text-center text-[15px] text-[#a9a3bc]">
+                      Tidak ada show di tanggal ini. Pilih tanggal lain di kalender.
+                    </p>
                   )}
                 </div>
               </div>
-
-              {session ? (
-                <div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 className="hl-display text-2xl font-semibold">{copy.seatTitle}</h2>
-                    <span className="text-[14px] text-[#a9a3bc]">
-                      {count ? `${count} kursi: ${seatList(seats)}` : `Ketuk kursi bar yang kamu mau (maks. ${limit})`}
-                    </span>
-                  </div>
-                  <div className={`mt-4 rounded-2xl border border-white/10 bg-hl-ink/50 p-4 sm:p-5 ${loadingSeats ? "opacity-50" : ""}`}>
-                    <SeatMap seats={seatLabels} taken={taken} selected={seats} onToggle={toggleSeat} disabled={loadingSeats} />
-                  </div>
-                  <p className="mt-3 text-[14px] text-[#a9a3bc]">
-                    1 kursi = 1 tiket. Maks. {maxGuests} kursi per pesanan.{" "}
-                    <a
-                      href={whatsappLink("Halo HOLOLABS, saya ingin booking untuk rombongan.")}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-200 underline underline-offset-4"
-                    >
-                      Rombongan lebih besar?
-                    </a>
-                  </p>
-                </div>
-              ) : null}
             </div>
           ) : null}
 
-          {step === 1 ? (
+          {step === 1 && session ? (
+            <div>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="hl-display text-2xl font-semibold">{copy.seatTitle}</h2>
+                <span className="text-[14px] text-[#a9a3bc]">
+                  {count ? `${count} kursi: ${seatList(seats)}` : `Ketuk kursi yang kamu mau (maks. ${limit})`}
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
+                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[#d3cee2]">
+                  {fmtDate(session.date, { weekday: "long", day: "numeric", month: "long" })} · {session.startTime.replace(":", ".")} WIB
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMessage("");
+                    setStep(0);
+                  }}
+                  className="min-h-9 cursor-pointer rounded-full px-2 text-cyan-200 underline underline-offset-4"
+                >
+                  Ganti jadwal
+                </button>
+              </div>
+              <div className={`mt-4 rounded-2xl border border-white/10 bg-hl-ink/50 p-4 sm:p-5 ${loadingSeats ? "opacity-50" : ""}`}>
+                <SeatMap seats={seatLabels} taken={taken} selected={seats} onToggle={toggleSeat} disabled={loadingSeats} />
+              </div>
+              <p className="mt-3 text-[14px] text-[#a9a3bc]">
+                1 kursi = 1 tiket. Maks. {maxGuests} kursi per pesanan.{" "}
+                <a
+                  href={whatsappLink("Halo HOLOLABS, saya ingin booking untuk rombongan.")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-200 underline underline-offset-4"
+                >
+                  Rombongan lebih besar?
+                </a>
+              </p>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
             <div className="flex flex-col gap-4">
               <h2 className="hl-display text-2xl font-semibold">{copy.dataTitle}</h2>
               <p className="-mt-2 text-[15px] text-[#a9a3bc]">{copy.dataNote}</p>
@@ -401,7 +421,7 @@ export function HololabsBooking({
             </div>
           ) : null}
 
-          {step === 2 ? (
+          {step === 3 ? (
             <div className="flex flex-col gap-4">
               <h2 className="hl-display text-2xl font-semibold">{copy.termsTitle}</h2>
               <ol className="flex max-h-[46vh] list-decimal flex-col gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-hl-ink/60 py-4 pl-9 pr-4 text-[15px] leading-relaxed text-[#d3cee2]">
@@ -421,7 +441,7 @@ export function HololabsBooking({
             </div>
           ) : null}
 
-          {step === 3 ? (
+          {step === 4 ? (
             <div className="flex flex-col gap-4">
               <h2 className="hl-display text-2xl font-semibold">{copy.paymentTitle}</h2>
               <div
@@ -467,7 +487,7 @@ export function HololabsBooking({
             ) : (
               <span />
             )}
-            {step < 3 ? (
+            {step < LAST_STEP ? (
               <button
                 type="button"
                 onClick={next}
@@ -499,7 +519,7 @@ export function HololabsBooking({
               ["Jam", session ? `${session.startTime.replace(":", ".")} WIB` : "–"],
               ["Kursi", count ? seatList(seats) : "–"],
               ["Tiket", session ? `${count} × ${rupiah(session.price)}` : "–"],
-              ...(step >= 3 ? [["Bayar via", `Transfer ${bank.bank}`]] : []),
+              ...(step >= LAST_STEP ? [["Bayar via", `Transfer ${bank.bank}`]] : []),
             ] as [string, string][]
           ).map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4">
@@ -517,3 +537,115 @@ export function HololabsBooking({
     </div>
   );
 }
+
+const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const ym = (date: string) => date.slice(0, 7);
+const shiftMonth = (month: string, by: number) => {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + by, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+};
+
+/**
+ * Month calendar for picking the show date. Days with a show that can still
+ * be booked are tappable, marked green (or amber when almost full); other
+ * days are dimmed. Weeks start on Monday.
+ */
+function BookingCalendar({ days, value, onChange }: { days: BookingDayView[]; value: string; onChange: (date: string) => void }) {
+  const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
+  const first = days[0]?.date;
+  const last = days[days.length - 1]?.date;
+  const [month, setMonth] = useState(() => ym(value || first || new Date().toISOString().slice(0, 10)));
+  useEffect(() => {
+    if (value) setMonth(ym(value));
+  }, [value]);
+
+  const [y, m] = month.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const lead = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+  const canPrev = !!first && month > ym(first);
+  const canNext = !!last && month < ym(last);
+  const cells: (string | null)[] = [
+    ...Array.from({ length: lead }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`),
+  ];
+
+  return (
+    <div className="mt-4 rounded-2xl border border-white/10 bg-hl-ink/40 p-3 sm:p-4">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setMonth(shiftMonth(month, -1))}
+          disabled={!canPrev}
+          aria-label="Bulan sebelumnya"
+          className="flex size-10 cursor-pointer items-center justify-center rounded-full border border-white/15 text-lg text-[#d3cee2] transition hover:border-white/40 disabled:cursor-default disabled:opacity-30"
+        >
+          ‹
+        </button>
+        <p className="hl-display text-lg font-semibold" aria-live="polite">
+          {fmtDate(`${month}-01`, { month: "long", year: "numeric" })}
+        </p>
+        <button
+          type="button"
+          onClick={() => setMonth(shiftMonth(month, 1))}
+          disabled={!canNext}
+          aria-label="Bulan berikutnya"
+          className="flex size-10 cursor-pointer items-center justify-center rounded-full border border-white/15 text-lg text-[#d3cee2] transition hover:border-white/40 disabled:cursor-default disabled:opacity-30"
+        >
+          ›
+        </button>
+      </div>
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+        {WEEKDAYS.map((w) => (
+          <span key={w} className="pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#7d7790]">
+            {w}
+          </span>
+        ))}
+        {cells.map((d, i) => {
+          if (!d) return <span key={`x${i}`} />;
+          const info = byDate.get(d);
+          const open = info?.sessions.filter((s) => s.bookable) ?? [];
+          const left = open.reduce((sum, s) => sum + s.left, 0);
+          const selectable = open.length > 0;
+          const active = d === value;
+          const label = fmtDate(d, { weekday: "long", day: "numeric", month: "long" });
+          return (
+            <button
+              key={d}
+              type="button"
+              disabled={!selectable}
+              onClick={() => onChange(d)}
+              aria-pressed={active}
+              aria-label={`${label}, ${selectable ? (left <= 3 ? "hampir penuh" : `${left} kursi tersedia`) : "tidak ada show"}`}
+              className={`relative flex aspect-square min-h-10 flex-col items-center justify-center rounded-xl text-[15px] transition ${
+                active
+                  ? "hl-grad font-semibold text-white shadow-[0_0_24px_rgba(139,92,246,.45)]"
+                  : selectable
+                    ? "cursor-pointer border border-white/10 bg-white/[0.04] text-hl-fg hover:border-white/40"
+                    : "cursor-default text-[#5c5670]"
+              } ${d === today && !active ? "ring-1 ring-cyan-300/60" : ""}`}
+            >
+              {Number(d.slice(8))}
+              {selectable && !active ? (
+                <span className={`absolute bottom-1.5 size-1 rounded-full ${left <= 3 ? "bg-amber-300" : "bg-emerald-300"}`} />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[#a9a3bc]">
+        <span className="flex items-center gap-1.5">
+          <span className="size-1.5 rounded-full bg-emerald-300" /> Tersedia
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-1.5 rounded-full bg-amber-300" /> Hampir penuh
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full ring-1 ring-cyan-300/60" /> Hari ini
+        </span>
+      </div>
+    </div>
+  );
+}
+

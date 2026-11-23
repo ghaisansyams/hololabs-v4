@@ -31,8 +31,8 @@ export default async function BookingPage() {
         bank={{ bank: booking.bank, holder: booking.holder }}
         whatsapp={toWhatsappE164(contact.whatsapp)}
         copy={{
-          // Four steps drive the progress bar; an incomplete edit falls back to the built-in names.
-          stepLabels: booking.stepLabels.length === 4 ? booking.stepLabels : ["Jadwal", "Data diri", "Ketentuan", "Pembayaran"],
+          // Five steps drive the progress bar; an incomplete edit falls back to the built-in names.
+          stepLabels: booking.stepLabels.length === 5 ? booking.stepLabels : ["Jadwal", "Pilih kursi", "Data diri", "Ketentuan", "Pembayaran"],
           dateTitle: booking.dateTitle,
           timeTitle: booking.timeTitle,
           seatTitle: booking.seatTitle,
