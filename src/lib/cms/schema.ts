@@ -77,7 +77,6 @@ export const sections = [
     label: "Hero (bagian paling atas)",
     description: "Layar pertama: foto latar penuh, judul besar, kalimat pembuka, dan dua tombol. Journey 3D dimulai di bawahnya.",
     fields: [
-      img("backgroundImage", "Foto latar hero", "Foto mendatar, gelap di tengah agar judul terbaca. Minimal 1200px lebar."),
       t("badge", "Label kecil di atas judul"),
       t("title", "Judul (bagian putih)"),
       t("titleAccent", "Judul (bagian berwarna gradien)"),
@@ -271,7 +270,6 @@ export const defaults = {
     menuItems: mainNav.map(({ label, href }) => ({ label, href })),
   },
   hero: {
-    backgroundImage: "/renders/ambiance-hall.jpg",
     badge: "IMMERSIVE · INTERACTIVE · INTELLIGENT",
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
