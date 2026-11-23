@@ -97,6 +97,8 @@ export function HololabsBooking({
   const [seats, setSeats] = useState<string[]>([]);
   const [taken, setTaken] = useState<string[]>([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
+  /** Taken seats of every show on the chosen date, for the time switcher on the seat step. */
+  const [dayTaken, setDayTaken] = useState<Record<string, string[]>>({});
   const [contact, setContact] = useState<Contact>({ name: "", email: "", whatsapp: "", note: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [agree, setAgree] = useState(false);
@@ -144,6 +146,36 @@ export function HololabsBooking({
   }, [sessionId, step, loadSeats]);
 
   const day = days.find((d) => d.date === date);
+  const daySessionIds = (day?.sessions ?? []).filter((x) => x.bookable).map((x) => x.id).join(",");
+
+  useEffect(() => {
+    if (step !== 1 || !daySessionIds) return;
+    let alive = true;
+    const load = () =>
+      Promise.all(
+        daySessionIds.split(",").map(async (id) => {
+          try {
+            const json = await fetch(`/api/booking/seats?session=${id}`, { cache: "no-store" }).then((r) => r.json());
+            return [id, json.ok ? (json.taken as string[]) : null] as const;
+          } catch {
+            return [id, null] as const;
+          }
+        }),
+      ).then((list) => {
+        if (!alive) return;
+        setDayTaken((cur) => {
+          const next = { ...cur };
+          for (const [id, t] of list) if (t) next[id] = t;
+          return next;
+        });
+      });
+    load();
+    const timer = setInterval(load, 15_000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [step, daySessionIds]);
   const session = useMemo(() => {
     for (const d of days) for (const s of d.sessions) if (s.id === sessionId) return s;
   }, [days, sessionId]);
@@ -153,6 +185,26 @@ export function HololabsBooking({
   const sessionReady = !!session && session.bookable;
   const seatsReady = sessionReady && count > 0 && session.left >= count;
   const seatLabels = session ? Array.from({ length: session.capacity }, (_, i) => String(i + 1)) : [];
+
+  /** Moves the order to another show on the same date, keeping the chosen seats that are free there. */
+  function switchSession(id: string) {
+    if (id === sessionId) return;
+    const target = day?.sessions.find((x) => x.id === id);
+    if (!target) return;
+    const known = dayTaken[id];
+    const keep = known ? seats.filter((x) => !known.includes(x)).slice(0, Math.min(maxGuests, target.left)) : [];
+    const dropped = seats.filter((x) => !keep.includes(x));
+    setMessage(
+      dropped.length && known
+        ? `Kursi ${seatList(dropped)} sudah terisi di jam ${target.startTime.replace(":", ".")}. Pilih kursi lain di denah.`
+        : "",
+    );
+    setSessionId(id);
+    setSeats(known ? keep : []);
+    setTaken(known ?? []);
+    setLoadingSeats(!known);
+    loadSeats(id);
+  }
 
   function toggleSeat(label: string) {
     setMessage("");
@@ -348,20 +400,65 @@ export function HololabsBooking({
                   {count ? `${count} kursi: ${seatList(seats)}` : `Ketuk kursi yang kamu mau (maks. ${limit})`}
                 </span>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
-                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[#d3cee2]">
-                  {fmtDate(session.date, { weekday: "long", day: "numeric", month: "long" })} · {session.startTime.replace(":", ".")} WIB
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMessage("");
-                    setStep(0);
-                  }}
-                  className="min-h-9 cursor-pointer rounded-full px-2 text-cyan-200 underline underline-offset-4"
-                >
-                  Ganti jadwal
-                </button>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-hl-ink/40 p-3 sm:p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[14px] text-[#d3cee2]">
+                    Jam show · <span className="text-hl-fg">{fmtDate(session.date, { weekday: "long", day: "numeric", month: "long" })}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMessage("");
+                      setStep(0);
+                    }}
+                    className="min-h-9 cursor-pointer px-1 text-[13px] text-cyan-200 underline underline-offset-4"
+                  >
+                    Ganti tanggal
+                  </button>
+                </div>
+                <div role="radiogroup" aria-label="Pilih jam show" className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {(day?.sessions ?? [session]).map((x) => {
+                    const active = x.id === sessionId;
+                    const t = active ? taken : (dayTaken[x.id] ?? null);
+                    const need = Math.max(2, count);
+                    const run = t ? longestFreeRun(x.capacity, t) : null;
+                    return (
+                      <button
+                        key={x.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        disabled={!x.bookable}
+                        onClick={() => switchSession(x.id)}
+                        className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          active ? "border-hl-violet bg-hl-violet/15" : "cursor-pointer border-white/15 hover:border-white/35"
+                        }`}
+                      >
+                        <span
+                          aria-hidden
+                          className={`flex size-4 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-hl-violet" : "border-white/30"}`}
+                        >
+                          {active ? <span className="hl-grad size-2 rounded-full" /> : null}
+                        </span>
+                        <span className="flex min-w-0 flex-col">
+                          <span className="hl-display text-lg font-semibold leading-tight">
+                            {x.startTime.replace(":", ".")}
+                            <span className="text-[13px] font-normal text-[#a9a3bc]"> – {endTime(x.startTime, x.durationMinutes)} WIB</span>
+                          </span>
+                          <span className="text-[12.5px] text-[#a9a3bc]">
+                            {x.bookable ? `${x.left} kursi kosong` : x.left === 0 ? "Penuh" : "Ditutup"}
+                            {x.bookable && run !== null ? (
+                              <span className={run >= need ? "text-emerald-200" : "text-amber-200"}>
+                                {" · "}
+                                {run >= need ? `bisa ${need} kursi berdampingan` : run <= 1 ? "tidak ada kursi berdampingan" : `maks. ${run} berdampingan`}
+                              </span>
+                            ) : null}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className={`mt-4 rounded-2xl border border-white/10 bg-hl-ink/50 p-4 sm:p-5 ${loadingSeats ? "opacity-50" : ""}`}>
                 <SeatMap seats={seatLabels} taken={taken} selected={seats} onToggle={toggleSeat} disabled={loadingSeats} />
@@ -647,5 +744,17 @@ function BookingCalendar({ days, value, onChange }: { days: BookingDayView[]; va
       </div>
     </div>
   );
+}
+
+/** Longest stretch of free, consecutive seat numbers (seats 1..capacity sit in one row). */
+function longestFreeRun(capacity: number, taken: string[]) {
+  const set = new Set(taken);
+  let best = 0;
+  let run = 0;
+  for (let i = 1; i <= capacity; i++) {
+    run = set.has(String(i)) ? 0 : run + 1;
+    best = Math.max(best, run);
+  }
+  return best;
 }
 
