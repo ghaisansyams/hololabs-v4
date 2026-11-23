@@ -86,7 +86,9 @@ export function BookingDetailModal({
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-8 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
+          {/* min-h-full + items-center keeps a short modal centred, while a tall one starts at the top and scrolls */}
+          <div className="flex min-h-full items-center justify-center p-4 py-8 sm:p-6 sm:py-10">
           <div className="w-full max-w-3xl rounded-card border border-line bg-surface shadow-lift">
             <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
               <div>
@@ -296,6 +298,7 @@ export function BookingDetailModal({
               </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       ) : null}

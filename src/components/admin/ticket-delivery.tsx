@@ -99,7 +99,7 @@ export function TicketDelivery({ booking, templates }: { booking: AdminBookingRo
           else record(channel);
         }}
         className={cn(
-          "flex flex-1 items-center justify-center gap-1.5 rounded-pill px-3 py-2.5 text-xs font-bold transition",
+          "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-2.5 text-xs font-bold transition",
           disabled
             ? "cursor-not-allowed border border-line text-muted"
             : isWa
@@ -108,7 +108,7 @@ export function TicketDelivery({ booking, templates }: { booking: AdminBookingRo
         )}
       >
         <Icon className="size-3.5" aria-hidden />
-        {disabled ? "Tanpa email" : done ? (isWa ? "Kirim ulang WA" : "Kirim ulang Gmail") : isWa ? "Kirim via WhatsApp" : "Kirim via Gmail"}
+        {disabled ? "Tanpa email" : done ? (isWa ? "Kirim ulang WA" : "Kirim ulang Gmail") : isWa ? "Kirim via WA" : "Kirim via Gmail"}
       </a>
     );
   };

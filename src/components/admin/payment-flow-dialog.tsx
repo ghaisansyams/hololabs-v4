@@ -103,9 +103,10 @@ export function PaymentFlowDialog({
           role="dialog"
           aria-modal="true"
           aria-labelledby={`pf-${booking.id}`}
-          className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/65 p-4 py-8 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[60] overflow-y-auto bg-black/65 backdrop-blur-sm"
         >
           <button type="button" aria-label="Tutup" onClick={close} className="fixed inset-0 -z-10 cursor-default" />
+          <div className="flex min-h-full items-center justify-center p-4 py-8 sm:p-6 sm:py-10">
           <div className="w-full max-w-md rounded-card border border-line bg-surface p-5 shadow-lift sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -186,6 +187,7 @@ export function PaymentFlowDialog({
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       ) : null}
