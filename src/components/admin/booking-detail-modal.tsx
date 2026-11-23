@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Copy, MessageCircle, X } from "lucide-react";
 import type { AdminBookingRow } from "@/lib/services/admin";
 import { waTemplates } from "@/data/wa-templates";
@@ -10,6 +11,8 @@ import { formatRupiah, formatTimeRange } from "@/lib/utils/format";
 import { StatusPill } from "@/components/admin/page-header";
 import { cn } from "@/lib/utils/cn";
 import { TicketDelivery } from "@/components/admin/ticket-delivery";
+import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
+import type { ETicketTemplates } from "@/lib/utils/eticket-message";
 
 type ServerAction = (formData: FormData) => void;
 
@@ -34,16 +37,21 @@ function stageTone(stage: string): "success" | "warning" | "danger" {
 
 export function BookingDetailModal({
   booking,
-  markBookingPaid,
+  templates,
   checkInBooking,
   cancelBooking,
 }: {
   booking: AdminBookingRow;
-  markBookingPaid: ServerAction;
+  templates: ETicketTemplates;
   checkInBooking: ServerAction;
   cancelBooking: ServerAction;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const closeModal = () => {
+    setOpen(false);
+    router.refresh();
+  };
   const [templateKey, setTemplateKey] = useState(waTemplates[0].key);
   const [draft, setDraft] = useState(() => waTemplates[0].build(booking));
   const [copied, setCopied] = useState(false);
@@ -92,7 +100,7 @@ export function BookingDetailModal({
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={closeModal}
                 className="rounded-full p-1.5 text-ink-soft hover:bg-surface-raised hover:text-ink"
                 aria-label="Tutup"
               >
@@ -121,17 +129,7 @@ export function BookingDetailModal({
                   </div>
                   {booking.status !== "CANCELLED" ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {booking.paymentStatus !== "PAID" ? (
-                        <form action={markBookingPaid}>
-                          <input type="hidden" name="bookingId" value={booking.id} />
-                          <button
-                            type="submit"
-                            className="rounded-pill bg-gradient-to-r from-brand to-accent px-3.5 py-1.5 text-xs font-bold text-canvas"
-                          >
-                            {booking.paymentStatus === "SUBMITTED" ? "Konfirmasi pembayaran" : "Tandai lunas"}
-                          </button>
-                        </form>
-                      ) : null}
+                      {booking.paymentStatus !== "PAID" ? <PaymentFlowDialog booking={booking} templates={templates} /> : null}
                       {booking.paymentStatus === "PAID" && booking.checkinStatus !== "CHECKED_IN" ? (
                         <form action={checkInBooking}>
                           <input type="hidden" name="bookingId" value={booking.id} />
@@ -240,7 +238,7 @@ export function BookingDetailModal({
               </div>
 
               <div className="space-y-4">
-              <TicketDelivery booking={booking} />
+              <TicketDelivery booking={booking} templates={templates} />
               <div className="space-y-3 rounded-2xl border border-line bg-canvas-deep p-4">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted">
                   <MessageCircle className="size-3.5 text-success" aria-hidden />

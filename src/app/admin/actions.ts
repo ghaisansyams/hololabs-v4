@@ -56,12 +56,26 @@ export async function markBookingPaid(formData: FormData): Promise<void> {
   revalidatePath("/admin/bookings");
 }
 
+/**
+ * Marks a booking paid without refreshing the list, so the confirm dialog can
+ * move straight on to "send the e-ticket" even when the row would drop out of
+ * the current filter. The dialog refreshes the page when it closes.
+ */
+export async function confirmBookingPaid(bookingId: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  try {
+    await rows(sql`select admin_mark_paid(${bookingId}::uuid)`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Gagal menandai lunas. Muat ulang halaman lalu coba lagi." };
+  }
+}
+
 /** Records that staff sent the e-ticket on one channel (the message itself goes out from WhatsApp / Gmail). */
 export async function markTicketSent(bookingId: string, channel: "wa" | "email"): Promise<void> {
   await requireAdmin();
   if (channel === "wa") await rows(sql`update bookings set ticket_sent_wa_at = now() where id = ${bookingId}::uuid`);
   else await rows(sql`update bookings set ticket_sent_email_at = now() where id = ${bookingId}::uuid`);
-  revalidatePath("/admin/bookings");
 }
 
 export async function cancelBooking(formData: FormData): Promise<void> {

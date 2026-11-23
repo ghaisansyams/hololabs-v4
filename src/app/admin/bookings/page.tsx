@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { AdminHeader, StatusPill, paymentTone } from "@/components/admin/page-header";
-import { ConfirmButton } from "@/components/admin/confirm-button";
+import { Check } from "lucide-react";
 import { BookingDetailModal } from "@/components/admin/booking-detail-modal";
-import { TicketDelivery } from "@/components/admin/ticket-delivery";
-import { cancelBooking, checkInBooking, markBookingPaid } from "../actions";
-import { listBookings, type BookingFilter } from "@/lib/services/admin";
-import { formatDate } from "@/lib/utils/date";
+import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
+import { TicketSentChips } from "@/components/admin/ticket-delivery";
+import { cancelBooking, checkInBooking } from "../actions";
+import { getSiteContent } from "@/lib/cms";
+import { listBookings, type AdminBookingRow, type BookingFilter } from "@/lib/services/admin";
+import { formatDate, formatDayMonth } from "@/lib/utils/date";
 import { formatRupiah } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
@@ -31,7 +33,28 @@ export default async function AdminBookingsPage({
 }) {
   const { status, q = "" } = await searchParams;
   const filter = parseFilter(status);
-  const rows = await listBookings(filter, q);
+  const [rows, { eticket }] = await Promise.all([listBookings(filter, q), getSiteContent()]);
+
+  const statusOf = (b: AdminBookingRow) =>
+    b.status === "CANCELLED" ? "Dibatalkan" : b.paymentStatus === "PAID" ? "Lunas" : b.paymentStatus === "SUBMITTED" ? "Menunggu konfirmasi" : "Belum transfer";
+  const StatusCell = ({ b }: { b: AdminBookingRow }) => (
+    <div className="flex flex-col items-start gap-1">
+      <StatusPill tone={paymentTone(b.status === "CANCELLED" ? "CANCELLED" : b.paymentStatus)}>{statusOf(b)}</StatusPill>
+      {b.checkinStatus === "CHECKED_IN" && b.status !== "CANCELLED" ? (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+          <Check className="size-3.5" aria-hidden />
+          Sudah check-in
+        </span>
+      ) : null}
+    </div>
+  );
+  const ActionsCell = ({ b }: { b: AdminBookingRow }) => (
+    <div className="flex items-center gap-1.5">
+      {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} templates={eticket} /> : null}
+      <BookingDetailModal booking={b} templates={eticket} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
+    </div>
+  );
+  const seatText = (b: AdminBookingRow) => (b.seatLabels?.length ? `No. ${b.seatLabels.join(", ")}` : `${b.seats} kursi`);
 
   return (
     <>
@@ -76,23 +99,25 @@ export default async function AdminBookingsPage({
         </form>
       </div>
 
-      <div className="overflow-x-auto rounded-card border border-line bg-surface">
-        <table className="w-full min-w-[980px] text-left text-sm">
+      {/* Wide screens: one row per booking, one status pill, e-ticket icons in their own column. */}
+      <div className="hidden overflow-x-auto rounded-card border border-line bg-surface lg:block">
+        <table className="w-full text-left text-sm">
           <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">Booking</th>
-              <th className="px-4 py-3 font-semibold">Pemesan</th>
-              <th className="px-4 py-3 font-semibold">Sesi</th>
-              <th className="px-4 py-3 font-semibold">Paket · Kursi</th>
-              <th className="px-4 py-3 font-semibold">Total</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Aksi</th>
+              <th className="px-3 py-3 font-semibold">Pemesan</th>
+              <th className="px-3 py-3 font-semibold">Sesi</th>
+              <th className="px-3 py-3 font-semibold">Kursi</th>
+              <th className="px-3 py-3 font-semibold">Total</th>
+              <th className="px-3 py-3 font-semibold">Status</th>
+              <th className="px-3 py-3 font-semibold">E-ticket</th>
+              <th className="px-4 py-3 text-right font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted">
+                <td colSpan={8} className="px-4 py-10 text-center text-muted">
                   Tidak ada booking untuk filter ini.
                 </td>
               </tr>
@@ -100,88 +125,42 @@ export default async function AdminBookingsPage({
             {rows.map((b) => {
               const cancelled = b.status === "CANCELLED";
               return (
-                <tr key={b.id} className={cn("align-top", cancelled && "opacity-55")}>
+                <tr key={b.id} className={cn("align-middle", cancelled && "opacity-60")}>
                   <td className="px-4 py-3">
                     <p className="whitespace-nowrap font-semibold text-ink">{b.bookingNumber}</p>
                     <p className="text-xs text-muted">{b.createdAt.slice(0, 16).replace("T", " ")}</p>
                     {b.autoRouted ? (
-                      <span className="mt-1.5 inline-flex">
+                      <span className="mt-1 inline-flex">
                         <StatusPill tone="accent">Auto-routed</StatusPill>
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <p className="font-semibold text-ink">{b.customerName}</p>
                     <p className="text-xs text-muted">{b.whatsapp}</p>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
-                    {formatDate(b.sessionDate)}
+                  <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
+                    {formatDayMonth(b.sessionDate)} {b.sessionDate.slice(0, 4)}
                     <br />
                     <span className="text-xs text-muted">
                       {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
-                    {b.packageName}
+                  <td className="px-3 py-3 text-ink-soft">
+                    {seatText(b)}
                     <br />
-                    <span className="text-xs text-muted">{b.seats} kursi</span>
+                    <span className="text-xs text-muted">{b.seatLabels?.length ? `${b.seats} orang` : b.packageName}</span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col items-start gap-1.5">
-                    <StatusPill tone={paymentTone(b.paymentStatus)}>
-                      {cancelled
-                        ? "Dibatalkan"
-                        : b.paymentStatus === "PAID"
-                          ? "Lunas"
-                          : b.paymentStatus === "SUBMITTED"
-                            ? "Menunggu konfirmasi"
-                            : "Belum transfer"}
-                    </StatusPill>
-                    {b.checkinStatus === "CHECKED_IN" ? <StatusPill tone="success">Check-in</StatusPill> : null}
-                    {!cancelled && b.paymentStatus === "PAID" ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[0.6875rem] text-muted">E-ticket:</span>
-                        <TicketDelivery booking={b} compact />
-                      </div>
-                    ) : null}
-                    </div>
+                  <td className="whitespace-nowrap px-3 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
+                  <td className="px-3 py-3">
+                    <StatusCell b={b} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <TicketSentChips booking={b} />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                      {!cancelled && b.paymentStatus !== "PAID" ? (
-                        <form action={markBookingPaid}>
-                          <input type="hidden" name="bookingId" value={b.id} />
-                          <ConfirmButton tone="primary" message={`Tandai ${b.bookingNumber} sebagai LUNAS?`}>
-                            {b.paymentStatus === "SUBMITTED" ? "Konfirmasi" : "Tandai lunas"}
-                          </ConfirmButton>
-                        </form>
-                      ) : null}
-                      {!cancelled && b.paymentStatus === "PAID" && b.checkinStatus !== "CHECKED_IN" ? (
-                        <form action={checkInBooking}>
-                          <input type="hidden" name="bookingId" value={b.id} />
-                          <ConfirmButton tone="primary" message={`Check-in ${b.bookingNumber}?`}>
-                            Check-in
-                          </ConfirmButton>
-                        </form>
-                      ) : null}
-                      <BookingDetailModal
-                        booking={b}
-                        markBookingPaid={markBookingPaid}
-                        checkInBooking={checkInBooking}
-                        cancelBooking={cancelBooking}
-                      />
-                      {!cancelled ? (
-                        <form action={cancelBooking}>
-                          <input type="hidden" name="bookingId" value={b.id} />
-                          <ConfirmButton
-                            tone="danger"
-                            message={`Batalkan ${b.bookingNumber}? Kursi ${b.seats} akan dikembalikan ke sesi.`}
-                          >
-                            Batalkan
-                          </ConfirmButton>
-                        </form>
-                      ) : null}
+                    <div className="flex justify-end">
+                      <ActionsCell b={b} />
                     </div>
                   </td>
                 </tr>
@@ -190,6 +169,53 @@ export default async function AdminBookingsPage({
           </tbody>
         </table>
       </div>
+
+      {/* Phones and tablets: one card per booking. */}
+      <ul className="grid gap-3 lg:hidden">
+        {rows.length === 0 ? <li className="rounded-card border border-line bg-surface px-4 py-10 text-center text-muted">Tidak ada booking untuk filter ini.</li> : null}
+        {rows.map((b) => (
+          <li key={b.id} className={cn("rounded-card border border-line bg-surface p-4", b.status === "CANCELLED" && "opacity-60")}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-ink">{b.bookingNumber}</p>
+                <p className="text-xs text-muted">{b.createdAt.slice(0, 16).replace("T", " ")}</p>
+              </div>
+              <StatusCell b={b} />
+            </div>
+            <p className="mt-3 font-semibold text-ink">{b.customerName}</p>
+            <p className="text-xs text-muted">{b.whatsapp}</p>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div>
+                <dt className="text-xs text-muted">Sesi</dt>
+                <dd className="text-ink-soft">
+                  {formatDate(b.sessionDate)}
+                  <br />
+                  <span className="text-xs text-muted">
+                    {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Kursi</dt>
+                <dd className="text-ink-soft">{seatText(b)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Total</dt>
+                <dd className="font-semibold text-ink">{formatRupiah(b.amount)}</dd>
+              </div>
+              <div>
+                <dt className="mb-1 text-xs text-muted">E-ticket</dt>
+                <dd>
+                  <TicketSentChips booking={b} />
+                </dd>
+              </div>
+            </dl>
+            <div className="mt-4 border-t border-line pt-3">
+              <ActionsCell b={b} />
+            </div>
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
