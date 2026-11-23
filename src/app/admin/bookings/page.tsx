@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminHeader, StatusPill, paymentTone } from "@/components/admin/page-header";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { BookingDetailModal } from "@/components/admin/booking-detail-modal";
+import { TicketDelivery } from "@/components/admin/ticket-delivery";
 import { cancelBooking, checkInBooking, markBookingPaid } from "../actions";
 import { listBookings, type BookingFilter } from "@/lib/services/admin";
 import { formatDate } from "@/lib/utils/date";
@@ -138,6 +139,12 @@ export default async function AdminBookingsPage({
                             : "Belum transfer"}
                     </StatusPill>
                     {b.checkinStatus === "CHECKED_IN" ? <StatusPill tone="success">Check-in</StatusPill> : null}
+                    {!cancelled && b.paymentStatus === "PAID" ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.6875rem] text-muted">E-ticket:</span>
+                        <TicketDelivery booking={b} compact />
+                      </div>
+                    ) : null}
                     </div>
                   </td>
                   <td className="px-4 py-3">

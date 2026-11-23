@@ -33,6 +33,10 @@ export interface AdminBookingRow {
   seatLabels: string[];
   note: string;
   uniqueCode: number | null;
+  /** Secret token of the guest's payment / e-ticket pages (/e-tiket/<token>). */
+  accessToken: string;
+  ticketSentWaAt: string | null;
+  ticketSentEmailAt: string | null;
 }
 
 export interface DashboardStats {
@@ -106,6 +110,9 @@ const bookingColumns = {
   seatLabels: b.seatLabels,
   note: b.note,
   uniqueCode: p.uniqueCode,
+  accessToken: b.accessToken,
+  ticketSentWaAt: b.ticketSentWaAt,
+  ticketSentEmailAt: b.ticketSentEmailAt,
 };
 
 function bookingQuery() {

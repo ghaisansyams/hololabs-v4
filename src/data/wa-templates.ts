@@ -14,7 +14,7 @@ export interface WaTemplate {
 }
 
 const sesi = (b: AdminBookingRow) =>
-  `${formatWeekday(b.sessionDate)}, ${formatDate(b.sessionDate)} pukul ${formatTimeRange(b.startTime, b.endTime)} WIB`;
+  `${formatWeekday(b.sessionDate)}, ${formatDate(b.sessionDate)} pukul ${formatTimeRange(b.startTime, b.endTime)}`;
 
 export const waTemplates: WaTemplate[] = [
   {

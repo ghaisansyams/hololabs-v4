@@ -87,6 +87,8 @@ export const bookings = pgTable(
     requestedSessionId: uuid("requested_session_id").references(() => sessions.id),
     seatLabels: text("seat_labels").array().notNull().default([]),
     note: text("note").notNull().default(""),
+    ticketSentWaAt: timestamp("ticket_sent_wa_at", { withTimezone: true, mode: "string" }),
+    ticketSentEmailAt: timestamp("ticket_sent_email_at", { withTimezone: true, mode: "string" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("bookings_customer_idx").on(t.customerId), index("bookings_session_idx").on(t.sessionId)],

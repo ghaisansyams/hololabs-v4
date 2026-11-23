@@ -1,93 +1,117 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { CheckCircle2, Clock, Printer, Users } from "lucide-react";
-import { LogoMark } from "@/components/brand/logo";
-import { Container } from "@/components/ui/container";
+import { Printer } from "lucide-react";
 import { PrintButton } from "@/components/ticket/print-button";
+import { getSiteContent } from "@/lib/cms";
 import { getBookingByToken } from "@/lib/services/booking";
 import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatTimeRange } from "@/lib/utils/format";
 import { qrDataUrl } from "@/lib/utils/qr";
 
-export const metadata: Metadata = { title: "E-Tiket" };
+export const metadata: Metadata = { title: "Golden Ticket", robots: { index: false } };
 
+/**
+ * The guest's e-ticket once payment is confirmed, styled as a golden ticket:
+ * gold foil body with a guilloche texture and a moving sheen, a perforated
+ * stub holding the check-in QR. Horizontal on wide screens and in print,
+ * vertical on phones. Unpaid bookings go back to the payment page.
+ */
 export default async function ETicketPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const booking = await getBookingByToken(token);
   if (!booking) notFound();
+  if (booking.paymentStatus !== "PAID") redirect(`/pembayaran/${token}`);
 
-  if (booking.paymentStatus !== "PAID") {
-    redirect(`/pembayaran/${token}`);
-  }
-
-  const qr = await qrDataUrl(booking.bookingNumber);
+  const [qr, { contact }] = await Promise.all([qrDataUrl(booking.bookingNumber), getSiteContent()]);
+  const checkedIn = booking.checkinStatus === "CHECKED_IN";
+  const seats = booking.seatLabels.length ? booking.seatLabels.join(", ") : "–";
+  const address = contact.address
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join(", ");
 
   return (
-    <Container as="section" className="max-w-xl py-12 sm:py-16">
-      <div className="print-area mx-auto overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-lift">
-        <div className="flex items-center justify-between bg-gradient-to-r from-brand-dark to-accent-dark px-6 py-5">
-          <LogoMark className="size-9" />
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-white/15 px-3 py-1 text-xs font-bold text-white">
-            <CheckCircle2 className="size-3.5" aria-hidden />
-            {booking.checkinStatus === "CHECKED_IN" ? "Sudah Check-in" : "Tiket Aktif"}
-          </span>
-        </div>
+    <section className="relative isolate overflow-hidden px-4 py-12 sm:py-16 print:overflow-visible print:p-0">
+      <div aria-hidden className="no-print absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,rgb(212_169_64/0.18),transparent_70%)]" />
 
-        <div className="p-6 sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted">Nomor Booking</p>
-          <p className="mt-1 text-xl font-extrabold text-ink font-display">{booking.bookingNumber}</p>
+      <div className="no-print mx-auto mb-8 max-w-[46rem] text-center">
+        <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-[#f3d77a]">Pembayaran terkonfirmasi</p>
+        <h1 className="mt-3 text-2xl font-semibold text-ink sm:text-3xl">Ini golden ticket kamu, {booking.customerFullName.split(" ")[0]}.</h1>
+        <p className="mt-2 text-sm leading-7 text-ink-soft">Simpan halaman ini atau cetak sebagai PDF, lalu tunjukkan QR-nya saat check-in.</p>
+      </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 border-y border-dashed border-line py-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Tanggal</p>
-              <p className="mt-1 text-sm font-bold text-ink">{formatWeekday(booking.sessionDate)}</p>
-              <p className="text-sm text-ink-soft">{formatDate(booking.sessionDate)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Sesi</p>
-              <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink">
-                <Clock className="size-3.5 text-accent" aria-hidden />
-                {formatTimeRange(booking.startTime, booking.endTime)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Paket</p>
-              <p className="mt-1 text-sm font-bold text-ink">{booking.packageName}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Kursi</p>
-              <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink">
-                <Users className="size-3.5 text-accent" aria-hidden />
-                {booking.seatLabels.length ? `No. ${booking.seatLabels.join(", ")}` : `${booking.seats} orang`}
-              </p>
-            </div>
-          </div>
+      <div className="print-area mx-auto max-w-[46rem]">
+        <div className="gt-shadow">
+          <article className="gt-ticket" aria-label={`Golden ticket ${booking.bookingNumber}`}>
+            {/* main body */}
+            <div className="gt-main">
+              <div aria-hidden className="gt-frame" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div>
+                  <p className="gt-kicker">HOLOLABS · Experience Journey</p>
+                  <p className="gt-title">Golden Ticket</p>
+                </div>
+                <p className="gt-admit">
+                  <span>Admit</span>
+                  <b>{booking.seats}</b>
+                </p>
+              </div>
 
-          <div className="mt-6 flex flex-col items-center gap-3 text-center">
-            <Image
-              src={qr}
-              alt={`QR check-in untuk ${booking.bookingNumber}`}
-              width={200}
-              height={200}
-              className="rounded-xl border border-line bg-white p-2"
-              unoptimized
-            />
-            <p className="text-xs text-muted">Tunjukkan QR ini atau nomor booking di atas saat check-in.</p>
-          </div>
+              <p className="gt-tagline relative">Don&apos;t just see the technology. Step inside it.</p>
 
-          <div className="mt-6 border-t border-line pt-4 text-sm text-ink-soft">
-            <p>
-              Atas nama <span className="font-semibold text-ink">{booking.customerFullName}</span>
-            </p>
-          </div>
+              <dl className="gt-grid relative">
+                <div className="col-span-2">
+                  <dt>Atas nama</dt>
+                  <dd className="text-lg">{booking.customerFullName}</dd>
+                </div>
+                <div>
+                  <dt>Tanggal</dt>
+                  <dd>
+                    {formatWeekday(booking.sessionDate)}, {formatDate(booking.sessionDate)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Jam show</dt>
+                  <dd>{formatTimeRange(booking.startTime, booking.endTime)}</dd>
+                </div>
+                <div>
+                  <dt>Kursi</dt>
+                  <dd>No. {seats}</dd>
+                </div>
+                <div>
+                  <dt>Durasi</dt>
+                  <dd>±90 menit</dd>
+                </div>
+              </dl>
+
+              {address ? <p className="gt-fine relative">{address}</p> : null}
+            </div>
+
+            {/* perforated stub with the check-in QR */}
+            <div className="gt-stub">
+              <div className="gt-qr">
+                <Image src={qr} alt={`QR check-in ${booking.bookingNumber}`} width={168} height={168} unoptimized className="size-full" />
+              </div>
+              <p className="gt-code">{booking.bookingNumber}</p>
+              <p className="gt-stub-note">{checkedIn ? "Sudah check-in" : "Scan saat check-in"}</p>
+              {checkedIn ? <p className="gt-stamp">Checked in</p> : null}
+            </div>
+          </article>
         </div>
       </div>
 
-      <PrintButton className="mt-6 w-full">
-        <Printer className="size-4" aria-hidden />
-        Cetak / Simpan sebagai PDF
-      </PrintButton>
-    </Container>
+      <div className="no-print mx-auto mt-8 flex max-w-[46rem] flex-col items-center gap-3">
+        <ul className="w-full max-w-md space-y-1.5 text-sm leading-6 text-ink-soft">
+          <li>Datang 10 menit sebelum show dimulai.</li>
+          <li>Satu QR untuk seluruh kursi di pesanan ini.</li>
+        </ul>
+        <PrintButton className="mt-2 w-full max-w-md">
+          <Printer className="size-4" aria-hidden />
+          Cetak / Simpan sebagai PDF
+        </PrintButton>
+      </div>
+    </section>
   );
 }

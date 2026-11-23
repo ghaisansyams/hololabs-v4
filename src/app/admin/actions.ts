@@ -56,6 +56,14 @@ export async function markBookingPaid(formData: FormData): Promise<void> {
   revalidatePath("/admin/bookings");
 }
 
+/** Records that staff sent the e-ticket on one channel (the message itself goes out from WhatsApp / Gmail). */
+export async function markTicketSent(bookingId: string, channel: "wa" | "email"): Promise<void> {
+  await requireAdmin();
+  if (channel === "wa") await rows(sql`update bookings set ticket_sent_wa_at = now() where id = ${bookingId}::uuid`);
+  else await rows(sql`update bookings set ticket_sent_email_at = now() where id = ${bookingId}::uuid`);
+  revalidatePath("/admin/bookings");
+}
+
 export async function cancelBooking(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");

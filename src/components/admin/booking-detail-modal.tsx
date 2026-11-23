@@ -9,6 +9,7 @@ import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatRupiah, formatTimeRange } from "@/lib/utils/format";
 import { StatusPill } from "@/components/admin/page-header";
 import { cn } from "@/lib/utils/cn";
+import { TicketDelivery } from "@/components/admin/ticket-delivery";
 
 type ServerAction = (formData: FormData) => void;
 
@@ -179,7 +180,7 @@ export function BookingDetailModal({
                       <dd className="text-right font-semibold text-ink">
                         {formatWeekday(booking.sessionDate)}, {formatDate(booking.sessionDate)}
                         <br />
-                        {formatTimeRange(booking.startTime, booking.endTime)} WIB
+                        {formatTimeRange(booking.startTime, booking.endTime)}
                       </dd>
                     </div>
                     <div className="flex justify-between gap-3">
@@ -238,6 +239,8 @@ export function BookingDetailModal({
                 </section>
               </div>
 
+              <div className="space-y-4">
+              <TicketDelivery booking={booking} />
               <div className="space-y-3 rounded-2xl border border-line bg-canvas-deep p-4">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted">
                   <MessageCircle className="size-3.5 text-success" aria-hidden />
@@ -292,6 +295,7 @@ export function BookingDetailModal({
                     Buka di WhatsApp
                   </a>
                 </div>
+              </div>
               </div>
             </div>
           </div>

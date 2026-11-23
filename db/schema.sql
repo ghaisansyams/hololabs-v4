@@ -734,3 +734,9 @@ end;
 $$;
 
 select ensure_schedule(30);
+
+-- E-ticket delivery (Nov 2026): admin sends the e-ticket link by WhatsApp and
+-- Gmail from /admin/bookings (no API, opens wa.me / Gmail compose); these
+-- record when each channel was last sent so staff can see who still needs it.
+alter table bookings add column if not exists ticket_sent_wa_at timestamptz;
+alter table bookings add column if not exists ticket_sent_email_at timestamptz;
