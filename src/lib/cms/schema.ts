@@ -84,7 +84,6 @@ export const sections = [
       ta("lead", "Kalimat pembuka"),
       t("ctaPrimary", "Teks tombol utama (menuju reservasi)", 40),
       t("ctaSecondary", "Teks tombol kedua (menuju journey)", 40),
-      t("scrollLabel", "Tulisan petunjuk gulir di dasar hero", 20),
     ],
   },
   {
@@ -281,10 +280,9 @@ export const defaults = {
     badge: "IMMERSIVE · INTERACTIVE · INTELLIGENT",
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
-    lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",
+    lead: "Satu show, 90 menit, 7 babak. Dari video mapping imersif sampai pulang membawa karya 3D print buatanmu sendiri.",
     ctaPrimary: "Pilih Jadwal Show",
     ctaSecondary: "Lihat Journey",
-    scrollLabel: "Scroll",
   },
   experience: {
     steps: experienceSteps.map(({ mood, title, description, minutes }) => ({ mood, title, description, minutes })),

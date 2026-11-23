@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { HeroParallax } from "@/components/home/hero-parallax";
 import { getSiteContent } from "@/lib/cms";
@@ -49,15 +48,6 @@ export async function HeroSection() {
           </a>
         </div>
       </div>
-
-      <a
-        href="#journey"
-        aria-label="Gulir ke journey"
-        className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 font-mono text-[0.625rem] uppercase tracking-[0.3em] text-muted transition-colors hover:text-cyan [@media(max-height:520px)]:hidden"
-      >
-        {hero.scrollLabel}
-        <ArrowDown className="size-4 motion-safe:animate-bounce" aria-hidden />
-      </a>
     </section>
   );
 }
