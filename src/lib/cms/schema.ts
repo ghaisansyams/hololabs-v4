@@ -277,7 +277,7 @@ export const defaults = {
   },
   hero: {
     backgroundImage: "/renders/ambiance-hall.jpg",
-    badge: "Hololabs · A Creative Technology Lab",
+    badge: "IMMERSIVE · INTERACTIVE · INTELLIGENT",
     title: "Don't just see the technology.",
     titleAccent: "Step inside it.",
     lead: "Satu Experience Journey, 1,5 jam: dari video mapping Journey of Life, pertunjukan interaktif dengan DJ, ngobrol dengan AI avatar, sampai custom 3D printing.",

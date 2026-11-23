@@ -31,7 +31,7 @@ export async function HeroSection() {
       <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_45%_at_50%_52%,rgb(4_2_8/0.55),transparent_75%)]" />
 
       <div className="container-gutter relative mx-auto w-full max-w-5xl pb-16 pt-28 text-center [@media(max-height:520px)]:pt-20">
-        <p className="font-mono text-[0.6875rem] font-medium uppercase tracking-[0.3em] text-cyan sm:text-xs">{hero.badge}</p>
+        <p className="mx-auto max-w-[30ch] text-balance font-display text-[0.625rem] font-medium uppercase leading-relaxed tracking-[0.22em] text-cyan sm:max-w-none sm:text-xs sm:tracking-[0.3em]">{hero.badge}</p>
         <h1
           id="hero-title"
           className="mx-auto mt-6 max-w-[18ch] text-[1.85rem] font-semibold leading-[1.12] text-ink sm:text-5xl lg:text-[3.6rem] [@media(max-height:520px)]:text-3xl"
