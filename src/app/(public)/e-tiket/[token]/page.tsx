@@ -9,12 +9,12 @@ import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatTimeRange } from "@/lib/utils/format";
 import { qrDataUrl } from "@/lib/utils/qr";
 
-export const metadata: Metadata = { title: "Golden Ticket", robots: { index: false } };
+export const metadata: Metadata = { title: "E-Ticket", robots: { index: false } };
 
 /**
- * The guest's e-ticket once payment is confirmed, styled as a golden ticket:
- * gold foil body with a guilloche texture and a moving sheen, a perforated
- * stub holding the check-in QR. Horizontal on wide screens and in print,
+ * The guest's e-ticket once payment is confirmed, shaped like a golden ticket
+ * but in the brand colours: a deep violet holographic body with a moving
+ * sheen and a perforated stub holding the check-in QR. Horizontal on wide screens and in print,
  * vertical on phones. Unpaid bookings go back to the payment page.
  */
 export default async function ETicketPage({ params }: { params: Promise<{ token: string }> }) {
@@ -34,24 +34,24 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
 
   return (
     <section className="relative isolate overflow-hidden px-4 py-12 sm:py-16 print:overflow-visible print:p-0">
-      <div aria-hidden className="no-print absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,rgb(212_169_64/0.18),transparent_70%)]" />
+      <div aria-hidden className="no-print absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,rgb(124_58_237/0.22),transparent_70%)]" />
 
       <div className="no-print mx-auto mb-8 max-w-[46rem] text-center">
-        <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-[#f3d77a]">Pembayaran terkonfirmasi</p>
-        <h1 className="mt-3 text-2xl font-semibold text-ink sm:text-3xl">Ini golden ticket kamu, {booking.customerFullName.split(" ")[0]}.</h1>
+        <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-cyan">Pembayaran terkonfirmasi</p>
+        <h1 className="mt-3 text-2xl font-semibold text-ink sm:text-3xl">Ini e-ticket kamu, {booking.customerFullName.split(" ")[0]}.</h1>
         <p className="mt-2 text-sm leading-7 text-ink-soft">Simpan halaman ini atau cetak sebagai PDF, lalu tunjukkan QR-nya saat check-in.</p>
       </div>
 
       <div className="print-area mx-auto max-w-[46rem]">
         <div className="gt-shadow">
-          <article className="gt-ticket" aria-label={`Golden ticket ${booking.bookingNumber}`}>
+          <article className="gt-ticket" aria-label={`E-ticket ${booking.bookingNumber}`}>
             {/* main body */}
             <div className="gt-main">
               <div aria-hidden className="gt-frame" />
               <div className="relative flex items-start justify-between gap-4">
                 <div>
-                  <p className="gt-kicker">HOLOLABS · Experience Journey</p>
-                  <p className="gt-title">Golden Ticket</p>
+                  <p className="gt-kicker">HOLOLABS · E-Ticket</p>
+                  <p className="gt-title">Experience Journey</p>
                 </div>
                 <p className="gt-admit">
                   <span>Admit</span>

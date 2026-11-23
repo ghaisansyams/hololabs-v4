@@ -10,7 +10,7 @@ import { toWhatsappE164 } from "@/lib/utils/phone";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * Sends a paid guest their golden e-ticket without any messaging API: the
+ * Sends a paid guest their e-ticket without any messaging API: the
  * buttons open WhatsApp (wa.me) or a Gmail compose window already filled in,
  * staff press send there, and the time is recorded on the booking. The link
  * uses the address the admin is browsing on, so open the admin through the
@@ -28,7 +28,7 @@ function messages(b: AdminBookingRow, link: string) {
   const wa = [
     `Halo Kak ${b.customerName}!`,
     "",
-    `Pembayaran booking *${b.bookingNumber}* sudah kami terima. Ini golden ticket kamu untuk HOLOLABS Experience Journey:`,
+    `Pembayaran booking *${b.bookingNumber}* sudah kami terima. Ini e-ticket kamu untuk HOLOLABS Experience Journey:`,
     link,
     "",
     `Jadwal: ${when}`,
@@ -37,11 +37,11 @@ function messages(b: AdminBookingRow, link: string) {
     "Tunjukkan QR di e-ticket saat check-in, dan datang 10 menit sebelum show dimulai.",
     "Sampai ketemu di HOLOLABS!",
   ].join("\n");
-  const subject = `Golden Ticket HOLOLABS · ${b.bookingNumber}`;
+  const subject = `E-Ticket HOLOLABS · ${b.bookingNumber}`;
   const body = [
     `Halo ${b.customerName},`,
     "",
-    `Pembayaran untuk booking ${b.bookingNumber} sudah kami terima. Golden ticket kamu bisa dibuka di tautan ini:`,
+    `Pembayaran untuk booking ${b.bookingNumber} sudah kami terima. E-ticket kamu bisa dibuka di tautan ini:`,
     link,
     "",
     `Jadwal  : ${when}`,
@@ -135,9 +135,9 @@ export function TicketDelivery({ booking, compact = false }: { booking: AdminBoo
   }
 
   return (
-    <section className="rounded-2xl border border-[#d4a940]/40 bg-gradient-to-br from-[#d4a940]/12 to-transparent p-4">
+    <section className="rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/12 to-transparent p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-[#f3d77a]">Kirim golden ticket</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-accent">Kirim e-ticket</p>
         <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
           Lihat e-ticket
           <ExternalLink className="size-3" aria-hidden />
