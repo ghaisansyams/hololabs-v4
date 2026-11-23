@@ -256,8 +256,7 @@ export const sections = [
       t("whatsapp", "Nomor WhatsApp (format 08…)", 20),
       t("instagram", "Instagram (tanpa @)", 60),
       ta("address", "Alamat (satu baris per alamat)", 200),
-      t("footerTagline", "Deskripsi di bawah logo footer", 80),
-      ta("footerAbout", "Paragraf pengantar di footer", 240),
+      t("footerTagline", "Deskripsi singkat di bawah nama (footer)", 80),
       t("footerCopyright", "Teks hak cipta (tanpa tahun)", 80),
     ],
   },
@@ -405,8 +404,6 @@ export const defaults = {
     instagram: "hololabs.id",
     address: "Jl. Duren Sawit Indah, Blok K1 No 10, RT.5/RW.3, Klender\nKec. Duren Sawit, Kota Jakarta Timur, DKI Jakarta 13440",
     footerTagline: "A creative technology lab by Holomoc",
-    footerAbout:
-      "Satu Experience Journey 1,5 jam: video mapping, pertunjukan interaktif, AI avatar, sampai custom 3D printing. Kursi terbatas, jadi amankan jadwalmu lebih awal.",
     footerCopyright: "Hololabs by Holomoc. Seluruh hak dilindungi.",
   },
 };
