@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
@@ -24,6 +24,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
   const [floor, setFloor] = useState<Floor>("ground");
   const [activeId, setActiveId] = useState("hall");
   const [photo, setPhoto] = useState(0);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, description: zones[i]?.description || z.description, n: i + 1 }));
   const active = all.find((z) => z.id === activeId) ?? all[1];
@@ -33,12 +34,16 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
     setActiveId(zone.id);
     setFloor(zone.floor);
     setPhoto(0);
+    // on phones the photo sits above the plan: bring it back into view after a pick
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   const step = (dir: 1 | -1) => setPhoto((p) => (p + dir + active.photos.length) % active.photos.length);
 
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12">
       {/* plan */}
       <div>
         <div role="tablist" aria-label="Lantai" className="mb-4 inline-flex rounded-pill border border-line bg-surface/60 p-1">
@@ -145,7 +150,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
       </div>
 
       {/* selected zone */}
-      <div className="lg:sticky lg:top-24">
+      <div ref={detailRef} className="order-first scroll-mt-24 lg:sticky lg:top-24 lg:order-none">
         <div className="overflow-hidden rounded-2xl border border-line bg-surface/60">
           <div className="relative aspect-[16/10] bg-black">
             {active.photos.map((src, i) => (
