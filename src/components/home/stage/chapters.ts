@@ -345,7 +345,7 @@ function ticketChapter(ctx: Ctx): Chapter {
 function projectionChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1400 / 1253;
+  const aspect = 16 / 9;
   const cols = ctx.mobile ? 6 : 8;
   const rows = ctx.mobile ? 4 : 5;
   const curve = 0.28;
@@ -354,7 +354,7 @@ function projectionChapter(ctx: Ctx): Chapter {
   // The projection wall is cut into tiles that fly in from scattered
   // positions and lock together as the chapter comes into focus, the way a
   // video-mapping rig stitches many surfaces into one picture.
-  const screenMat = fader.add(photoMaterial(ctx, ctx.image("/experience/journey-of-life.jpg"), aspect), 1);
+  const screenMat = fader.add(photoMaterial(ctx, ctx.image("/experience/enter-the-story.jpg"), aspect), 1);
   screenMat.side = THREE.DoubleSide;
   type Tile = { mesh: THREE.Mesh; x: number; y: number; delay: number; off: THREE.Vector3; spin: THREE.Vector3 };
   const tiles: Tile[] = [];
@@ -607,7 +607,7 @@ function holomedisChapter(ctx: Ctx): Chapter {
 }
 
 /* ------------------------------------------------------------------ */
-/* 5. Smart Living: voice command switches on 3D control tiles       */
+/* 5. Smart Living: control tiles switch on one by one                */
 /* ------------------------------------------------------------------ */
 function smartHomeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
@@ -644,24 +644,12 @@ function smartHomeChapter(ctx: Ctx): Chapter {
     return { root, mesh, faceMat, faces, halo, lit: false };
   });
 
-  // voice orb + waveform ring
-  const orb = new THREE.Sprite(
-    fader.add(ctx.track(new THREE.SpriteMaterial({ map: ctx.dot, color: 0xfcd34d, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))),
-  );
-  const WN = 128;
-  const waveGeo = ctx.track(new THREE.BufferGeometry());
-  const wavePos = new Float32Array(WN * 3);
-  waveGeo.setAttribute("position", new THREE.BufferAttribute(wavePos, 3));
-  const wave = new THREE.LineLoop(waveGeo, fader.add(ctx.track(new THREE.LineBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 1 }))));
-  group.add(orb, wave);
-
   let w = 4.4;
   let h = w / aspect;
-  const orbPos = new THREE.Vector3();
-  let tileX = 0;
-  let tileRy = 0;
   const warm = new THREE.Color(1, 0.86, 0.68);
   const white = new THREE.Color(1, 1, 1);
+  let tileX = 0;
+  let tileRy = 0;
   return {
     group,
     layout(width, side) {
@@ -678,15 +666,11 @@ function smartHomeChapter(ctx: Ctx): Chapter {
         t.root.rotation.y = tileRy;
         t.halo.scale.set(1.6, 0.9, 1);
       });
-      orbPos.set(-inner * w * 0.3, -h * 0.25, 0.8);
-      orb.position.copy(orbPos);
-      orb.scale.set(0.6, 0.6, 1);
     },
     update({ act, vis, time }) {
       fader.apply(vis);
-      // a 6 s loop: speak (0-2 s), lights go on one by one, mood warms, then reset
+      // a 6 s loop: the tiles switch on one by one, the mood warms, then reset
       const cyc = time % 6;
-      const speaking = cyc < 2.2 ? Math.sin((cyc / 2.2) * Math.PI) : 0;
       tiles.forEach((t, i) => {
         const on = clamp((cyc - 2.2 - i * 0.35) / 0.3) * clamp((5.6 - cyc) / 0.4);
         const lit = on > 0.5;
@@ -703,16 +687,6 @@ function smartHomeChapter(ctx: Ctx): Chapter {
       });
       const mood = clamp((cyc - 3.6) / 0.8) * clamp((5.8 - cyc) / 0.4);
       photo.color.copy(white).lerp(warm, mood * act);
-      const R = w * 0.09;
-      for (let i = 0; i < WN; i++) {
-        const a = (i / WN) * Math.PI * 2;
-        const r = R * (1 + (0.1 + 0.45 * speaking) * Math.sin(a * 6 + time * 7) * Math.sin(a * 3 - time * 4));
-        wavePos[i * 3] = orbPos.x + Math.cos(a) * r;
-        wavePos[i * 3 + 1] = orbPos.y + Math.sin(a) * r;
-        wavePos[i * 3 + 2] = orbPos.z;
-      }
-      waveGeo.attributes.position.needsUpdate = true;
-      orb.scale.setScalar(0.45 + speaking * 0.35);
     },
   };
 }

@@ -1,5 +1,5 @@
 /**
- * Denah showroom HOLOLABS: eight zones on two levels. The photos are the
+ * Denah showroom HOLOLABS: eight zones on two floors (lantai dasar, lantai 2). The photos are the
  * architectural renders in /public/showroom (an illustration of the space);
  * the texts below are the defaults of the CMS section "Denah showroom".
  * The plan itself is a schematic, not to scale.
@@ -18,7 +18,7 @@ export interface ShowroomZone {
   description: string;
 }
 
-export const floorLabels: Record<Floor, string> = { ground: "Lantai dasar", mezzanine: "Mezzanine" };
+export const floorLabels: Record<Floor, string> = { ground: "Lantai dasar", mezzanine: "Lantai 2" };
 
 export const showroomZones: ShowroomZone[] = [
   {
@@ -59,7 +59,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/33.jpg", "/showroom/27.jpg", "/showroom/29.jpg"],
     name: "Break Out Area",
     description:
-      "Area duduk dengan meja panjang dari kayu di bawah mezzanine, dekat tangga. Ruang ini tersedia untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
+      "Area duduk dengan meja panjang dari kayu di bawah lantai 2, dekat tangga. Ruang ini tersedia untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
   },
   {
     id: "meeting-room",
@@ -89,7 +89,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/35.jpg", "/showroom/34.jpg", "/showroom/36.jpg"],
     name: "Viewing Deck",
     description:
-      "Deretan kursi bar di mezzanine yang menghadap langsung ke layar LED. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton.",
+      "Deretan kursi bar di lantai 2 yang menghadap langsung ke layar LED. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton.",
   },
   {
     id: "meeting-area",
@@ -99,15 +99,23 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/38.jpg", "/showroom/39.jpg", "/showroom/37.jpg"],
     name: "Meeting Area",
     description:
-      "Area pertemuan di mezzanine dengan meja panjang dan kursi kerja. Beberapa sudutnya dilengkapi video wall untuk presentasi tim.",
+      "Area pertemuan di lantai 2 dengan meja panjang dan kursi kerja. Beberapa sudutnya dilengkapi video wall untuk presentasi tim.",
   },
 ];
 
 export const showroomDefaults = {
   eyebrow: "Denah showroom",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Showroom terdiri atas delapan zona di dua level. Pilih sebuah zona pada denah untuk melihat fungsi dan gambaran ruangnya, dari pintu masuk, aula utama dengan layar LED, hingga area pertemuan di mezzanine.",
+  body: "Showroom terdiri atas delapan zona di dua lantai. Pilih sebuah zona pada denah untuk melihat fungsi dan gambaran ruangnya, dari pintu masuk, aula utama dengan layar LED, hingga area pertemuan di lantai 2.",
   note: "Denah bersifat ilustrasi dan tidak sesuai skala. Foto adalah render ilustrasi ruang.",
   cta: "Reservasi kunjungan",
-  zones: showroomZones.map((z) => ({ name: z.name, description: z.description })),
+  zones: showroomZones.map((z) => ({
+    name: z.name,
+    description: z.description,
+    // up to four photos per zone, editable in the CMS ("" = no photo in that slot)
+    photo1: z.photos[0] ?? "",
+    photo2: z.photos[1] ?? "",
+    photo3: z.photos[2] ?? "",
+    photo4: z.photos[3] ?? "",
+  })),
 };

@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils/cn";
 interface ZoneText {
   name: string;
   description: string;
+  /** CMS photos; empty = the built-in ones. */
+  photos: string[];
 }
 
 const FLOORS: Floor[] = ["ground", "mezzanine"];
@@ -26,7 +28,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
   const [photo, setPhoto] = useState(0);
   const detailRef = useRef<HTMLDivElement>(null);
 
-  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, description: zones[i]?.description || z.description, n: i + 1 }));
+  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, description: zones[i]?.description || z.description, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
   const active = all.find((z) => z.id === activeId) ?? all[1];
   const onFloor = all.filter((z) => z.floor === floor);
 
@@ -117,7 +119,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               </g>
             ) : null}
           </svg>
-          <p className="mt-3 text-xs leading-relaxed text-muted">{note}</p>
+          {note ? <p className="mt-3 text-xs leading-relaxed text-muted">{note}</p> : null}
         </div>
 
         {/* zone list: the readable version of the plan on phones, and a keyboard-friendly index */}
@@ -142,7 +144,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
                   {z.n}
                 </span>
                 <span className="min-w-0 flex-1 truncate font-semibold">{z.name}</span>
-                <span className="shrink-0 text-xs text-muted">{z.floor === "ground" ? "Lt. dasar" : "Mezzanine"}</span>
+                <span className="shrink-0 text-xs text-muted">{z.floor === "ground" ? "Lantai dasar" : "Lantai 2"}</span>
               </button>
             </li>
           ))}
@@ -157,7 +159,7 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               <Image
                 key={src}
                 src={src}
-                alt={i === photo ? `${active.name}, ilustrasi ruang` : ""}
+                alt={i === photo ? active.name : ""}
                 fill
                 unoptimized
                 sizes="(min-width: 1024px) 45vw, 100vw"
@@ -165,9 +167,6 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
                 priority={false}
               />
             ))}
-            <span className="absolute left-3 top-3 rounded-pill bg-black/55 px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
-              Ilustrasi
-            </span>
             {active.photos.length > 1 ? (
               <>
                 <button type="button" aria-label="Foto sebelumnya" onClick={() => step(-1)} className="absolute left-2 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/75">

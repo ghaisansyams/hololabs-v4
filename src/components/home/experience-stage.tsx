@@ -156,6 +156,69 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [detailOpen]);
 
+  /**
+   * A hard stop at the last chapter. A fast swipe (a phone flick, a trackpad
+   * fling) would otherwise carry straight through the Finale into the next
+   * section. When the scroll crosses the end of the journey at speed, it is
+   * pulled back to rest on the Finale and the leftover momentum is swallowed;
+   * the next gesture then passes normally. A slow scroll is never held.
+   */
+  useEffect(() => {
+    if (mode !== "stage") return;
+    const section = sectionRef.current;
+    if (!section) return;
+    const root = document.documentElement;
+    let lastY = window.scrollY;
+    let lastT = performance.now();
+    let armed = true;
+    let timer = 0;
+    let bypassUntil = 0;
+
+    const release = () => {
+      root.style.overflow = "";
+      armed = false; // the next gesture is allowed through
+    };
+
+    const onScroll = () => {
+      const now = performance.now();
+      const y = window.scrollY;
+      const vh = window.innerHeight;
+      const rect = section.getBoundingClientRect();
+      const over = vh - rect.bottom; // > 0 once the camera has left the last stop
+      const speed = Math.abs(y - lastY) / Math.max(1, now - lastT);
+      const fast = speed > 1.2 || Math.abs(y - lastY) > vh * 0.6;
+      if (rect.bottom > vh * 1.25) armed = true; // back up inside the journey: stop again next time
+
+      if (now > bypassUntil && armed && over > 1 && y > lastY && (fast || timer)) {
+        window.scrollTo({ top: y - over, behavior: "instant" });
+        root.style.overflow = "hidden"; // ends a touch fling that scrollTo alone may not
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          timer = 0;
+          release();
+        }, 450);
+        lastY = y - over;
+      } else {
+        lastY = y;
+      }
+      lastT = now;
+    };
+
+    // a menu link (Tentang, FAQ ...) scrolls on purpose past the journey: let it through
+    const onClick = (e: MouseEvent) => {
+      if ((e.target as Element | null)?.closest?.("a[href]")) bypassUntil = performance.now() + 2500;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("click", onClick, true);
+      window.clearTimeout(timer);
+      root.style.overflow = "";
+    };
+  }, [mode]);
+
   function jump(index: number) {
     const section = sectionRef.current;
     if (!section) return;
@@ -451,7 +514,7 @@ function CanvasArt({ kind }: { kind: "ticket" | "holomedis" | "souvenir" }) {
 
 const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: string; position: string; video?: string })[] = [
   { art: "ticket" },
-  { src: "/experience/journey-of-life.jpg", position: "50% 40%" },
+  { src: "/experience/enter-the-story.jpg", position: "50% 40%" },
   { src: "/experience/dj.jpg", position: "50% 40%", video: "/experience/dj-beat.mp4" },
   { art: "holomedis" },
   { src: "/experience/smarthome.jpg", position: "50% 40%" },
