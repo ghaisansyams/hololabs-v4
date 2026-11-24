@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { floorLabels, officeRooms, showroomZones, type Floor, type ShowroomZone } from "@/data/showroom";
+import type React from "react";
 import { cn } from "@/lib/utils/cn";
 
 interface ZoneText {
@@ -23,7 +24,7 @@ const CARS: [number, number, number, number][] = [
   [778, 186, 100, 42], [894, 186, 100, 42], [1010, 186, 100, 42],
   [778, 252, 100, 42], [894, 252, 100, 42], [1010, 252, 100, 42],
   // along the far side
-  [1164, 120, 44, 112], [1164, 250, 44, 112],
+  [1140, 104, 44, 100], [1140, 276, 44, 100],
 ];
 const PLANTERS: [number, number][] = [[867, 80], [867, 400], [990, 80], [990, 400]];
 const BIKES = [1028, 1048, 1068];
@@ -42,7 +43,8 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
 
   const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
   const active = all.find((z) => z.id === activeId) ?? all[1];
-  const onFloor = all.filter((z) => z.floor === floor);
+  const groundZones = all.filter((z) => z.floor === "ground");
+  const upperZones = all.filter((z) => z.floor === "mezzanine");
   const ground = floor === "ground";
 
   function select(zone: (typeof all)[number]) {
@@ -153,50 +155,30 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                   <stop offset="0%" stopColor="#6366f1" stopOpacity="0.55" />
                   <stop offset="100%" stopColor="#d946ef" stopOpacity="0.5" />
                 </linearGradient>
-                <pattern id="void-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                  <line x1="0" y1="0" x2="0" y2="10" stroke="#6366f1" strokeOpacity="0.28" strokeWidth="2" />
-                </pattern>
                 <pattern id="office-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                   <line x1="0" y1="0" x2="0" y2="8" stroke="#8b87a8" strokeOpacity="0.22" strokeWidth="2" />
                 </pattern>
               </defs>
 
-              {/* building outline and a few fixed features */}
+              {/* building outline */}
               <rect x="14" y="14" width="732" height="452" rx="16" fill="none" stroke="#2c2551" strokeWidth="2" />
-              <g aria-hidden>
-                {floor === "mezzanine" ? (
-                  <>
-                    <rect x="208" y="185" width="522" height="261" fill="url(#void-hatch)" stroke="#2c2551" strokeDasharray="6 6" />
-                    <text x="470" y="270" fontSize="17" fill="#8b87a8" textAnchor="middle" className="hidden sm:block">
-                      Area terbuka di atas aula
-                    </text>
-                  </>
-                ) : null}
-              </g>
 
-              {/* the other level, dimmed, so the plan keeps its footprint */}
-              {all
-                .filter((z) => z.floor !== floor && z.shape.kind === "rect")
-                .map((z) => {
-                  const r = z.shape as Extract<ShowroomZone["shape"], { kind: "rect" }>;
-                  return <rect key={z.id} aria-hidden x={r.x} y={r.y} width={r.w} height={r.h} rx={12} fill="none" stroke="#2c2551" strokeOpacity="0.55" strokeDasharray="5 6" />;
-                })}
-              {onFloor.map((z) => (
-                <Zone key={z.id} zone={z} n={z.n} label={z.name} active={z.id === activeId} onSelect={() => select(z)} />
-              ))}
+              {/* the ground floor: interactive on its own tab; on the second floor tab only a faded, blurred backdrop that cannot be touched */}
+              <g
+                aria-hidden={ground ? undefined : true}
+                style={ground ? undefined : { pointerEvents: "none", opacity: 0.32, filter: "blur(1.2px)" }}
+              >
+                {groundZones.map((z) => (
+                  <Zone key={z.id} zone={z} n={z.n} label={z.name} active={ground && z.id === activeId} interactive={ground} onSelect={() => select(z)} />
+                ))}
 
-              {/* offices and service rooms: shown for the footprint only, not part of the visit */}
-              <g aria-hidden>
-                {officeRooms.map((r, i) =>
-                  ground ? (
+                {/* offices and service rooms: shown for the footprint only, not part of the visit */}
+                <g aria-hidden>
+                  {officeRooms.map((r, i) => (
                     <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={10} fill="url(#office-hatch)" stroke="#2c2551" strokeWidth="2" />
-                  ) : (
-                    <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={12} fill="none" stroke="#2c2551" strokeOpacity="0.55" strokeDasharray="5 6" />
-                  ),
-                )}
-              </g>
+                  ))}
+                </g>
 
-              {ground ? (
                 <g aria-hidden style={{ pointerEvents: "none" }}>
                   {/* LED wall of the command center: 8 TVs in two rows */}
                   {Array.from({ length: 8 }, (_, i) => (
@@ -206,7 +188,7 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                     Dinding LED · 8 TV
                   </text>
 
-                  {/* parking: stalls, planters, motorbikes, the gate and the main door */}
+                  {/* parking: stalls, planters, motorbikes, the gate (middle of the far side) and the main door */}
                   <g fill="none" stroke="#8b87a8" strokeOpacity={activeId === "parking" ? 0.75 : 0.4} strokeWidth="1.5">
                     {CARS.map(([x, y, w, h], i) => (
                       <rect key={i} x={x} y={y} width={w} height={h} rx="10" />
@@ -219,14 +201,28 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                       <rect key={`b${x}`} x={x} y="384" width="12" height="62" rx="6" />,
                     ])}
                   </g>
-                  <path d="M1246 34 v62" stroke="#0a0720" strokeWidth="6" />
-                  <path d="M1240 65 h-34 m10 -9 l-10 9 l10 9" fill="none" stroke="#67e8f9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <text x="1196" y="114" textAnchor="middle" fontSize="13" fill="#67e8f9" className="hidden sm:block">
+                  <path d="M1246 205 v70" stroke="#0a0720" strokeWidth="6" />
+                  <path d="M1240 240 h-36 m10 -9 l-10 9 l10 9" fill="none" stroke="#67e8f9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <text x="1218" y="222" textAnchor="middle" fontSize="13" fill="#67e8f9" className="hidden sm:block">
                     Gerbang
                   </text>
                   <rect x="748" y="200" width="10" height="130" rx="3" fill="#f97316" fillOpacity="0.9" />
                 </g>
-              ) : null}
+              </g>
+
+              {/* second floor: only the audience seating */}
+              {!ground
+                ? upperZones.map((z) => {
+                    const r = z.shape;
+                    return (
+                      <g key={z.id}>
+                        {/* solid backing so the faded ground floor does not show through the seating */}
+                        {r.kind === "rect" ? <rect aria-hidden x={r.x} y={r.y} width={r.w} height={r.h} rx={12} fill="#0f0b26" /> : null}
+                        <Zone zone={z} n={z.n} label={z.name} active={z.id === activeId} interactive onSelect={() => select(z)} />
+                      </g>
+                    );
+                  })
+                : null}
 
               {/* stairs up, beside the break out area */}
               <g aria-hidden stroke="#8b87a8" strokeOpacity="0.8" strokeWidth="1.5">
@@ -256,7 +252,7 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
   );
 }
 
-function Zone({ zone, n, label, active, onSelect }: { zone: ShowroomZone; n: number; label: string; active: boolean; onSelect: () => void }) {
+function Zone({ zone, n, label, active, interactive, onSelect }: { zone: ShowroomZone; n: number; label: string; active: boolean; interactive: boolean; onSelect: () => void }) {
   const s = zone.shape;
   const common = {
     fill: active ? "url(#zone-active)" : "#171236",
@@ -268,18 +264,22 @@ function Zone({ zone, n, label, active, onSelect }: { zone: ShowroomZone; n: num
   const sm = zone.size === "sm";
   return (
     <g
-      role="button"
-      tabIndex={0}
-      aria-label={`Zona ${n}: ${label}`}
-      aria-pressed={active}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      className="cursor-pointer outline-none [&:focus-visible>.zone-shape]:stroke-white hover:[&>.zone-shape]:stroke-[#a78bfa]"
+      {...(interactive
+        ? {
+            role: "button",
+            tabIndex: 0,
+            "aria-label": `Zona ${n}: ${label}`,
+            "aria-pressed": active,
+            onClick: onSelect,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect();
+              }
+            },
+          }
+        : {})}
+      className={interactive ? "cursor-pointer outline-none [&:focus-visible>.zone-shape]:stroke-white hover:[&>.zone-shape]:stroke-[#a78bfa]" : undefined}
     >
       {s.kind === "rect" ? (
         <rect className={cn("zone-shape", common.className)} x={s.x} y={s.y} width={s.w} height={s.h} rx={sm ? 10 : 12} fill={common.fill} stroke={common.stroke} strokeWidth={common.strokeWidth} />

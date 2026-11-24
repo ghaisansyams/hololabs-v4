@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronRight, Clock3, Disc3, Flag, Gift, House, LogIn, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
 import { canvas, drawHolomedis, drawTicket } from "@/components/home/stage/art";
+import { ShoeScene } from "@/components/home/shoe-scene";
 import { cn } from "@/lib/utils/cn";
 
 export interface StageStep {
@@ -73,14 +74,16 @@ function CanvasArt({ kind }: { kind: "ticket" | "holomedis" }) {
 }
 
 /** The picture of each chapter, in order. Photo chapters can be replaced from the CMS. */
-const VISUALS: ({ art: "ticket" | "holomedis" } | { src: string; position: string; video?: string; fixed?: boolean })[] = [
+const VISUALS: ({ art: "ticket" | "holomedis" } | { scene: "shoe"; src: string } | { src: string; position: string; video?: string })[] = [
   { art: "ticket" },
   { src: "/experience/journey-of-life.jpg", position: "50% 40%" },
-  { src: "/experience/dj.jpg", position: "50% 40%", video: "/experience/dj-beat.mp4" },
+  // the DJ video is portrait: frame its lower part so the DJ stays in view
+  { src: "/experience/dj.jpg", position: "50% 80%", video: "/experience/dj-beat.mp4" },
   { art: "holomedis" },
   { src: "/showroom/32.jpg", position: "50% 40%" },
   { src: "/experience/print3d.jpg", position: "60% 50%", video: "/experience/dragon-print.mp4" },
-  { src: "/experience/finale-shoe.jpg", position: "50% 50%", fixed: true },
+  // the finale: the 3D-printed sneaker, printed as the panel scrolls in (picture only without WebGL)
+  { scene: "shoe", src: "/experience/finale-shoe.jpg" },
 ];
 
 /**
@@ -125,8 +128,9 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
       <div className="container-gutter mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-14 xl:grid-cols-[16rem_minmax(0,1fr)]">
         {/* wide screens: sticky timeline on the left */}
         <nav aria-label="Babak perjalanan" className="hidden lg:block">
-          <div className="sticky top-32">
-            <ol className="relative space-y-1">
+          {/* as tall as the screen allows, so the line runs the whole height of the column */}
+          <div className="sticky top-28">
+            <ol className="relative flex h-[calc(100dvh-9rem)] max-h-[52rem] min-h-[30rem] flex-col justify-between">
               <span aria-hidden className="absolute bottom-6 left-[1.375rem] top-6 w-0.5 -translate-x-1/2 rounded-full bg-white/10">
                 <span className="block w-full rounded-full bg-gradient-to-b from-cyan to-[#a855f7] shadow-[0_0_12px_rgb(34_211_238/0.55)] transition-[height] duration-500" style={{ height: `${progress * 100}%` }} />
               </span>
@@ -180,7 +184,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
             const { edge, num } = chapterLabel(i, count);
             const Icon = CHAPTER_ICONS[i % CHAPTER_ICONS.length];
             const v = VISUALS[i % VISUALS.length];
-            const photo = "art" in v ? "" : v.fixed ? v.src : st.image || v.src;
+            const photo = "art" in v ? "" : "scene" in v ? v.src : st.image || v.src;
             return (
               <li
                 key={i}
@@ -222,6 +226,8 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                   <div className="relative aspect-[1400/1140] overflow-hidden rounded-2xl border border-white/10 bg-[#0a0716]">
                     {"art" in v ? (
                       <CanvasArt kind={v.art} />
+                    ) : "scene" in v ? (
+                      <ShoeScene fallback={v.src} />
                     ) : v.video && (!st.image || st.image === v.src) ? (
                       <video src={v.video} poster={photo} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: v.position }} />
                     ) : (

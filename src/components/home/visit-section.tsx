@@ -1,29 +1,30 @@
 import Link from "next/link";
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { CommandCenterScene } from "@/components/home/command-center-scene";
+import { MapCard } from "@/components/ui/map-card";
 import { buttonStyles } from "@/components/ui/button";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 /**
- * Reservation block: a scroll-driven 3D Command Center room beside the pitch and the
- * show facts (when, where), then the two ways to come: booking online for
- * up to six people, or a private show for schools, companies and brands.
+ * Reservation block: the pitch with the scroll-driven 3D command room under
+ * it on the left, a map picture of the location on the right (opens Google
+ * Maps), then the two ways to come: booking online for up to six people, or
+ * a private show for schools, companies and brands.
  */
 export async function VisitSection() {
   const { visit, contact, location } = await getSiteContent();
   const whatsapp = toWhatsappE164(contact.whatsapp);
   const groupHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent(visit.groupMessage)}`;
-  const facts = visit.facts.filter((f) => f.label && f.value);
   const address = contact.address.split("\n").map((l) => l.trim()).filter(Boolean).join(", ");
 
   return (
     <section id="reservasi" className="bg-hall-flip relative isolate overflow-hidden py-20 sm:py-28">
       <div aria-hidden className="hall-seam" />
       <Container>
-        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-24">
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
             <Reveal>
               <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-cyan sm:text-sm">{visit.eyebrow}</p>
@@ -34,46 +35,13 @@ export async function VisitSection() {
             <Reveal delay={140}>
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
             </Reveal>
-            <Reveal delay={200}>
-              <Link href="/booking" className={buttonStyles({ size: "lg", className: "mt-8" })}>
-                {visit.cta}
-              </Link>
+            <Reveal variant="zoom" delay={120} className="mt-10">
+              <CommandCenterScene note={visit.ticketNote} className="mx-0 max-w-[30rem]" />
             </Reveal>
-
-            {facts.length > 0 ? (
-              <Reveal delay={260}>
-                <dl className="mt-12 border-t border-line">
-                  {facts.map((fact, index) => {
-                    const isPlace = /lokasi/i.test(fact.label);
-                    return (
-                      <div key={index} className="grid gap-1 border-b border-line py-5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-8">
-                        <dt className="font-mono text-xs font-medium uppercase leading-7 tracking-[0.16em] text-cyan">{fact.label}</dt>
-                        <dd>
-                          <p className="text-lg text-ink">{fact.value}</p>
-                          {isPlace && address ? <p className="mt-1 text-sm leading-7 text-muted">{address}</p> : null}
-                          {fact.note ? <p className="mt-1 text-sm leading-7 text-muted">{fact.note}</p> : null}
-                          {isPlace && location.mapLink ? (
-                            <a
-                              href={location.mapLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-cyan hover:underline"
-                            >
-                              <MapPin className="size-4" aria-hidden />
-                              {location.cardCta}
-                            </a>
-                          ) : null}
-                        </dd>
-                      </div>
-                    );
-                  })}
-                </dl>
-              </Reveal>
-            ) : null}
           </div>
 
-          <Reveal variant="zoom" delay={120}>
-            <CommandCenterScene note={visit.ticketNote} />
+          <Reveal delay={160} className="flex">
+            <MapCard href={location.mapLink} address={address} cta={location.cardCta} className="aspect-[4/5] w-full sm:aspect-[4/3] lg:aspect-auto lg:min-h-[32rem]" />
           </Reveal>
         </div>
 

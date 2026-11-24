@@ -197,7 +197,7 @@ function drawSign() {
   return c;
 }
 
-export function CommandCenterScene({ note }: { note?: string }) {
+export function CommandCenterScene({ note, className }: { note?: string; className?: string }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -582,7 +582,7 @@ export function CommandCenterScene({ note }: { note?: string }) {
   }, []);
 
   return (
-    <figure className="mx-auto w-full max-w-md">
+    <figure className={className ? `w-full ${className}` : "mx-auto w-full max-w-md"}>
       <div
         ref={wrap}
         className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_50%_40%,#2a1458_0%,#0b0620_62%,#07041a_100%)] shadow-lift"

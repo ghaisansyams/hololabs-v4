@@ -90,7 +90,7 @@ export const sections = [
     key: "showroom",
     label: "Denah showroom",
     description:
-      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) sembilan zona bisa diubah. Urutan zona: Area parkir (di depan gedung), lalu lantai dasar: Aula Utama, panggung DJ, Area Santai, Area Rapat, Ruang Kendali, Pantri & loker, Toilet & wudhu; lalu Balkon Penonton (lantai 2). Ruang kantor dan ruang jaga tampil di denah sebagai area internal tanpa label. Di situs, foto dan nama zona terpilih tampil besar di atas denah. Foto bawaan masih berupa render dan beberapa ruang belum punya foto, isi dengan foto asli saat sudah ada.",
+      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) sembilan zona bisa diubah. Urutan zona: Area parkir (di depan gedung), lalu lantai dasar: Aula Utama, panggung DJ, Area Santai, Area Rapat, Ruang Kendali, Pantri & loker, Toilet & wudhu; lalu Kursi Penonton (lantai 2). Ruang kantor dan ruang jaga tampil di denah sebagai area internal tanpa label. Di situs, foto dan nama zona terpilih tampil besar di atas denah. Foto bawaan masih berupa render dan beberapa ruang belum punya foto, isi dengan foto asli saat sudah ada.",
     fields: [
       t("eyebrow", "Label kecil di atas judul", 40),
       t("title", "Judul", 80),
@@ -143,7 +143,7 @@ export const sections = [
   {
     key: "visit",
     label: "Reservasi & info kunjungan",
-    description: "Angka ringkas, jadwal & lokasi, contoh e-tiket, dan pilihan individu atau grup.",
+    description: "Judul dan pengantar reservasi (dengan ilustrasi 3D Ruang Kendali dan gambar peta lokasi), lalu pilihan individu atau grup.",
     fields: [
       {
         key: "stats",
@@ -157,11 +157,11 @@ export const sections = [
       t("eyebrow", "Label bagian reservasi"),
       t("title", "Judul bagian reservasi", 80),
       ta("body", "Kalimat di bawah judul", 240),
-      t("cta", "Teks tombol reservasi", 40),
+      t("cta", "Teks tombol reservasi (saat ini tidak ditampilkan)", 40),
       t("ticketNote", "Keterangan di bawah ilustrasi 3D Ruang Kendali (kosongkan untuk menyembunyikan)", 60),
       {
         key: "facts",
-        label: "Jadwal & lokasi",
+        label: "Jadwal & lokasi (saat ini tidak ditampilkan)",
         type: "list",
         itemLabel: "Info",
         min: 0,
@@ -295,7 +295,7 @@ export const sections = [
       t("instagram", "Instagram (tanpa @)", 60),
       ta("address", "Alamat (satu baris per alamat)", 200),
       t("footerTagline", "Deskripsi singkat di bawah nama (footer)", 80),
-      t("footerCopyright", "Teks hak cipta (tanpa tahun)", 80),
+      t("footerCopyright", "Teks hak cipta (saat ini tidak ditampilkan)", 80),
     ],
   },
 ] as const satisfies readonly SectionDef[];

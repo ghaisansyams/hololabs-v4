@@ -32,7 +32,7 @@ export const showroomZones: ShowroomZone[] = [
     id: "parking",
     floor: "ground",
     shape: { kind: "rect", x: 762, y: 14, w: 484, h: 452 },
-    badge: [1168, 398],
+    badge: [1168, 406],
     tag: "Area Parkir",
     photos: ["/showroom/13.jpg"],
     name: "Area parkir",
@@ -71,7 +71,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/33.jpg", "/showroom/27.jpg", "/showroom/29.jpg", "/showroom/28.jpg"],
     name: "Area Santai",
     description:
-      "Area duduk dengan meja panjang dari kayu yang terbuka ke aula utama. Letaknya di bawah Balkon Penonton dan dekat tangga ke lantai 2, cocok untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
+      "Area duduk dengan meja panjang dari kayu yang terbuka ke aula utama. Letaknya di bawah Kursi Penonton dan dekat tangga ke lantai 2, cocok untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
   },
   {
     id: "meeting",
@@ -121,11 +121,11 @@ export const showroomZones: ShowroomZone[] = [
   {
     id: "viewing",
     floor: "mezzanine",
-    shape: { kind: "rect", x: 354, y: 34, w: 230, h: 148 },
-    badge: [469, 112],
-    tag: "Balkon Penonton",
+    shape: { kind: "rect", x: 208, y: 34, w: 522, h: 148 },
+    badge: [469, 100],
+    tag: "Kursi Penonton",
     photos: ["/showroom/35.jpg", "/showroom/34.jpg", "/showroom/36.jpg"],
-    name: "Balkon Penonton",
+    name: "Kursi Penonton",
     description:
       "Satu-satunya ruang di lantai 2: deretan kursi bar yang menghadap langsung ke layar utama aula. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton. Akses melalui tangga di dekat Area Santai.",
   },
@@ -145,7 +145,7 @@ export const officeRooms = [
 export const showroomDefaults = {
   eyebrow: "Denah ruang pamer",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Denah mencakup area parkir di depan gedung dan delapan zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Balkon Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
+  body: "Denah mencakup area parkir di depan gedung dan delapan zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Kursi Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
   note: "Denah bersifat ilustrasi dan tidak sesuai skala. Foto adalah render ilustrasi ruang.",
   cta: "Reservasi kunjungan",
   office: "Area kantor & ruang internal HOLOLABS, tidak dibuka untuk umum.",
