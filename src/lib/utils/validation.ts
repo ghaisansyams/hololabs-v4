@@ -46,26 +46,6 @@ export function validateContact(values: ContactFormValues): FieldErrors<ContactF
   return errors;
 }
 
-/* ------------------------------------------------------------------ */
-/* Check-in at the door                                                */
-/* ------------------------------------------------------------------ */
-
-export interface CheckInFormValues {
-  bookingNumber: string;
-  whatsapp: string;
-}
-
-export function validateCheckIn(values: CheckInFormValues): FieldErrors<CheckInFormValues> {
-  const errors: FieldErrors<CheckInFormValues> = {};
-  if (values.bookingNumber.trim().length < 6) {
-    errors.bookingNumber = "Masukkan nomor booking, contoh HLM-BOOK-2026-00001.";
-  }
-  if (!isPhone(values.whatsapp)) {
-    errors.whatsapp = "Masukkan nomor WhatsApp yang dipakai saat memesan.";
-  }
-  return errors;
-}
-
 export function hasErrors<T>(errors: FieldErrors<T>): boolean {
   return Object.values(errors).some(Boolean);
 }

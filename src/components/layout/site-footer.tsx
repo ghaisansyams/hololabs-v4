@@ -71,13 +71,6 @@ export async function SiteFooter() {
                   </Link>
                 </li>
               ))}
-              {menu.some((item) => item.href === "/cek-tiket") ? null : (
-                <li>
-                  <Link href="/cek-tiket" className={linkClass}>
-                    Cek Tiket
-                  </Link>
-                </li>
-              )}
             </ul>
           </nav>
 

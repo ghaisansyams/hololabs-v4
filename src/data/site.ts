@@ -48,7 +48,6 @@ export const mainNav: NavLink[] = [
   { href: "/#journey", label: "Journey" },
   { href: "/#reservasi", label: "Info" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/cek-tiket", label: "Cek Tiket" },
 ];
 
 export interface SocialLink {

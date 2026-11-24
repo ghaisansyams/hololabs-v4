@@ -10,7 +10,8 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
+  // camera is allowed for this site only: the admin check-in scans QR codes with it
+  { key: "Permissions-Policy", value: "camera=(self), geolocation=(), microphone=()" },
 ];
 
 const nextConfig: NextConfig = {
@@ -23,6 +24,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+  },
+  async redirects() {
+    // the public ticket check page was removed: check-in now runs from the QR in the e-ticket email
+    return [{ source: "/cek-tiket", destination: "/", permanent: false }];
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

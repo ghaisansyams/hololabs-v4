@@ -25,6 +25,6 @@ export const faqItems: FaqItem[] = [
   {
     question: "Bagaimana cara ganti jadwal atau membatalkan?",
     answer:
-      "Lewat halaman Cek Tiket dengan kode booking dan email, sesuai batas waktu yang berlaku. Ketentuan lengkap ditampilkan saat booking.",
+      "Hubungi tim HOLOLABS lewat WhatsApp dengan menyebutkan kode booking di e-ticket, sesuai batas waktu yang berlaku. Ketentuan lengkap ditampilkan saat booking.",
   },
 ];

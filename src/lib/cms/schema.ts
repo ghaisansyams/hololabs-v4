@@ -69,7 +69,7 @@ export const sections = [
         itemLabel: "Menu",
         min: 1,
         max: 10,
-        fields: [t("label", "Nama menu", 30), url("href", "Tujuan link", "Mis. /#faq atau /cek-tiket")],
+        fields: [t("label", "Nama menu", 30), url("href", "Tujuan link", "Mis. /#faq atau /booking")],
       },
     ],
   },
@@ -265,11 +265,9 @@ export const sections = [
   },
   {
     key: "pages",
-    label: "Halaman lain (Cek Tiket & 404)",
-    description: "Teks halaman Cek & Check-in Tiket dan halaman \"tidak ditemukan\".",
+    label: "Halaman 404",
+    description: "Teks halaman \"tidak ditemukan\".",
     fields: [
-      t("cekTitle", "Cek Tiket: judul", 60),
-      ta("cekBody", "Cek Tiket: penjelasan", 300),
       t("notFoundTitle", "404: judul", 80),
       ta("notFoundBody", "404: penjelasan", 240),
     ],
@@ -427,9 +425,6 @@ export const defaults = {
     ].map((text) => ({ text })),
   },
   pages: {
-    cekTitle: "Cek & Check-in Tiket",
-    cekBody:
-      "Untuk petugas di lokasi: masukkan nomor booking dan nomor WhatsApp pemesan untuk memvalidasi dan mencatat kehadiran.",
     notFoundTitle: "Halaman ini tidak ditemukan",
     notFoundBody: "Tautannya mungkin salah ketik, atau halaman yang kamu cari sudah dipindahkan.",
   },
