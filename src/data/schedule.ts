@@ -12,6 +12,6 @@
 export const exhibitionDates = ["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19"];
 
 export const dailySlots = [
-  { label: "Show 1", time: "18.00 – 19.30" },
-  { label: "Show 2", time: "19.30 – 21.00" },
+  { label: "Pertunjukan 1", time: "18.00 – 19.30" },
+  { label: "Pertunjukan 2", time: "19.30 – 21.00" },
 ];

@@ -75,7 +75,7 @@ export async function SiteFooter() {
           </nav>
 
           <div>
-            <h2 className={headingClass}>Contact</h2>
+            <h2 className={headingClass}>Kontak</h2>
             <ul className="mt-4 flex flex-col gap-4 text-[0.9375rem] text-ink-soft">
               {address.length > 0 ? (
                 <li className="flex gap-3">
@@ -115,7 +115,7 @@ export async function SiteFooter() {
 
           {instagram ? (
             <div>
-              <h2 className={headingClass}>Follow us</h2>
+              <h2 className={headingClass}>Ikuti kami</h2>
               <ul className="mt-4 flex flex-col">
                 <li>
                   <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer" className={`${linkClass} gap-3`}>

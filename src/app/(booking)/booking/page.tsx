@@ -5,8 +5,8 @@ import { getBookingDays, MAX_GUESTS, PAYMENT_MINUTES } from "@/lib/services/seat
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 export const metadata: Metadata = {
-  title: "Booking",
-  description: "Pilih jadwal show HOLOLABS Experience Journey, pilih kursi, dan bayar lewat transfer bank.",
+  title: "Pemesanan",
+  description: "Pilih jadwal pertunjukan Perjalanan HOLOLABS, pilih kursi, dan bayar lewat transfer bank.",
   alternates: { canonical: "/booking" },
 };
 

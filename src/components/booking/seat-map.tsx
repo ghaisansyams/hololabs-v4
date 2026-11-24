@@ -99,7 +99,7 @@ export function SeatMap({
         </span>
         {marked ? (
           <span className="inline-flex items-center gap-2">
-            <span className="size-3.5 rounded bg-cyan-400/30" /> Sudah check-in
+            <span className="size-3.5 rounded bg-cyan-400/30" /> Sudah registrasi
           </span>
         ) : null}
       </div>

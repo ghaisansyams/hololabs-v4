@@ -65,7 +65,7 @@ export default async function PaymentPage({
   const unitPrice = booking.seats ? gross / booking.seats : gross;
   const seatText = booking.seatLabels.length ? booking.seatLabels.join(", ") : `${booking.seats} kursi`;
   const wa = toWhatsappE164(contact.whatsapp);
-  const waText = `Halo HOLOLABS, saya ingin konfirmasi pembayaran booking ${booking.bookingNumber} sebesar ${rupiah(booking.amount)}.`;
+  const waText = `Halo HOLOLABS, saya ingin konfirmasi pembayaran pemesanan ${booking.bookingNumber} sebesar ${rupiah(booking.amount)}.`;
 
   const amountText = new Intl.NumberFormat("id-ID").format(booking.amount);
   const amountHead = amountText.slice(0, -3);
@@ -100,7 +100,7 @@ export default async function PaymentPage({
           {closed
             ? "Kursinya sudah dilepas lagi dan bisa dipesan orang lain."
             : waiting
-              ? `Tim HOLOLABS sedang memverifikasi transfermu. Kalau sudah cocok, e-ticket bisa dilihat lewat "Cek status tiket".`
+              ? "Tim HOLOLABS sedang memverifikasi transfermu. Kalau sudah cocok, e-tiket dikirim ke email kamu dan bisa dibuka dari halaman ini."
               : cfg.payLead}
         </p>
       </div>

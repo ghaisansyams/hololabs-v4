@@ -8,13 +8,7 @@ import { getSiteContent } from "@/lib/cms";
  * place, with photos of the space. Texts come from the CMS ("Denah showroom").
  */
 export async function ShowroomSection() {
-  const { showroom, contact } = await getSiteContent();
-  const address = contact.address
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .join(", ");
-  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  const { showroom } = await getSiteContent();
 
   return (
     <section id="showroom" className="relative isolate overflow-hidden bg-[#06031a] py-20 sm:py-28">
@@ -32,7 +26,7 @@ export async function ShowroomSection() {
           </Reveal>
         </div>
         <Reveal delay={120} className="mt-12">
-          <ShowroomMap zones={showroom.zones.map((z) => ({ name: z.name, description: z.description, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))} note={showroom.note} office={showroom.office} cta={showroom.cta} address={address} mapsHref={mapsHref} />
+          <ShowroomMap zones={showroom.zones.map((z) => ({ name: z.name, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))} note={showroom.note} office={showroom.office} />
         </Reveal>
       </Container>
     </section>

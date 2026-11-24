@@ -225,7 +225,7 @@ export function HololabsBooking({
   function next() {
     setMessage("");
     if (step === 0 && !sessionReady) {
-      setMessage("Pilih tanggal dan jam show yang masih tersedia.");
+      setMessage("Pilih tanggal dan jam pertunjukan yang masih tersedia.");
       return;
     }
     if (step === 1 && !seatsReady) {
@@ -283,7 +283,7 @@ export function HololabsBooking({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <div className="flex flex-col gap-5">
-        <ol className="grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="Langkah booking">
+        <ol className="grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="Langkah pemesanan">
           {copy.stepLabels.map((label, i) => {
             const done = i < step;
             const current = i === step;
@@ -384,7 +384,7 @@ export function HololabsBooking({
                     })
                   ) : (
                     <p className="rounded-2xl border border-dashed border-white/15 px-4 py-6 text-center text-[15px] text-[#a9a3bc]">
-                      Tidak ada show di tanggal ini. Pilih tanggal lain di kalender.
+                      Tidak ada pertunjukan di tanggal ini. Pilih tanggal lain di kalender.
                     </p>
                   )}
                 </div>
@@ -403,7 +403,7 @@ export function HololabsBooking({
               <div className="mt-4 rounded-2xl border border-white/10 bg-hl-ink/40 p-3 sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[14px] text-[#d3cee2]">
-                    Jam show · <span className="text-hl-fg">{fmtDate(session.date, { weekday: "long", day: "numeric", month: "long" })}</span>
+                    Jam pertunjukan · <span className="text-hl-fg">{fmtDate(session.date, { weekday: "long", day: "numeric", month: "long" })}</span>
                   </p>
                   <button
                     type="button"
@@ -416,7 +416,7 @@ export function HololabsBooking({
                     Ganti tanggal
                   </button>
                 </div>
-                <div role="radiogroup" aria-label="Pilih jam show" className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div role="radiogroup" aria-label="Pilih jam pertunjukan" className="mt-3 grid gap-2 sm:grid-cols-2">
                   {(day?.sessions ?? [session]).map((x) => {
                     const active = x.id === sessionId;
                     const t = active ? taken : (dayTaken[x.id] ?? null);
@@ -466,7 +466,7 @@ export function HololabsBooking({
               <p className="mt-3 text-[14px] text-[#a9a3bc]">
                 1 kursi = 1 tiket. Maks. {maxGuests} kursi per pesanan.{" "}
                 <a
-                  href={whatsappLink("Halo HOLOLABS, saya ingin booking untuk rombongan.")}
+                  href={whatsappLink("Halo HOLOLABS, saya ingin memesan untuk rombongan.")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-200 underline underline-offset-4"
@@ -558,7 +558,7 @@ export function HololabsBooking({
                 <li>
                   Nominal sudah dipotong <b>kode unik</b> (Rp1–999) supaya transfermu langsung kami kenali. Transfer persis sesuai angka itu.
                 </li>
-                <li>Tekan &quot;Saya sudah transfer&quot; dan (opsional) unggah bukti. E-ticket dikirim setelah tim kami memverifikasi.</li>
+                <li>Tekan &quot;Saya sudah transfer&quot; dan (opsional) unggah bukti. E-tiket dikirim setelah tim kami memverifikasi.</li>
               </ol>
             </div>
           ) : null}
@@ -611,7 +611,7 @@ export function HololabsBooking({
         <dl className="mt-4 flex flex-col gap-3 text-[15px]">
           {(
             [
-              ["Show", "HOLOLABS Experience Journey"],
+              ["Pertunjukan", "Perjalanan HOLOLABS"],
               ["Tanggal", session ? fmtDate(session.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : "–"],
               ["Jam", session ? `${session.startTime.replace(":", ".")} WIB` : "–"],
               ["Kursi", count ? seatList(seats) : "–"],
@@ -714,7 +714,7 @@ function BookingCalendar({ days, value, onChange }: { days: BookingDayView[]; va
               disabled={!selectable}
               onClick={() => onChange(d)}
               aria-pressed={active}
-              aria-label={`${label}, ${selectable ? (left <= 3 ? "hampir penuh" : `${left} kursi tersedia`) : "tidak ada show"}`}
+              aria-label={`${label}, ${selectable ? (left <= 3 ? "hampir penuh" : `${left} kursi tersedia`) : "tidak ada pertunjukan"}`}
               className={`relative flex aspect-square min-h-10 flex-col items-center justify-center rounded-xl text-[15px] transition ${
                 active
                   ? "hl-grad font-semibold text-white shadow-[0_0_24px_rgba(139,92,246,.45)]"

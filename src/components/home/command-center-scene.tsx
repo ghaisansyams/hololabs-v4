@@ -8,7 +8,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
  * Reservation illustration: an isometric cut-away of the HOLOLABS Command
  * Center (after the render in /public/showroom/40.jpg). A white room with a
  * wooden slat wall, a video wall of 8 TVs in two rows showing a neon city,
- * the "COMMAND CENTER" sign, a long wooden table with black office chairs and
+ * the "RUANG KENDALI" sign, a long wooden table with black office chairs and
  * two side desks. The section's scroll progress builds it: floor, walls, the
  * TVs mount one by one, the furniture slides in, then the screens switch on.
  * Pointer movement turns the model a little; rendering pauses off screen and
@@ -191,9 +191,9 @@ function drawSign() {
   (g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "6px";
   g.lineWidth = 10;
   g.strokeStyle = "rgba(60,20,20,0.8)";
-  g.strokeText("COMMAND CENTER", 512, 84);
+  g.strokeText("RUANG KENDALI", 512, 84);
   g.fillStyle = "#ffffff";
-  g.fillText("COMMAND CENTER", 512, 84);
+  g.fillText("RUANG KENDALI", 512, 84);
   return c;
 }
 
@@ -589,7 +589,7 @@ export function CommandCenterScene({ note }: { note?: string }) {
       >
         {failed ? (
           <div aria-hidden className="absolute inset-0 grid place-items-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
-            Command Center
+            Ruang Kendali
           </div>
         ) : null}
       </div>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import { Ticket } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { buttonStyles } from "@/components/ui/button";
@@ -11,49 +10,22 @@ import { useChrome } from "@/components/layout/chrome-context";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * Logo on the left; on wide screens the same anchors as hololabs.id
- * (Tentang, Journey, Info, FAQ) and the Reservasi button on the right.
- * There is no hamburger menu any more: the only pages left are the home
- * page, booking and ticket lookup. The bar hides while scrolling down and
- * returns when scrolling up.
+ * Logo on the left; on wide screens the page anchors and the Reservasi
+ * button on the right. There is no hamburger menu: the only pages are the
+ * home page and booking. The bar stays in place while scrolling, on a
+ * translucent black background.
  */
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const { menuItems, reservationLabel } = useChrome();
-  const [hidden, setHidden] = useState(false);
-  const lastY = useRef(0);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      const delta = y - lastY.current;
-      if (y < 120) {
-        setHidden(false);
-        lastY.current = y;
-      } else if (delta > 8) {
-        setHidden(true);
-        lastY.current = y;
-      } else if (delta < -8) {
-        setHidden(false);
-        lastY.current = y;
-      }
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <header
       className={cn(
-        // `translate` is its own property in Tailwind v4, so it must be in the transition list.
-        "sticky top-0 z-50 border-b-0 bg-gradient-to-b from-black/60 via-black/25 to-transparent",
-        "transition-[translate,opacity] duration-[650ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
-        // On the home page the content is pulled behind the header so the 3D scene reaches the top edge.
+        "sticky top-0 z-50 border-b border-white/10 bg-black/70",
+        // On the home page the content is pulled behind the header so the hero reaches the top edge.
         isHome && "-mb-20 lg:-mb-24 [@media(max-height:520px)]:-mb-16",
-        hidden &&
-          "pointer-events-none -translate-y-full opacity-0 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100",
       )}
     >
       <a

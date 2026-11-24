@@ -100,7 +100,7 @@ export function drawTicket(g: CanvasRenderingContext2D, W = 800, H = 640) {
 
   g.fillStyle = "#22d3ee";
   g.font = `500 24px ${MONO}`;
-  g.fillText("E-TICKET  //  CH.01", 60, 88);
+  g.fillText("E-TIKET  //  BAB 01", 60, 88);
   g.fillStyle = "#ffffff";
   g.font = `800 66px ${SANS}`;
   g.fillText("HOLOLABS", 60, 162);
@@ -143,10 +143,10 @@ export function drawTicket(g: CanvasRenderingContext2D, W = 800, H = 640) {
     g.font = `700 ${size}px ${SANS}`;
     g.fillText(text, x, y);
   };
-  label("KODE BOOKING", 380, 262);
+  label("KODE PEMESANAN", 380, 262);
   value("HL-2611-X7K2", 380, 308, 40);
   label("TANGGAL", 380, 382);
-  label("SHOW", 560, 382);
+  label("JAM", 560, 382);
   value("13 Nov", 380, 424);
   value("18.00", 560, 424);
   g.fillStyle = "rgba(52,211,153,0.16)";
@@ -202,14 +202,14 @@ export function drawHolomedis(g: CanvasRenderingContext2D, t: number, withEcg = 
 
   g.fillStyle = "#ffffff";
   g.font = `700 42px ${SANS}`;
-  g.fillText("AI Health Assistant", 196, 108, W - 232 - 196 - 28);
+  g.fillText("Asisten Kesehatan AI", 196, 108, W - 232 - 196 - 28);
   g.fillStyle = "#34d399";
   g.beginPath();
   g.arc(206, 144, 7, 0, Math.PI * 2);
   g.fill();
   g.fillStyle = "#a79ec0";
   g.font = `400 26px ${SANS}`;
-  g.fillText("Asisten dokter · online", 224, 153);
+  g.fillText("Asisten dokter · aktif", 224, 153);
 
   g.strokeStyle = "rgba(255,255,255,0.18)";
   g.lineWidth = 2;
@@ -333,7 +333,7 @@ export function drawSouvenir(g: CanvasRenderingContext2D, W = 900, H = 560) {
 
   g.fillStyle = "#22d3ee";
   g.font = `500 24px ${MONO}`;
-  g.fillText("SOUVENIR  //  CH.07", 56, 86);
+  g.fillText("SUVENIR  //  BAB 07", 56, 86);
   g.fillStyle = "#cfc9dc";
   g.font = `500 34px ${SANS}`;
   g.fillText("Sampai jumpa lagi di", 56, 168);
@@ -346,7 +346,7 @@ export function drawSouvenir(g: CanvasRenderingContext2D, W = 900, H = 560) {
 
   g.fillStyle = "#a79ec0";
   g.font = `400 26px ${SANS}`;
-  g.fillText("Karya 3D print buatanmu sendiri, siap dibawa pulang.", 56, 330);
+  g.fillText("Karya cetak 3D buatanmu sendiri, siap dibawa pulang.", 56, 330);
 
   g.strokeStyle = "rgba(255,255,255,0.12)";
   g.lineWidth = 2;
@@ -457,7 +457,7 @@ export function drawHomeTile(g: CanvasRenderingContext2D, tile: HomeTile, on: bo
   g.fill();
 }
 
-/** "Check-in berhasil" badge (480×120) that pops above the QR once it is read. */
+/** "Registrasi berhasil" badge (480×120) that pops above the QR once it is read. */
 export function drawCheckBadge(g: CanvasRenderingContext2D) {
   const W = 480;
   const H = 120;
@@ -484,8 +484,8 @@ export function drawCheckBadge(g: CanvasRenderingContext2D) {
   g.textAlign = "left";
   g.fillStyle = "#ecfdf5";
   g.font = `700 36px ${SANS}`;
-  g.fillText("Check-in berhasil", 118, 58);
+  g.fillText("Registrasi berhasil", 118, 58, 345);
   g.fillStyle = "rgba(167,243,208,0.85)";
   g.font = `500 24px ${MONO}`;
-  g.fillText("Kursi A4 · Show 18.00", 118, 92);
+  g.fillText("Kursi A4 · Pukul 18.00", 118, 92);
 }

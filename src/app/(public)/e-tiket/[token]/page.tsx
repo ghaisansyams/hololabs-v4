@@ -9,7 +9,7 @@ import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatTimeRange } from "@/lib/utils/format";
 import { qrDataUrl } from "@/lib/utils/qr";
 
-export const metadata: Metadata = { title: "E-Ticket", robots: { index: false } };
+export const metadata: Metadata = { title: "E-Tiket", robots: { index: false } };
 
 /**
  * The guest's e-ticket once payment is confirmed, shaped like a golden ticket
@@ -39,7 +39,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
       <div className="no-print mx-auto mb-8 max-w-[46rem] text-center">
         <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-cyan">Pembayaran terkonfirmasi</p>
         <h1 className="mt-3 text-2xl font-semibold text-ink sm:text-3xl">Ini e-ticket kamu, {booking.customerFullName.split(" ")[0]}.</h1>
-        <p className="mt-2 text-sm leading-7 text-ink-soft">Simpan halaman ini atau cetak sebagai PDF, lalu tunjukkan QR-nya saat check-in.</p>
+        <p className="mt-2 text-sm leading-7 text-ink-soft">Simpan halaman ini atau cetak sebagai PDF, lalu tunjukkan QR-nya saat registrasi.</p>
       </div>
 
       <div className="print-area mx-auto max-w-[46rem]">
@@ -50,8 +50,8 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
               <div aria-hidden className="gt-frame" />
               <div className="relative flex items-start justify-between gap-4">
                 <div>
-                  <p className="gt-kicker">HOLOLABS · E-Ticket</p>
-                  <p className="gt-title">Experience Journey</p>
+                  <p className="gt-kicker">HOLOLABS · E-Tiket</p>
+                  <p className="gt-title">Perjalanan HOLOLABS</p>
                 </div>
                 <p className="gt-admit">
                   <span>Admit</span>
@@ -59,7 +59,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
                 </p>
               </div>
 
-              <p className="gt-tagline relative">Don&apos;t just see the technology. Step inside it.</p>
+              <p className="gt-tagline relative">Jangan cuma melihat teknologinya. Masuk dan rasakan sendiri.</p>
 
               <dl className="gt-grid relative">
                 <div className="col-span-2">
@@ -73,7 +73,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
                   </dd>
                 </div>
                 <div>
-                  <dt>Jam show</dt>
+                  <dt>Jam pertunjukan</dt>
                   <dd>{formatTimeRange(booking.startTime, booking.endTime)}</dd>
                 </div>
                 <div>
@@ -95,8 +95,8 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
                 <Image src={qr} alt={`QR check-in ${booking.bookingNumber}`} width={168} height={168} unoptimized className="size-full" />
               </div>
               <p className="gt-code">{booking.bookingNumber}</p>
-              <p className="gt-stub-note">{checkedIn ? "Sudah check-in" : "Scan saat check-in"}</p>
-              {checkedIn ? <p className="gt-stamp">Checked in</p> : null}
+              <p className="gt-stub-note">{checkedIn ? "Sudah registrasi" : "Pindai saat registrasi"}</p>
+              {checkedIn ? <p className="gt-stamp">Sudah masuk</p> : null}
             </div>
           </article>
         </div>
@@ -104,7 +104,7 @@ export default async function ETicketPage({ params }: { params: Promise<{ token:
 
       <div className="no-print mx-auto mt-8 flex max-w-[46rem] flex-col items-center gap-3">
         <ul className="w-full max-w-md space-y-1.5 text-sm leading-6 text-ink-soft">
-          <li>Datang 10 menit sebelum show dimulai.</li>
+          <li>Datang 10 menit sebelum pertunjukan dimulai.</li>
           <li>Satu QR untuk seluruh kursi di pesanan ini.</li>
         </ul>
         <PrintButton className="mt-2 w-full max-w-md">

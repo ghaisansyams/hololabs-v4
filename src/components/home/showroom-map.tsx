@@ -2,14 +2,12 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { floorLabels, officeRooms, showroomZones, type Floor, type ShowroomZone } from "@/data/showroom";
 import { cn } from "@/lib/utils/cn";
 
 interface ZoneText {
   name: string;
-  description: string;
   /** CMS photos; empty = the built-in ones. */
   photos: string[];
 }
@@ -18,17 +16,16 @@ const FLOORS: Floor[] = ["ground", "mezzanine"];
 
 /**
  * Interactive plan of the showroom. The schematic plan (two levels) sits on the
- * left, the selected zone on the right with its photos. Zones are plain
- * buttons on the plan and in a list under it, so the plan works with keyboard
- * and on phones where the labels on the drawing would be too small to read.
+ * left, the selected zone on the right: its photos and name only. Zones are
+ * buttons on the plan (keyboard accessible, numbered for small screens).
  */
-export function ShowroomMap({ zones, note, office, cta, address, mapsHref }: { zones: ZoneText[]; note: string; office: string; cta: string; address: string; mapsHref: string }) {
+export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: string; office: string }) {
   const [floor, setFloor] = useState<Floor>("ground");
   const [activeId, setActiveId] = useState("hall");
   const [photo, setPhoto] = useState(0);
   const detailRef = useRef<HTMLDivElement>(null);
 
-  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, description: zones[i]?.description || z.description, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
+  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
   const active = all.find((z) => z.id === activeId) ?? all[1];
   const onFloor = all.filter((z) => z.floor === floor);
 
@@ -113,12 +110,7 @@ export function ShowroomMap({ zones, note, office, cta, address, mapsHref }: { z
             <g aria-hidden>
               {officeRooms.map((r, i) =>
                 floor === "ground" ? (
-                  <g key={i}>
-                    <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={10} fill="url(#office-hatch)" stroke="#2c2551" strokeWidth="2" />
-                    <text x={r.x + r.w / 2} y={r.y + r.h / 2 + 5} textAnchor="middle" fontSize="13" fill="#6f6a8f" className="hidden sm:block">
-                      Kantor
-                    </text>
-                  </g>
+                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={10} fill="url(#office-hatch)" stroke="#2c2551" strokeWidth="2" />
                 ) : (
                   <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={12} fill="none" stroke="#2c2551" strokeOpacity="0.55" strokeDasharray="5 6" />
                 ),
@@ -151,34 +143,6 @@ export function ShowroomMap({ zones, note, office, cta, address, mapsHref }: { z
           ) : null}
           {note ? <p className="mt-2 text-xs leading-relaxed text-muted">{note}</p> : null}
         </div>
-
-        {/* zone list: the readable version of the plan on phones, and a keyboard-friendly index */}
-        <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {all.map((z) => (
-            <li key={z.id}>
-              <button
-                type="button"
-                onClick={() => select(z)}
-                aria-pressed={z.id === activeId}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition",
-                  z.id === activeId ? "border-accent/60 bg-accent/10 text-ink" : "border-line text-ink-soft hover:border-accent/40 hover:text-ink",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                    z.id === activeId ? "bg-gradient-to-br from-brand to-accent text-canvas" : "bg-surface-raised text-ink-soft",
-                  )}
-                >
-                  {z.n}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-semibold">{z.name}</span>
-                <span className="shrink-0 text-xs text-muted">{z.floor === "ground" ? "Lantai dasar" : "Lantai 2"}</span>
-              </button>
-            </li>
-          ))}
-        </ol>
       </div>
 
       {/* selected zone */}
@@ -228,25 +192,8 @@ export function ShowroomMap({ zones, note, office, cta, address, mapsHref }: { z
             ) : null}
           </div>
 
-          <div className="p-5 sm:p-7">
-            <p className="font-label text-[0.75rem] uppercase tracking-[0.28em] text-cyan">
-              Zona {active.n} · {floorLabels[active.floor]}
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">{active.name}</h3>
-            <p className="mt-3 text-base leading-8 text-ink-soft">{active.description}</p>
-
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-5">
-              <Link href="/booking" className="inline-flex items-center gap-2 rounded-pill bg-gradient-to-r from-brand to-accent px-5 py-2.5 text-sm font-bold text-canvas transition hover:opacity-90">
-                {cta}
-                <ArrowRight className="size-4" aria-hidden />
-              </Link>
-              {address ? (
-                <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1.5 text-sm text-ink-soft hover:text-ink">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-cyan" aria-hidden />
-                  <span>{address}</span>
-                </a>
-              ) : null}
-            </div>
+          <div className="px-5 py-4 sm:px-7 sm:py-5">
+            <h3 className="text-2xl font-semibold text-ink sm:text-3xl">{active.name}</h3>
           </div>
         </div>
       </div>

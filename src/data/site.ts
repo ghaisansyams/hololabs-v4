@@ -21,18 +21,18 @@ export const siteConfig = {
   legalName: "Hololabs — Booking Engine",
   builtBy: "Spero",
   motto: "Reserve your seat. Save your spot.",
-  tagline: "Reservasi kursi & paket F&B untuk exhibition Hololabs.",
+  tagline: "Reservasi kursi pertunjukan dan paket makanan-minuman di Hololabs.",
   description:
-    "Pesan kursi dan paket makan-minum untuk exhibition Hololabs secara online. Pilih sesi, sistem otomatis mengarahkan ke slot berikutnya bila penuh, bayar dengan transfer bank, dan datang dengan e-tiket.",
+    "Pesan kursi dan paket makan-minum untuk pertunjukan Hololabs secara daring. Pilih jadwal, sistem otomatis mengarahkan ke jadwal berikutnya bila penuh, bayar dengan transfer bank, dan datang dengan e-tiket.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3004",
   locale: "id-ID",
   email: "",
   whatsapp: "0816712339",
   whatsappE164: "62816712339",
   venueCity: "Jakarta",
-  sessionDurationLabel: "± 90 menit per show",
+  sessionDurationLabel: "± 90 menit per pertunjukan",
   dailyWindowLabel: "18.00 & 19.30 WIB",
-  seatsPerSessionLabel: "18 kursi per show",
+  seatsPerSessionLabel: "18 kursi per pertunjukan",
 } as const;
 
 export interface NavLink {
@@ -44,10 +44,10 @@ export interface NavLink {
 // FAQ) plus the ticket lookup. Editable in the CMS (Menu & tombol).
 export const mainNav: NavLink[] = [
   { href: "/#about", label: "Tentang" },
-  { href: "/#showroom", label: "Showroom" },
-  { href: "/#journey", label: "Journey" },
+  { href: "/#showroom", label: "Denah" },
+  { href: "/#journey", label: "Perjalanan" },
   { href: "/#reservasi", label: "Info" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/#faq", label: "Tanya Jawab" },
 ];
 
 export interface SocialLink {

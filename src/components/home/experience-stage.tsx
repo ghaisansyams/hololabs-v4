@@ -25,8 +25,8 @@ const CHAPTER_ICONS: LucideIcon[] = [Ticket, Projector, Disc3, Stethoscope, Hous
  * of a number. The acts in between are numbered from 1.
  */
 const TIMELINE_ENDS = {
-  start: { label: "Regist & Check-in", tag: "Start", Icon: LogIn },
-  end: { label: "Finale", tag: "End", Icon: Flag },
+  start: { label: "Registrasi", tag: "Mulai", Icon: LogIn },
+  end: { label: "Penutup", tag: "Selesai", Icon: Flag },
 } as const;
 
 const MAX_CHAPTERS = 7; // one per chapter factory in stage/chapters.ts

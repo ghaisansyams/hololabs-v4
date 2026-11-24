@@ -94,7 +94,7 @@ const TEXT = "#f4f1ff";
 
 function details(b: AdminBookingRow): [string, string][] {
   return [
-    ["Kode booking", b.bookingNumber],
+    ["Kode pemesanan", b.bookingNumber],
     ["Jadwal", `${formatWeekday(b.sessionDate)}, ${formatDate(b.sessionDate)}, ${formatTimeRange(b.startTime, b.endTime)}`],
     ["Jumlah tiket", `${b.seats} orang`],
     ...(b.seatLabels?.length ? ([["Kursi", b.seatLabels.join(", ")]] as [string, string][]) : []),
@@ -211,7 +211,7 @@ export async function sendPaymentInstructionsEmail(bookingId: string): Promise<M
 <p style="margin:22px 0 4px;color:${TEXT};font-size:14px">Nominal (harus persis, termasuk 3 digit terakhir)</p>
 <p style="margin:0;color:#ffffff;font-size:28px;font-weight:800">${esc(nominal)}</p>
 ${button(link, "Saya sudah transfer")}
-<p style="margin:14px 0 0;color:${MUTED};font-size:13px;line-height:1.6">Setelah transfer, buka tautan di atas dan tekan "Saya sudah transfer". E-ticket dikirim setelah pembayaran diverifikasi tim HOLOLABS.</p>`;
+<p style="margin:14px 0 0;color:${MUTED};font-size:13px;line-height:1.6">Setelah transfer, buka tautan di atas dan tekan "Saya sudah transfer". E-tiket dikirim setelah pembayaran diverifikasi tim HOLOLABS.</p>`;
   return deliver(
     b,
     subject,
@@ -246,7 +246,7 @@ export async function sendVerificationEmail(bookingId: string): Promise<MailResu
 export async function sendETicketEmail(bookingId: string): Promise<MailResult> {
   const b = await getBookingById(bookingId);
   if (!b) return { ok: false, error: "Booking tidak ditemukan." };
-  if (b.paymentStatus !== "PAID" || b.status === "CANCELLED") return { ok: false, error: "E-ticket hanya dikirim untuk booking yang sudah lunas." };
+  if (b.paymentStatus !== "PAID" || b.status === "CANCELLED") return { ok: false, error: "E-tiket hanya dikirim untuk pesanan yang sudah lunas." };
   const [{ eticket, contact }, origin] = await Promise.all([getSiteContent(), siteOrigin()]);
   const link = `${origin}/e-tiket/${b.accessToken}`;
   const values = valuesFor(b, { link });
@@ -256,14 +256,14 @@ export async function sendETicketEmail(bookingId: string): Promise<MailResult> {
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   const blocks = `
 <div style="margin:26px 0 0;text-align:center"><div style="display:inline-block;background:#ffffff;border-radius:16px;padding:14px"><img src="cid:qr-checkin" width="200" height="200" alt="QR check-in ${esc(b.bookingNumber)}" style="display:block"></div>
-<p style="margin:12px 0 0;color:${TEXT};font-size:14px">Tunjukkan QR ini di pintu masuk. Datang 10 menit sebelum show.</p></div>
-<p style="margin:0;text-align:left">${button(link, "Buka e-ticket").replace("margin:22px 0 6px", "margin:20px 0 6px")}</p>
+<p style="margin:12px 0 0;color:${TEXT};font-size:14px">Tunjukkan QR ini di pintu masuk. Datang 10 menit sebelum pertunjukan.</p></div>
+<p style="margin:0;text-align:left">${button(link, "Buka e-tiket").replace("margin:22px 0 6px", "margin:20px 0 6px")}</p>
 ${address ? `<p style="margin:18px 0 0;color:${TEXT};font-size:14px;line-height:1.6">Lokasi: ${esc(address)}<br><a href="${esc(maps)}" style="color:#67e8f9">Buka di Google Maps</a></p>` : ""}`;
   const result = await deliver(
     b,
     subject,
-    layout({ title: "E-ticket kamu sudah siap", paragraphs, b, blocks, address }),
-    plain(paragraphs, b, [`E-ticket: ${link}`, address ? `Lokasi: ${address}` : "", address ? maps : ""].filter(Boolean)),
+    layout({ title: "E-tiket kamu sudah siap", paragraphs, b, blocks, address }),
+    plain(paragraphs, b, [`E-tiket: ${link}`, address ? `Lokasi: ${address}` : "", address ? maps : ""].filter(Boolean)),
     true,
   );
   if (result.ok) await rows(sql`update bookings set ticket_sent_email_at = now() where id = ${bookingId}::uuid`);

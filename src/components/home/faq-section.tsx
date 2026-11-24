@@ -32,7 +32,7 @@ export async function FaqSection() {
                 rel="noopener noreferrer"
                 className="text-cyan underline-offset-4 transition-colors hover:text-white hover:underline"
               >
-                Chat kami di WhatsApp
+                Hubungi kami di WhatsApp
               </a>
               .
             </p>
