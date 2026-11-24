@@ -90,7 +90,7 @@ export const sections = [
     key: "showroom",
     label: "Denah showroom",
     description:
-      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) delapan zona bisa diubah. Urutan zona: pintu masuk, Experience Hall, panggung DJ, Break Out Area, ruang rapat, Command Center (lantai dasar), lalu Viewing Deck dan Meeting Area (lantai 2). Foto bawaan masih berupa render, ganti dengan foto asli saat sudah ada.",
+      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) tiga belas zona bisa diubah. Urutan zona (lantai dasar): pintu masuk, Experience Hall, panggung DJ, Break Out Area, Meeting Area, Command Center, Finance & Admin, VIZ RnD, Game Dev, Storage Elektronik, Pantry & loker, Toilet & wudhu; lalu Viewing Deck (lantai 2). Foto bawaan masih berupa render dan beberapa ruang belum punya foto, isi dengan foto asli saat sudah ada.",
     fields: [
       t("eyebrow", "Label kecil di atas judul", 40),
       t("title", "Judul", 80),
@@ -102,8 +102,8 @@ export const sections = [
         label: "Zona",
         type: "list",
         itemLabel: "Zona",
-        min: 8,
-        max: 8,
+        min: 13,
+        max: 13,
         fields: [
           t("name", "Nama zona", 40),
           ta("description", "Penjelasan zona", 320),

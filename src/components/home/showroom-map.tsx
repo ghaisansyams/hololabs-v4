@@ -84,22 +84,16 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
 
             {/* building outline and a few fixed features */}
             <rect x="14" y="14" width="732" height="452" rx="16" fill="none" stroke="#2c2551" strokeWidth="2" />
-            {floor === "ground" ? (
-              <g aria-hidden>
-                <rect x="24" y="70" width="8" height="240" rx="4" fill="#22d3ee" fillOpacity="0.85" />
-                <text x="46" y="320" fontSize="16" fill="#67e8f9" className="hidden sm:block">
-                  Dinding LED
-                </text>
-              </g>
-            ) : (
-              <g aria-hidden>
-                <rect x="30" y="106" width="470" height="260" fill="url(#void-hatch)" stroke="#2c2551" strokeDasharray="6 6" />
-                <text x="265" y="240" fontSize="17" fill="#8b87a8" textAnchor="middle" className="hidden sm:block">
-                  Void aula utama
-                </text>
-                <rect x="24" y="116" width="8" height="240" rx="4" fill="#22d3ee" fillOpacity="0.85" />
-              </g>
-            )}
+            <g aria-hidden>
+              {floor === "mezzanine" ? (
+                <>
+                  <rect x="208" y="185" width="522" height="261" fill="url(#void-hatch)" stroke="#2c2551" strokeDasharray="6 6" />
+                  <text x="470" y="270" fontSize="17" fill="#8b87a8" textAnchor="middle" className="hidden sm:block">
+                    Void aula utama
+                  </text>
+                </>
+              ) : null}
+            </g>
 
             {/* the other level, dimmed, so the plan keeps its footprint */}
             {all
@@ -112,12 +106,19 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               <Zone key={z.id} zone={z} n={z.n} label={z.name} active={z.id === activeId} onSelect={() => select(z)} />
             ))}
 
-            {/* ground floor corridor between entrance and command center */}
-            {floor === "ground" ? (
-              <g aria-hidden className="hidden sm:block">
-                <path d="M345 414 H505" stroke="#2c2551" strokeWidth="2" strokeDasharray="4 6" />
-              </g>
-            ) : null}
+            <g aria-hidden style={{ pointerEvents: "none" }}>
+              <rect x="209" y="215" width="7" height="205" rx="3.5" fill="#22d3ee" fillOpacity="0.85" />
+              <text x="224" y="432" fontSize="15" fill="#67e8f9" className="hidden sm:block">
+                Dinding LED
+              </text>
+            </g>
+            {/* stairs up, beside the break out area */}
+            <g aria-hidden stroke="#8b87a8" strokeOpacity="0.8" strokeWidth="1.5">
+              {Array.from({ length: 9 }, (_, i) => (
+                <line key={i} x1={388 + i * 11} y1="38" x2={388 + i * 11} y2="62" />
+              ))}
+              <rect x="388" y="38" width="88" height="24" fill="none" />
+            </g>
           </svg>
           {note ? <p className="mt-3 text-xs leading-relaxed text-muted">{note}</p> : null}
         </div>
@@ -155,6 +156,13 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
       <div ref={detailRef} className="order-first scroll-mt-24 lg:sticky lg:top-24 lg:order-none">
         <div className="overflow-hidden rounded-2xl border border-line bg-surface/60">
           <div className="relative aspect-[16/10] bg-black">
+            {active.photos.length === 0 ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[radial-gradient(ellipse_at_30%_20%,rgb(99_102_241/0.25),transparent_60%),radial-gradient(ellipse_at_80%_90%,rgb(217_70_239/0.18),transparent_60%)] px-6 text-center">
+                <span className="flex size-12 items-center justify-center rounded-full border border-line bg-surface-raised text-lg font-bold text-ink">{active.n}</span>
+                <p className="text-base font-semibold text-ink">{active.name}</p>
+                <p className="text-sm text-muted">Foto ruang ini akan segera ditambahkan.</p>
+              </div>
+            ) : null}
             {active.photos.map((src, i) => (
               <Image
                 key={src}
@@ -226,6 +234,7 @@ function Zone({ zone, n, label, active, onSelect }: { zone: ShowroomZone; n: num
     className: "transition-[fill,stroke] duration-200",
   };
   const [bx, by] = zone.badge;
+  const sm = zone.size === "sm";
   return (
     <g
       role="button"
@@ -242,17 +251,19 @@ function Zone({ zone, n, label, active, onSelect }: { zone: ShowroomZone; n: num
       className="cursor-pointer outline-none [&:focus-visible>.zone-shape]:stroke-white hover:[&>.zone-shape]:stroke-[#a78bfa]"
     >
       {s.kind === "rect" ? (
-        <rect className={cn("zone-shape", common.className)} x={s.x} y={s.y} width={s.w} height={s.h} rx={12} fill={common.fill} stroke={common.stroke} strokeWidth={common.strokeWidth} />
+        <rect className={cn("zone-shape", common.className)} x={s.x} y={s.y} width={s.w} height={s.h} rx={sm ? 10 : 12} fill={common.fill} stroke={common.stroke} strokeWidth={common.strokeWidth} />
       ) : (
         <circle className={cn("zone-shape", common.className)} cx={s.cx} cy={s.cy} r={s.r} fill={common.fill} stroke={common.stroke} strokeWidth={common.strokeWidth} />
       )}
-      <circle cx={bx} cy={by} r={24} fill={active ? "#ffffff" : "#2a2352"} />
-      <text x={bx} y={by + 8} textAnchor="middle" fontSize="23" fontWeight="700" fill={active ? "#1b1240" : "#e9e5ff"}>
+      <circle cx={bx} cy={by} r={sm ? 15 : 24} fill={active ? "#ffffff" : "#2a2352"} />
+      <text x={bx} y={by + (sm ? 6 : 8)} textAnchor="middle" fontSize={sm ? 17 : 23} fontWeight="700" fill={active ? "#1b1240" : "#e9e5ff"}>
         {n}
       </text>
-      <text x={bx} y={by + 44} textAnchor="middle" fontSize="19" fontWeight="600" fill={active ? "#ffffff" : "#b7b0d8"} className="hidden sm:block" style={{ pointerEvents: "none" }}>
-        {label.split(" & ")[0]}
-      </text>
+      {zone.tag ? (
+        <text x={bx} y={by + (sm ? 33 : 44)} textAnchor="middle" fontSize={sm ? 14 : 19} fontWeight="600" fill={active ? "#ffffff" : "#b7b0d8"} className="hidden sm:block" style={{ pointerEvents: "none" }}>
+          {zone.tag}
+        </text>
+      ) : null}
     </g>
   );
 }
