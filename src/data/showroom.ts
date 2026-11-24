@@ -1,5 +1,5 @@
 /**
- * Denah showroom HOLOLABS: thirteen zones on two floors. The ground floor follows the
+ * Denah showroom HOLOLABS: nine zones on two floors (plus the offices, which are not open to visitors). The ground floor follows the
  * architectural plan (wing of rooms on the left, hall in the middle, break out area on top,
  * service rooms and entrance on the right); the second floor only holds the viewing deck. The photos are the
  * architectural renders in /public/showroom (an illustration of the space);
@@ -35,9 +35,9 @@ export const showroomZones: ShowroomZone[] = [
     tag: "",
     size: "sm",
     photos: ["/showroom/13.jpg"],
-    name: "Pintu masuk & pos jaga",
+    name: "Registrasi & tiket",
     description:
-      "Bangunan bergaya gudang industri dengan pintu utama berwarna oranye, di sisi yang menghadap area parkir dan bersebelahan dengan pos jaga. Check-in dilakukan dengan memindai QR pada e-ticket sebelum pengunjung masuk ke aula utama.",
+      "Pengunjung masuk melalui pintu utama berwarna oranye di sisi area parkir, lalu melapor ke petugas registrasi. Petugas memindai QR pada e-ticket, mencocokkan data pemesanan, lalu mengarahkan pengunjung ke aula utama.",
   },
   {
     id: "hall",
@@ -48,7 +48,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/14.jpg", "/showroom/16.jpg", "/showroom/26.jpg"],
     name: "Experience Hall",
     description:
-      "Aula utama dengan langit-langit tinggi dan rangka baja terbuka. Satu sisi dinding berfungsi sebagai layar LED berukuran besar, sementara proyektor di plafon melengkapi visualnya. Seluruh rangkaian babak HOLOLABS Experience Journey berlangsung di ruang ini.",
+      "Aula utama dengan langit-langit tinggi dan rangka baja terbuka. Visual ditampilkan memenuhi dinding aula dengan bantuan proyektor di plafon. Seluruh rangkaian babak HOLOLABS Experience Journey berlangsung di ruang ini.",
   },
   {
     id: "stage",
@@ -60,7 +60,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/17.jpg", "/showroom/15.jpg"],
     name: "Panggung DJ",
     description:
-      "Panggung DJ berada di tengah aula, berhadapan dengan layar LED. Musik dari DJ menjadi pemicu visual di layar, sesuai konsep Interactive DJ & Audio Reactive Performance pada babak Feel the Beat.",
+      "Panggung DJ berada di tengah aula, berhadapan dengan layar utama. Musik dari DJ menjadi pemicu visual di layar, sesuai konsep Interactive DJ & Audio Reactive Performance pada babak Feel the Beat.",
   },
   {
     id: "breakout",
@@ -88,57 +88,13 @@ export const showroomZones: ShowroomZone[] = [
   {
     id: "command",
     floor: "ground",
-    shape: { kind: "rect", x: 116, y: 34, w: 89, h: 116 },
-    badge: [160, 84],
-    tag: "Command",
-    size: "sm",
+    shape: { kind: "rect", x: 30, y: 153, w: 175, h: 184 },
+    badge: [117, 196],
+    tag: "Command Center",
     photos: ["/showroom/40.jpg"],
     name: "Command Center",
     description:
-      "Ruang berdinding kayu dengan video wall lebar di bagian depan dan meja kerja panjang. Ruang ini dipakai untuk memantau dan mengelola konten visual.",
-  },
-  {
-    id: "finance",
-    floor: "ground",
-    shape: { kind: "rect", x: 30, y: 34, w: 83, h: 116 },
-    badge: [71, 84],
-    tag: "Finance",
-    size: "sm",
-    photos: [],
-    name: "Finance & Admin",
-    description: "Ruang kerja tim finance dan administrasi, di sisi kiri bangunan.",
-  },
-  {
-    id: "viz",
-    floor: "ground",
-    shape: { kind: "rect", x: 30, y: 153, w: 175, h: 184 },
-    badge: [117, 225],
-    tag: "VIZ RnD",
-    photos: [],
-    name: "VIZ RnD",
-    description: "Ruang kerja tim VIZ RnD dengan deretan meja kerja bersama dan proyektor Epson EB-725Wi. Letaknya berdekatan dengan aula utama.",
-  },
-  {
-    id: "gamedev",
-    floor: "ground",
-    shape: { kind: "rect", x: 30, y: 340, w: 96, h: 106 },
-    badge: [78, 385],
-    tag: "Game Dev",
-    size: "sm",
-    photos: [],
-    name: "Game Dev",
-    description: "Ruang kerja tim pengembangan game, di sudut kiri bawah bangunan.",
-  },
-  {
-    id: "storage",
-    floor: "ground",
-    shape: { kind: "rect", x: 129, y: 340, w: 76, h: 106 },
-    badge: [167, 385],
-    tag: "Storage",
-    size: "sm",
-    photos: [],
-    name: "Storage Elektronik",
-    description: "Ruang penyimpanan perangkat elektronik, bersebelahan dengan ruang Game Dev.",
+      "Ruang kendali yang bersebelahan dengan aula utama. Dinding LED-nya tersusun dari 8 TV dalam dua baris, ditambah meja kerja panjang. Ruang ini dipakai untuk memantau dan mengelola konten visual.",
   },
   {
     id: "pantry",
@@ -149,7 +105,7 @@ export const showroomZones: ShowroomZone[] = [
     size: "sm",
     photos: [],
     name: "Pantry & loker",
-    description: "Pantry, loker, dan ruang penyimpanan di sisi kanan bangunan, dekat toilet dan pos jaga.",
+    description: "Pantry, loker, dan ruang penyimpanan di sisi kanan bangunan, dekat toilet dan meja registrasi.",
   },
   {
     id: "toilet",
@@ -171,16 +127,25 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/35.jpg", "/showroom/34.jpg", "/showroom/36.jpg"],
     name: "Viewing Deck",
     description:
-      "Satu-satunya ruang di lantai 2: deretan kursi bar yang menghadap langsung ke layar LED. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton. Akses melalui tangga di dekat Break Out Area.",
+      "Satu-satunya ruang di lantai 2: deretan kursi bar yang menghadap langsung ke layar utama aula. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton. Akses melalui tangga di dekat Break Out Area.",
   },
+];
+
+/** HOLOLABS offices on the ground floor: drawn on the plan, not selectable, not described. */
+export const officeRooms = [
+  { x: 30, y: 34, w: 83, h: 116 },
+  { x: 116, y: 34, w: 89, h: 116 },
+  { x: 30, y: 340, w: 96, h: 106 },
+  { x: 129, y: 340, w: 76, h: 106 },
 ];
 
 export const showroomDefaults = {
   eyebrow: "Denah showroom",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Showroom terdiri atas tiga belas zona di dua lantai. Lantai dasar memuat pintu masuk, aula utama dengan layar LED, area pertemuan, dan ruang kerja tim, sedangkan lantai 2 hanya berisi Viewing Deck. Pilih sebuah zona pada denah untuk melihat fungsinya.",
+  body: "Showroom terdiri atas sembilan zona di dua lantai. Lantai dasar memuat meja registrasi, aula utama, Command Center, dan area pertemuan, sedangkan lantai 2 hanya berisi Viewing Deck. Pilih sebuah zona pada denah untuk melihat fungsinya.",
   note: "Denah bersifat ilustrasi dan tidak sesuai skala. Foto adalah render ilustrasi ruang.",
   cta: "Reservasi kunjungan",
+  office: "Area kantor HOLOLABS, tidak dibuka untuk umum.",
   zones: showroomZones.map((z) => ({
     name: z.name,
     description: z.description,

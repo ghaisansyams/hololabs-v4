@@ -32,7 +32,7 @@ export async function ShowroomSection() {
           </Reveal>
         </div>
         <Reveal delay={120} className="mt-12">
-          <ShowroomMap zones={showroom.zones.map((z) => ({ name: z.name, description: z.description, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))} note={showroom.note} cta={showroom.cta} address={address} mapsHref={mapsHref} />
+          <ShowroomMap zones={showroom.zones.map((z) => ({ name: z.name, description: z.description, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))} note={showroom.note} office={showroom.office} cta={showroom.cta} address={address} mapsHref={mapsHref} />
         </Reveal>
       </Container>
     </section>

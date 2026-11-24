@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { floorLabels, showroomZones, type Floor, type ShowroomZone } from "@/data/showroom";
+import { floorLabels, officeRooms, showroomZones, type Floor, type ShowroomZone } from "@/data/showroom";
 import { cn } from "@/lib/utils/cn";
 
 interface ZoneText {
@@ -22,7 +22,7 @@ const FLOORS: Floor[] = ["ground", "mezzanine"];
  * buttons on the plan and in a list under it, so the plan works with keyboard
  * and on phones where the labels on the drawing would be too small to read.
  */
-export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: ZoneText[]; note: string; cta: string; address: string; mapsHref: string }) {
+export function ShowroomMap({ zones, note, office, cta, address, mapsHref }: { zones: ZoneText[]; note: string; office: string; cta: string; address: string; mapsHref: string }) {
   const [floor, setFloor] = useState<Floor>("ground");
   const [activeId, setActiveId] = useState("hall");
   const [photo, setPhoto] = useState(0);
@@ -80,6 +80,9 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               <pattern id="void-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                 <line x1="0" y1="0" x2="0" y2="10" stroke="#6366f1" strokeOpacity="0.28" strokeWidth="2" />
               </pattern>
+              <pattern id="office-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#8b87a8" strokeOpacity="0.22" strokeWidth="2" />
+              </pattern>
             </defs>
 
             {/* building outline and a few fixed features */}
@@ -106,12 +109,32 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               <Zone key={z.id} zone={z} n={z.n} label={z.name} active={z.id === activeId} onSelect={() => select(z)} />
             ))}
 
-            <g aria-hidden style={{ pointerEvents: "none" }}>
-              <rect x="209" y="215" width="7" height="205" rx="3.5" fill="#22d3ee" fillOpacity="0.85" />
-              <text x="224" y="432" fontSize="15" fill="#67e8f9" className="hidden sm:block">
-                Dinding LED
-              </text>
+            {/* offices: shown for the footprint only, not part of the visit */}
+            <g aria-hidden>
+              {officeRooms.map((r, i) =>
+                floor === "ground" ? (
+                  <g key={i}>
+                    <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={10} fill="url(#office-hatch)" stroke="#2c2551" strokeWidth="2" />
+                    <text x={r.x + r.w / 2} y={r.y + r.h / 2 + 5} textAnchor="middle" fontSize="13" fill="#6f6a8f" className="hidden sm:block">
+                      Kantor
+                    </text>
+                  </g>
+                ) : (
+                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={12} fill="none" stroke="#2c2551" strokeOpacity="0.55" strokeDasharray="5 6" />
+                ),
+              )}
             </g>
+            {/* LED wall of the command center: 8 TVs in two rows */}
+            {floor === "ground" ? (
+              <g aria-hidden style={{ pointerEvents: "none" }}>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <rect key={i} x={73 + (i % 4) * 23} y={262 + Math.floor(i / 4) * 19} width="20" height="16" rx="2" fill="#22d3ee" fillOpacity={activeId === "command" ? 0.95 : 0.7} />
+                ))}
+                <text x="117" y="322" textAnchor="middle" fontSize="12" fill="#67e8f9" className="hidden sm:block">
+                  Dinding LED · 8 TV
+                </text>
+              </g>
+            ) : null}
             {/* stairs up, beside the break out area */}
             <g aria-hidden stroke="#8b87a8" strokeOpacity="0.8" strokeWidth="1.5">
               {Array.from({ length: 9 }, (_, i) => (
@@ -120,7 +143,13 @@ export function ShowroomMap({ zones, note, cta, address, mapsHref }: { zones: Zo
               <rect x="388" y="38" width="88" height="24" fill="none" />
             </g>
           </svg>
-          {note ? <p className="mt-3 text-xs leading-relaxed text-muted">{note}</p> : null}
+          {office ? (
+            <p className="mt-3 flex items-center gap-2 text-xs leading-relaxed text-muted">
+              <span aria-hidden className="inline-block size-3 shrink-0 rounded-sm border border-line bg-[repeating-linear-gradient(45deg,rgb(139_135_168/0.35)_0_2px,transparent_2px_6px)]" />
+              {office}
+            </p>
+          ) : null}
+          {note ? <p className="mt-2 text-xs leading-relaxed text-muted">{note}</p> : null}
         </div>
 
         {/* zone list: the readable version of the plan on phones, and a keyboard-friendly index */}
