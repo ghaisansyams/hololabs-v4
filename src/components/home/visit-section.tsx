@@ -2,13 +2,13 @@ import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
-import { SeatScene } from "@/components/home/seat-scene";
+import { CommandCenterScene } from "@/components/home/command-center-scene";
 import { buttonStyles } from "@/components/ui/button";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 /**
- * Reservation block: a scroll-driven 3D show room (18 seats) beside the pitch and the
+ * Reservation block: a scroll-driven 3D Command Center room beside the pitch and the
  * show facts (when, where), then the two ways to come: booking online for
  * up to six people, or a private show for schools, companies and brands.
  */
@@ -73,7 +73,7 @@ export async function VisitSection() {
           </div>
 
           <Reveal variant="zoom" delay={120}>
-            <SeatScene note={visit.ticketNote} />
+            <CommandCenterScene note={visit.ticketNote} />
           </Reveal>
         </div>
 
