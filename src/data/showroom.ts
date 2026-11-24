@@ -1,7 +1,8 @@
 /**
- * Denah showroom HOLOLABS: nine zones on two floors (plus the offices, which are not open to visitors). The ground floor follows the
- * architectural plan (wing of rooms on the left, hall in the middle, break out area on top,
- * service rooms and entrance on the right); the second floor only holds the viewing deck. The photos are the
+ * Denah showroom HOLOLABS: the parking lot in front plus eight zones on two floors (the offices and
+ * guard room are drawn but not open to visitors). The ground floor follows the architectural plan
+ * (wing of rooms on the left, hall in the middle, break out area on top, service rooms on the right,
+ * parking beyond the main door); the second floor only holds the viewing deck. The photos are the
  * architectural renders in /public/showroom (an illustration of the space);
  * the texts below are the defaults of the CMS section "Denah showroom".
  * The plan itself is a schematic, not to scale.
@@ -28,16 +29,15 @@ export const floorLabels: Record<Floor, string> = { ground: "Lantai dasar", mezz
 
 export const showroomZones: ShowroomZone[] = [
   {
-    id: "entrance",
+    id: "parking",
     floor: "ground",
-    shape: { kind: "rect", x: 695, y: 98, w: 35, h: 84 },
-    badge: [712, 140],
-    tag: "",
-    size: "sm",
+    shape: { kind: "rect", x: 762, y: 14, w: 484, h: 452 },
+    badge: [1168, 398],
+    tag: "Area Parkir",
     photos: ["/showroom/13.jpg"],
-    name: "Registrasi & tiket",
+    name: "Area parkir",
     description:
-      "Pengunjung masuk melalui pintu utama berwarna oranye di sisi area parkir, lalu melapor ke petugas registrasi. Petugas memindai QR pada e-tiket, mencocokkan data pemesanan, lalu mengarahkan pengunjung ke aula utama.",
+      "Area parkir mobil dan motor di depan gedung. Dari sini pengunjung masuk ke aula utama melalui pintu utama berwarna oranye.",
   },
   {
     id: "hall",
@@ -131,19 +131,24 @@ export const showroomZones: ShowroomZone[] = [
   },
 ];
 
-/** HOLOLABS offices on the ground floor (one block above and one below the command room): drawn on the plan, not selectable, not labelled. */
+/**
+ * HOLOLABS internal rooms on the ground floor: the offices above and below the
+ * command room, and the guard room by the main door. Drawn on the plan, not
+ * selectable, not labelled.
+ */
 export const officeRooms = [
   { x: 30, y: 34, w: 175, h: 116 },
   { x: 30, y: 340, w: 175, h: 106 },
+  { x: 695, y: 98, w: 35, h: 84 },
 ];
 
 export const showroomDefaults = {
   eyebrow: "Denah ruang pamer",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Ruang pamer terdiri atas sembilan zona di dua lantai. Lantai dasar memuat meja registrasi, aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Balkon Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
+  body: "Denah mencakup area parkir di depan gedung dan delapan zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Balkon Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
   note: "Denah bersifat ilustrasi dan tidak sesuai skala. Foto adalah render ilustrasi ruang.",
   cta: "Reservasi kunjungan",
-  office: "Area kantor HOLOLABS, tidak dibuka untuk umum.",
+  office: "Area kantor & ruang internal HOLOLABS, tidak dibuka untuk umum.",
   zones: showroomZones.map((z) => ({
     name: z.name,
     description: z.description,

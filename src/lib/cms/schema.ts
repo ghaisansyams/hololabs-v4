@@ -90,14 +90,14 @@ export const sections = [
     key: "showroom",
     label: "Denah showroom",
     description:
-      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) sembilan zona bisa diubah. Urutan zona (lantai dasar): registrasi & tiket, Aula Utama, panggung DJ, Area Santai, Area Rapat, Ruang Kendali, Pantri & loker, Toilet & wudhu; lalu Balkon Penonton (lantai 2). Ruang kantor tampil di denah tanpa label. Di situs, panel kanan denah hanya menampilkan foto dan nama zona. Foto bawaan masih berupa render dan beberapa ruang belum punya foto, isi dengan foto asli saat sudah ada.",
+      "Bagian denah interaktif tepat di bawah hero. Judul, pengantar, serta nama, penjelasan, dan foto (sampai 4 per zona) sembilan zona bisa diubah. Urutan zona: Area parkir (di depan gedung), lalu lantai dasar: Aula Utama, panggung DJ, Area Santai, Area Rapat, Ruang Kendali, Pantri & loker, Toilet & wudhu; lalu Balkon Penonton (lantai 2). Ruang kantor dan ruang jaga tampil di denah sebagai area internal tanpa label. Di situs, foto dan nama zona terpilih tampil besar di atas denah. Foto bawaan masih berupa render dan beberapa ruang belum punya foto, isi dengan foto asli saat sudah ada.",
     fields: [
       t("eyebrow", "Label kecil di atas judul", 40),
       t("title", "Judul", 80),
       ta("body", "Kalimat pengantar", 360),
       t("note", "Catatan di bawah denah (kosongkan untuk menyembunyikan)", 160),
       t("cta", "Teks tombol reservasi (saat ini tidak ditampilkan)", 40),
-      t("office", "Keterangan area kantor di bawah denah", 120),
+      t("office", "Keterangan area internal (kantor) di bawah denah", 120),
       {
         key: "zones",
         label: "Zona",
@@ -118,9 +118,9 @@ export const sections = [
   },
   {
     key: "experience",
-    label: "Perjalanan 3D (7 babak)",
+    label: "Perjalanan (7 babak)",
     description:
-      "Tujuh babak yang dilewati kamera 3D saat halaman di-scroll. Urutan gambar tiap babak tetap; nama babak, subjudul, penjelasan, durasi, dan alur bisa diubah. Babak pertama dan terakhir tampil di timeline sebagai MULAI dan SELESAI.",
+      "Tujuh babak pertunjukan, tersusun ke bawah dengan timeline di sisi kiri. Urutan gambar tiap babak tetap; nama babak, subjudul, penjelasan, durasi, dan alur bisa diubah. Babak pertama dan terakhir tampil di timeline sebagai MULAI dan SELESAI.",
     fields: [
       {
         key: "steps",
@@ -135,7 +135,7 @@ export const sections = [
           ta("description", "Penjelasan", 360),
           t("minutes", "Durasi (mis. ±15 menit)", 20),
           { key: "flow", label: "Alur yang dialami pengunjung", type: "tags", hint: "Satu langkah per baris, 3 sampai 5 langkah. Kosongkan untuk babak pertama dan terakhir." },
-          img("image", "Gambar babak", "Dipakai pada babak 2, 3, 5, dan 6. Babak pertama, babak 4 (Bertemu AI), dan terakhir memakai ilustrasi 3D yang tidak bisa diganti, jadi kolom ini diabaikan di sana. Kosongkan untuk memakai gambar bawaan. Disarankan rasio mendatar, gambar akan dipotong menyesuaikan bingkai."),
+          img("image", "Gambar babak", "Dipakai pada babak 2, 3, 5, dan 6. Babak pertama, babak 4 (Bertemu AI), dan terakhir memakai ilustrasi bawaan yang tidak bisa diganti, jadi kolom ini diabaikan di sana. Mengganti gambar babak 3 atau 6 juga mengganti videonya dengan foto. Kosongkan untuk memakai gambar bawaan. Disarankan rasio mendatar, gambar akan dipotong menyesuaikan bingkai."),
         ],
       },
     ],
