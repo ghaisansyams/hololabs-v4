@@ -740,3 +740,8 @@ select ensure_schedule(30);
 -- record when each channel was last sent so staff can see who still needs it.
 alter table bookings add column if not exists ticket_sent_wa_at timestamptz;
 alter table bookings add column if not exists ticket_sent_email_at timestamptz;
+
+-- Automatic email (Nov 2026): Gmail SMTP sends "sedang diverifikasi" when the
+-- guest reports the transfer and "pembayaran berhasil" (e-ticket + QR) when an
+-- admin confirms it. WhatsApp delivery was removed; ticket_sent_wa_at is unused.
+alter table bookings add column if not exists payment_notice_email_at timestamptz;

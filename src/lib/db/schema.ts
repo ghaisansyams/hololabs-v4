@@ -89,6 +89,7 @@ export const bookings = pgTable(
     note: text("note").notNull().default(""),
     ticketSentWaAt: timestamp("ticket_sent_wa_at", { withTimezone: true, mode: "string" }),
     ticketSentEmailAt: timestamp("ticket_sent_email_at", { withTimezone: true, mode: "string" }),
+    paymentNoticeEmailAt: timestamp("payment_notice_email_at", { withTimezone: true, mode: "string" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("bookings_customer_idx").on(t.customerId), index("bookings_session_idx").on(t.sessionId)],

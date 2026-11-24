@@ -2,17 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { AdminBookingRow } from "@/lib/services/admin";
-import { waTemplates } from "@/data/wa-templates";
-import { toWhatsappE164 } from "@/lib/utils/phone";
 import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatRupiah, formatTimeRange } from "@/lib/utils/format";
 import { StatusPill } from "@/components/admin/page-header";
 import { cn } from "@/lib/utils/cn";
 import { TicketDelivery } from "@/components/admin/ticket-delivery";
 import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
-import type { ETicketTemplates } from "@/lib/utils/eticket-message";
 
 type ServerAction = (formData: FormData) => void;
 
@@ -37,12 +34,12 @@ function stageTone(stage: string): "success" | "warning" | "danger" {
 
 export function BookingDetailModal({
   booking,
-  templates,
+  emailReady,
   checkInBooking,
   cancelBooking,
 }: {
   booking: AdminBookingRow;
-  templates: ETicketTemplates;
+  emailReady: boolean;
   checkInBooking: ServerAction;
   cancelBooking: ServerAction;
 }) {
@@ -52,28 +49,7 @@ export function BookingDetailModal({
     setOpen(false);
     router.refresh();
   };
-  const [templateKey, setTemplateKey] = useState(waTemplates[0].key);
-  const [draft, setDraft] = useState(() => waTemplates[0].build(booking));
-  const [copied, setCopied] = useState(false);
-
   const stage = effectiveStage(booking);
-  const waLink = `https://wa.me/${toWhatsappE164(booking.whatsapp)}?text=${encodeURIComponent(draft)}`;
-
-  function selectTemplate(key: string) {
-    setTemplateKey(key);
-    const tpl = waTemplates.find((t) => t.key === key);
-    if (tpl) setDraft(tpl.build(booking));
-  }
-
-  async function copyDraft() {
-    try {
-      await navigator.clipboard.writeText(draft);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // ignore — clipboard unavailable
-    }
-  }
 
   return (
     <>
@@ -131,7 +107,7 @@ export function BookingDetailModal({
                   </div>
                   {booking.status !== "CANCELLED" ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {booking.paymentStatus !== "PAID" ? <PaymentFlowDialog booking={booking} templates={templates} /> : null}
+                      {booking.paymentStatus !== "PAID" ? <PaymentFlowDialog booking={booking} emailReady={emailReady} /> : null}
                       {booking.paymentStatus === "PAID" && booking.checkinStatus !== "CHECKED_IN" ? (
                         <form action={checkInBooking}>
                           <input type="hidden" name="bookingId" value={booking.id} />
@@ -240,62 +216,7 @@ export function BookingDetailModal({
               </div>
 
               <div className="space-y-4">
-              <TicketDelivery booking={booking} templates={templates} />
-              <div className="space-y-3 rounded-2xl border border-line bg-canvas-deep p-4">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted">
-                  <MessageCircle className="size-3.5 text-success" aria-hidden />
-                  Generator pesan WhatsApp
-                </div>
-                <p className="text-xs text-muted">Pilih template dan kirim langsung ke {booking.whatsapp}.</p>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {waTemplates.map((tpl) => (
-                    <button
-                      key={tpl.key}
-                      type="button"
-                      onClick={() => selectTemplate(tpl.key)}
-                      className={cn(
-                        "rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors",
-                        tpl.key === templateKey
-                          ? "border-success/50 bg-success-soft text-success"
-                          : "border-line text-ink-soft hover:border-accent/40",
-                      )}
-                    >
-                      {tpl.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-ink-soft">Draft pesan (bisa diedit)</p>
-                  <textarea
-                    value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    rows={11}
-                    className="mt-1.5 w-full resize-none rounded-xl border border-line bg-surface px-3 py-2.5 text-xs leading-relaxed text-ink outline-none focus:border-accent"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={copyDraft}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-pill border border-line px-3 py-2 text-xs font-semibold text-ink-soft hover:border-accent/50 hover:text-ink"
-                  >
-                    {copied ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-                    {copied ? "Tersalin" : "Salin pesan"}
-                  </button>
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-success px-3 py-2 text-xs font-bold text-canvas"
-                  >
-                    <MessageCircle className="size-3.5" aria-hidden />
-                    Buka di WhatsApp
-                  </a>
-                </div>
-              </div>
+              <TicketDelivery booking={booking} emailReady={emailReady} />
               </div>
             </div>
           </div>

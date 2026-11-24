@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Send, X } from "lucide-react";
-import { confirmBookingPaid } from "@/app/admin/actions";
+import { confirmBookingPaid, type ConfirmPaidResult } from "@/app/admin/actions";
 import { TicketDelivery } from "@/components/admin/ticket-delivery";
 import type { AdminBookingRow } from "@/lib/services/admin";
-import type { ETicketTemplates } from "@/lib/utils/eticket-message";
 import { formatDate, formatWeekday } from "@/lib/utils/date";
 import { formatRupiah, formatTimeRange } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -22,11 +21,11 @@ import { cn } from "@/lib/utils/cn";
  */
 export function PaymentFlowDialog({
   booking,
-  templates,
+  emailReady,
   className,
 }: {
   booking: AdminBookingRow;
-  templates: ETicketTemplates;
+  emailReady: boolean;
   className?: string;
 }) {
   const router = useRouter();
@@ -35,9 +34,10 @@ export function PaymentFlowDialog({
   const [justConfirmed, setJustConfirmed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [emailResult, setEmailResult] = useState<ConfirmPaidResult | null>(null);
 
   const wasPaid = booking.paymentStatus === "PAID";
-  const unsent = !booking.ticketSentWaAt && !booking.ticketSentEmailAt;
+  const unsent = !booking.ticketSentEmailAt;
 
   function close() {
     if (pending) return;
@@ -66,6 +66,7 @@ export function PaymentFlowDialog({
     if (res.ok) {
       setPaid(true);
       setJustConfirmed(true);
+      setEmailResult(res);
     } else {
       setError(res.error ?? "Gagal menandai lunas.");
     }
@@ -150,7 +151,7 @@ export function PaymentFlowDialog({
                 )}
 
                 <p className="mt-3 text-xs leading-relaxed text-muted">
-                  Pastikan dana dengan nominal persis di atas sudah masuk ke rekening. Setelah dikonfirmasi, langkah berikutnya adalah mengirim e-ticket ke pelanggan.
+                  Pastikan dana dengan nominal persis di atas sudah masuk ke rekening. Setelah dikonfirmasi, e-ticket dan QR check-in langsung dikirim ke email pelanggan.
                 </p>
                 {error ? (
                   <p role="alert" className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-xs text-danger">
@@ -174,13 +175,23 @@ export function PaymentFlowDialog({
             ) : (
               <>
                 <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  {justConfirmed ? `Langkah terakhir: kirim e-ticket ke ${booking.customerName}.` : `Kirim e-ticket ke ${booking.customerName}.`}
+                  {justConfirmed
+                    ? emailResult?.email === "sent"
+                      ? `E-ticket dan QR check-in sudah dikirim ke ${booking.email}.`
+                      : emailResult?.email === "skipped"
+                        ? `${booking.customerName} tidak mengisi email, jadi e-ticket tidak terkirim.`
+                        : "Pembayaran terkonfirmasi, tetapi email e-ticket belum terkirim."
+                    : `E-ticket untuk ${booking.customerName}.`}
                 </p>
                 <div className="mt-3">
-                  <TicketDelivery booking={{ ...booking, paymentStatus: "PAID" }} templates={templates} />
+                  <TicketDelivery
+                    booking={{ ...booking, paymentStatus: "PAID", ticketSentEmailAt: emailResult?.email === "sent" ? new Date().toISOString() : booking.ticketSentEmailAt }}
+                    emailReady={emailReady}
+                    notice={emailResult?.email === "failed" ? emailResult.emailError : undefined}
+                  />
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="text-xs text-muted">Bisa dikirim nanti lewat tombol Kirim e-ticket.</p>
+                  <p className="text-xs text-muted">Bisa dikirim ulang kapan saja.</p>
                   <button type="button" onClick={close} className="rounded-pill border border-line px-5 py-2 text-sm font-semibold text-ink-soft hover:border-accent/50 hover:text-ink">
                     Selesai
                   </button>

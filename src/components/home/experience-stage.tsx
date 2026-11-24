@@ -444,13 +444,13 @@ function CanvasArt({ kind }: { kind: "ticket" | "holomedis" | "souvenir" }) {
   return <div ref={ref} className="flex size-full items-center justify-center bg-[#0a0716] p-4" />;
 }
 
-const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: string; position: string })[] = [
+const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: string; position: string; video?: string })[] = [
   { art: "ticket" },
   { src: "/experience/journey-of-life.jpg", position: "50% 40%" },
-  { src: "/experience/dj.jpg", position: "50% 40%" },
+  { src: "/experience/dj.jpg", position: "50% 40%", video: "/experience/dj-beat.mp4" },
   { art: "holomedis" },
   { src: "/experience/smarthome.jpg", position: "50% 40%" },
-  { src: "/experience/print3d.jpg", position: "60% 50%" },
+  { src: "/experience/print3d.jpg", position: "60% 50%", video: "/experience/dragon-print.mp4" },
   { art: "souvenir" },
 ];
 
@@ -466,6 +466,8 @@ function StaticExperience({ steps }: { steps: StageStep[] }) {
               <div className={cn("relative aspect-[4/3] overflow-hidden rounded-xl border border-line", i % 2 === 1 && "md:order-2")}>
                 {"art" in v ? (
                   <CanvasArt kind={v.art} />
+                ) : v.video ? (
+                  <video src={v.video} poster={v.src} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: "50% 40%" }} />
                 ) : (
                   <Image src={v.src} alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" style={{ objectPosition: v.position }} />
                 )}

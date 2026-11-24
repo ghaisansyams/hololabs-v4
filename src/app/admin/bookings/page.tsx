@@ -5,7 +5,7 @@ import { BookingDetailModal } from "@/components/admin/booking-detail-modal";
 import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
 import { TicketSentChips } from "@/components/admin/ticket-delivery";
 import { cancelBooking, checkInBooking } from "../actions";
-import { getSiteContent } from "@/lib/cms";
+import { emailConfigured } from "@/lib/services/mailer";
 import { listBookings, type AdminBookingRow, type BookingFilter } from "@/lib/services/admin";
 import { formatDate, formatDayMonth } from "@/lib/utils/date";
 import { formatRupiah } from "@/lib/utils/format";
@@ -33,7 +33,8 @@ export default async function AdminBookingsPage({
 }) {
   const { status, q = "" } = await searchParams;
   const filter = parseFilter(status);
-  const [rows, { eticket }] = await Promise.all([listBookings(filter, q), getSiteContent()]);
+  const rows = await listBookings(filter, q);
+  const emailReady = emailConfigured();
 
   const statusOf = (b: AdminBookingRow) =>
     b.status === "CANCELLED" ? "Dibatalkan" : b.paymentStatus === "PAID" ? "Lunas" : b.paymentStatus === "SUBMITTED" ? "Menunggu konfirmasi" : "Belum transfer";
@@ -50,8 +51,8 @@ export default async function AdminBookingsPage({
   );
   const ActionsCell = ({ b }: { b: AdminBookingRow }) => (
     <div className="flex items-center gap-1.5">
-      {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} templates={eticket} /> : null}
-      <BookingDetailModal booking={b} templates={eticket} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
+      {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} emailReady={emailReady} /> : null}
+      <BookingDetailModal booking={b} emailReady={emailReady} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
     </div>
   );
   const seatText = (b: AdminBookingRow) => (b.seatLabels?.length ? `No. ${b.seatLabels.join(", ")}` : `${b.seats} kursi`);

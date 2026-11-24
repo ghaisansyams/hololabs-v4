@@ -132,6 +132,66 @@ function photoMaterial(ctx: Ctx, src: string) {
   return ctx.track(new THREE.MeshBasicMaterial({ map: ctx.tex(src), transparent: true }));
 }
 
+/**
+ * A muted, looping video as a texture, playing only the listed clips (start and
+ * end seconds) one after another from a single file, cropped to fill a panel of
+ * `panelAspect`. Until the first frame is playing (or if autoplay is blocked)
+ * the still photo shows instead. `tick(true)` plays, `tick(false)` pauses.
+ */
+function clipVideo(ctx: Ctx, src: string, still: THREE.Texture, stillAspect: number, clips: [number, number][], panelAspect: number, focusY: number) {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.preload = "metadata";
+  video.setAttribute("muted", "");
+  video.setAttribute("playsinline", "");
+  video.src = src;
+  const map = ctx.track(new THREE.VideoTexture(video));
+  map.colorSpace = THREE.SRGBColorSpace;
+  const material = ctx.track(new THREE.MeshBasicMaterial({ map: still, transparent: true }));
+
+  // crop the still (sides if it is wider than the panel, top and bottom if taller) to fill the panel
+  still.repeat.set(Math.min(1, panelAspect / stillAspect), Math.min(1, stillAspect / panelAspect));
+  still.offset.set((1 - still.repeat.x) / 2, (1 - still.repeat.y) / 2);
+
+  let idx = 0;
+  let live = false;
+  video.addEventListener("loadedmetadata", () => {
+    const f = Math.min(1, video.videoWidth / video.videoHeight / panelAspect);
+    map.repeat.set(1, f);
+    map.offset.set(0, clamp(1 - focusY - f / 2, 0, 1 - f));
+    video.currentTime = clips[0][0];
+  });
+  video.addEventListener("playing", () => {
+    if (live) return;
+    live = true;
+    material.map = map;
+    material.needsUpdate = true;
+  });
+
+  return {
+    material,
+    tick(active: boolean) {
+      if (!active) {
+        if (!video.paused) video.pause();
+        return;
+      }
+      if (video.paused && video.readyState >= 1) void video.play().catch(() => {});
+      const [from, to] = clips[idx];
+      if (video.currentTime >= to - 0.05 || video.currentTime < from - 0.4) {
+        if (video.currentTime >= to - 0.05) idx = (idx + 1) % clips.length;
+        video.currentTime = clips[idx][0];
+      }
+    },
+    dispose() {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    },
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* 1. Check-in: e-ticket whose QR is read by a scanner window          */
 /* ------------------------------------------------------------------ */
@@ -389,90 +449,55 @@ function projectionChapter(ctx: Ctx): Chapter {
 }
 
 /* ------------------------------------------------------------------ */
-/* 3. DJ: beat-driven equaliser, shockwaves, sweeping stage lights     */
+/* 3. DJ: a video of the live set in a framed panel, kept simple        */
 /* ------------------------------------------------------------------ */
 function djChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1400 / 1269;
-  const mat = fader.add(photoMaterial(ctx, "/experience/dj.jpg"), 1);
+  const aspect = 1.15;
+  // clips of the DJ set with video mapping on the walls (seconds in the file);
+  // the closing logo at the end of the file is left out
+  const video = clipVideo(
+    ctx,
+    "/experience/dj-beat.mp4",
+    ctx.tex("/experience/dj.jpg"),
+    1400 / 1269,
+    [
+      [0.3, 3.3],
+      [6, 8.5],
+      [19, 22],
+      [37.5, 40],
+    ],
+    aspect,
+    0.6,
+  );
+  ctx.track(video);
+  const mat = fader.add(video.material, 1);
   const panel = framedPanel(ctx, mat, 0xd946ef, fader);
   group.add(panel.root);
 
-  const BARS = ctx.mobile ? 20 : 32;
-  const barMat = fader.add(ctx.track(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.95, fog: false })), 0.95);
-  const bars = new THREE.InstancedMesh(ctx.track(new THREE.BoxGeometry(1, 1, 1)), barMat, BARS);
-  const cA = new THREE.Color(0x22d3ee);
-  const cB = new THREE.Color(0xe879f9);
-  for (let i = 0; i < BARS; i++) bars.setColorAt(i, cA.clone().lerp(cB, i / (BARS - 1)));
-  group.add(bars);
+  // one slow ring turning behind the panel is the only extra effect
+  const ring = new THREE.Mesh(ctx.track(new THREE.RingGeometry(0.97, 1, 96)), additive(ctx, 0xe879f9, 0.4, THREE.DoubleSide));
+  ring.position.z = -0.3;
+  group.add(ring);
 
-  const rings: THREE.Mesh[] = [];
-  for (let j = 0; j < 3; j++) {
-    const ring = new THREE.Mesh(ctx.track(new THREE.RingGeometry(0.985, 1, 96)), additive(ctx, j === 1 ? 0x22d3ee : 0xe879f9, 0.5, THREE.DoubleSide));
-    ring.position.z = -0.25;
-    group.add(ring);
-    rings.push(ring);
-  }
-
-  const coneGeo = ctx.track(new THREE.ConeGeometry(1, 1, 24, 1, true));
-  coneGeo.translate(0, -0.5, 0);
-  const beams: THREE.Mesh[] = [];
-  [0x22d3ee, 0xa855f7, 0xe879f9, 0x60a5fa].forEach((color) => {
-    const b = new THREE.Mesh(coneGeo, additive(ctx, color, 0.07, THREE.DoubleSide));
-    group.add(b);
-    beams.push(b);
-  });
-
-  const m = new THREE.Matrix4();
   let w = 4.4;
-  let h = w / aspect;
   return {
     group,
     layout(width) {
       w = width;
-      h = w / aspect;
-      panel.setSize(w, h);
-      beams.forEach((b, i) => {
-        b.position.set((i - 1.5) * w * 0.32, h * 0.62, 0.3);
-        b.scale.set(0.55, h * 1.5, 0.55);
-      });
+      panel.setSize(w, w / aspect);
+      ring.scale.setScalar(w * 0.62);
     },
     update({ act, vis, time }) {
       fader.apply(vis);
-      const beat = (time * 124) / 60;
-      const ph = beat % 1;
-      const kick = Math.exp(-ph * 7) * act;
-      const hat = Math.exp(-((beat * 2) % 1) * 9);
-      panel.root.scale.setScalar(1 + kick * 0.025);
-      (panel.glow.material as THREE.MeshBasicMaterial).opacity = vis * (0.4 + kick * 0.6);
-
-      const span = w * 1.04;
-      const barW = (span / BARS) * 0.5;
-      for (let i = 0; i < BARS; i++) {
-        const f = i / (BARS - 1);
-        const level = clamp(
-          kick * (1 - f) * 0.9 + hat * 0.25 * f + 0.22 * Math.abs(Math.sin(time * 3.1 + i * 0.7)) + 0.18 * Math.abs(Math.sin(time * 1.7 + i * 1.9)),
-        );
-        const bh = 0.04 + level * h * 0.26 * (0.3 + 0.7 * act);
-        const x = -span / 2 + (i + 0.5) * (span / BARS);
-        m.makeScale(barW, bh, barW);
-        m.setPosition(x, -h / 2 - 0.08 + bh / 2, 0.3 + Math.sin(f * Math.PI) * 0.25);
-        bars.setMatrixAt(i, m);
-      }
-      bars.instanceMatrix.needsUpdate = true;
-
-      rings.forEach((ring, j) => {
-        const p = (beat + j / 3) % 1;
-        const s = w * 0.42 * (1 + p * 1.1);
-        ring.scale.set(s, s, 1);
-        (ring.material as THREE.MeshBasicMaterial).opacity = (1 - p) * 0.55 * vis * act;
-      });
-      beams.forEach((b, i) => {
-        b.rotation.z = Math.sin(time * 0.9 + i * 1.7) * 0.55;
-        b.rotation.x = 0.35 + Math.sin(time * 0.6 + i) * 0.15;
-        (b.material as THREE.MeshBasicMaterial).opacity = vis * act * (0.05 + hat * 0.06);
-      });
+      video.tick(vis > 0.02);
+      mat.opacity = vis * (0.45 + 0.55 * act);
+      // the glow breathes with a calm pulse, the panel sways slightly
+      (panel.glow.material as THREE.MeshBasicMaterial).opacity = vis * (0.4 + 0.2 * Math.sin(time * 1.6));
+      panel.root.rotation.y = Math.sin(time * 0.5) * 0.06;
+      ring.rotation.z = time * 0.15;
+      (ring.material as THREE.MeshBasicMaterial).opacity = vis * act * 0.35;
     },
   };
 }
@@ -630,26 +655,11 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   const wavePos = new Float32Array(WN * 3);
   waveGeo.setAttribute("position", new THREE.BufferAttribute(wavePos, 3));
   const wave = new THREE.LineLoop(waveGeo, fader.add(ctx.track(new THREE.LineBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 1 }))));
-  const [lc, lg] = canvas(640, 120);
-  lg.fillStyle = "rgba(20,12,4,0.75)";
-  lg.beginPath();
-  lg.roundRect?.(4, 4, 632, 112, 56);
-  if (!lg.roundRect) lg.rect(4, 4, 632, 112);
-  lg.fill();
-  lg.strokeStyle = "rgba(251,191,36,0.7)";
-  lg.lineWidth = 3;
-  lg.stroke();
-  lg.fillStyle = "#fde68a";
-  lg.font = "500 40px ui-sans-serif, system-ui, sans-serif";
-  lg.textAlign = "center";
-  lg.fillText("“Nyalakan mode santai”", 320, 74);
-  const label = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1, 120 / 640)), fader.add(ctx.track(new THREE.MeshBasicMaterial({ map: canvasTexture(ctx, lc), transparent: true, depthWrite: false })), 1));
-  group.add(orb, wave, label);
+  group.add(orb, wave);
 
   let w = 4.4;
   let h = w / aspect;
   const orbPos = new THREE.Vector3();
-  let labelX = 0;
   let tileX = 0;
   let tileRy = 0;
   const warm = new THREE.Color(1, 0.86, 0.68);
@@ -673,9 +683,6 @@ function smartHomeChapter(ctx: Ctx): Chapter {
       orbPos.set(-inner * w * 0.3, -h * 0.25, 0.8);
       orb.position.copy(orbPos);
       orb.scale.set(0.6, 0.6, 1);
-      label.scale.set(w * 0.42, w * 0.42, 1);
-      label.position.set(-inner * w * 0.18, h * 0.02, 0.9);
-      labelX = -inner * w * 0.18;
     },
     update({ act, vis, time }) {
       fader.apply(vis);
@@ -708,39 +715,34 @@ function smartHomeChapter(ctx: Ctx): Chapter {
       }
       waveGeo.attributes.position.needsUpdate = true;
       orb.scale.setScalar(0.45 + speaking * 0.35);
-      label.position.set(labelX, h * 0.02 + Math.sin(time * 1.1) * 0.05, 0.9);
     },
   };
 }
 
 /* ------------------------------------------------------------------ */
-/* 6. 3D printing: photo prints layer by layer, objects rise beside it  */
+/* 6. 3D printing: a video of a dragon being printed, objects rise beside it  */
 /* ------------------------------------------------------------------ */
 function printChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1070 / 600;
-  const map = ctx.tex("/experience/print3d.jpg");
-  const printMat = ctx.track(
-    new THREE.ShaderMaterial({
-      uniforms: { map: { value: map }, uProgress: { value: 1 }, uFade: { value: 1 }, uTint: { value: new THREE.Color(0x67e8f9) } },
-      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: `uniform sampler2D map; uniform float uProgress; uniform float uFade; uniform vec3 uTint; varying vec2 vUv;
-        void main(){
-          vec4 c = texture2D(map, vUv);
-          float layer = 0.9 + 0.1 * step(0.5, fract(vUv.y * 160.0));
-          vec3 col = c.rgb * layer;
-          if (vUv.y > uProgress) {
-            float ghost = step(0.5, fract(vUv.y * 80.0)) * 0.06;
-            col = c.rgb * 0.05 + uTint * ghost;
-          }
-          col += uTint * smoothstep(0.025, 0.0, abs(vUv.y - uProgress)) * 1.3;
-          gl_FragColor = vec4(col * uFade, uFade);
-          #include <colorspace_fragment>
-        }`,
-      transparent: true,
-    }),
+  const aspect = 1.3;
+  // clips from one phone video of a dragon printing: the first layers, the pieces
+  // coming together, then the finished dragon in a hand (seconds in the file)
+  const video = clipVideo(
+    ctx,
+    "/experience/dragon-print.mp4",
+    ctx.tex("/experience/print3d.jpg"),
+    1070 / 600,
+    [
+      [0.8, 4.6],
+      [5.4, 7.6],
+      [10, 13.4],
+    ],
+    aspect,
+    0.44,
   );
+  ctx.track(video);
+  const printMat = video.material;
   const photo = new THREE.Mesh(ctx.track(new THREE.PlaneGeometry(1, 1)), printMat);
   const glowMat = fader.add(
     ctx.track(new THREE.MeshBasicMaterial({ map: ctx.dot, color: 0x818cf8, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })),
@@ -785,11 +787,11 @@ function printChapter(ctx: Ctx): Chapter {
     },
     update({ act, vis, time }) {
       fader.apply(vis);
-      // 7 s cycle: print for 5 s, hold, restart; frozen fully printed when out of focus
+      // 7 s cycle for the objects: print for 5 s, hold, restart; frozen fully printed when out of focus
       const cyc = time % 7;
       const p = act > 0.3 ? clamp(cyc / 5) : 1;
-      printMat.uniforms.uProgress.value = p * 1.02;
-      printMat.uniforms.uFade.value = vis * (0.35 + 0.65 * act);
+      video.tick(vis > 0.02);
+      printMat.opacity = vis * (0.4 + 0.6 * act);
       const printing = p < 1;
       const y = BOTTOM + (TOP - BOTTOM) * p;
       cut.value = printing ? y : 99;

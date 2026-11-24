@@ -124,7 +124,7 @@ export interface BookingInput {
 export type BookingFieldErrors = Partial<Record<"sessionId" | "seats" | "name" | "email" | "whatsapp" | "note" | "agree", string>>;
 
 export type CreateResult =
-  | { ok: true; url: string }
+  | { ok: true; url: string; bookingId: string }
   | { ok: false; status: number; error: string; fieldErrors?: BookingFieldErrors; taken?: string[] };
 
 /** Same rules, same wording as hololabs.id's form. */
@@ -223,5 +223,5 @@ export async function createSeatBooking(input: BookingInput): Promise<CreateResu
   const expiresAt = new Date(Date.now() + PAYMENT_MINUTES * 60 * 1000).toISOString();
   await rows(sql`select * from create_payment_with_code(${booking.id}::uuid, ${amount}::numeric, ${uniqueCode}::int, ${expiresAt}::timestamptz)`);
 
-  return { ok: true, url: `/pembayaran/${booking.access_token}` };
+  return { ok: true, url: `/pembayaran/${booking.access_token}`, bookingId: booking.id };
 }

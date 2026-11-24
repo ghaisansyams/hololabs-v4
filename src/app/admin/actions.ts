@@ -11,7 +11,8 @@ import {
   createSessionToken,
   credentialsMatch,
 } from "@/lib/admin/session";
-import { findBookingByNumber } from "@/lib/services/admin";
+import { findBookingByNumber, getBookingById } from "@/lib/services/admin";
+import { sendETicketEmail } from "@/lib/services/mailer";
 import { requireAdmin } from "@/lib/admin/guard";
 
 
@@ -56,26 +57,39 @@ export async function markBookingPaid(formData: FormData): Promise<void> {
   revalidatePath("/admin/bookings");
 }
 
+export interface ConfirmPaidResult {
+  ok: boolean;
+  error?: string;
+  /** "sent": the e-ticket email went out; "failed": paid, but the email did not (see emailError); "skipped": the guest left no email. */
+  email?: "sent" | "failed" | "skipped";
+  emailError?: string;
+}
+
 /**
- * Marks a booking paid without refreshing the list, so the confirm dialog can
- * move straight on to "send the e-ticket" even when the row would drop out of
- * the current filter. The dialog refreshes the page when it closes.
+ * Marks a booking paid and emails the guest their e-ticket and check-in QR
+ * straight away. The list is not refreshed, so the confirm dialog can show
+ * the result (and a retry button when the email failed) even if the row
+ * leaves the current filter; the dialog refreshes the page when it closes.
  */
-export async function confirmBookingPaid(bookingId: string): Promise<{ ok: boolean; error?: string }> {
+export async function confirmBookingPaid(bookingId: string): Promise<ConfirmPaidResult> {
   await requireAdmin();
   try {
     await rows(sql`select admin_mark_paid(${bookingId}::uuid)`);
-    return { ok: true };
   } catch {
     return { ok: false, error: "Gagal menandai lunas. Muat ulang halaman lalu coba lagi." };
   }
+  const booking = await getBookingById(bookingId);
+  if (!booking?.email) return { ok: true, email: "skipped" };
+  const sent = await sendETicketEmail(bookingId);
+  return sent.ok ? { ok: true, email: "sent" } : { ok: true, email: "failed", emailError: sent.error };
 }
 
-/** Records that staff sent the e-ticket on one channel (the message itself goes out from WhatsApp / Gmail). */
-export async function markTicketSent(bookingId: string, channel: "wa" | "email"): Promise<void> {
+/** Sends (or re-sends) the e-ticket email of a paid booking. */
+export async function resendETicketEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
-  if (channel === "wa") await rows(sql`update bookings set ticket_sent_wa_at = now() where id = ${bookingId}::uuid`);
-  else await rows(sql`update bookings set ticket_sent_email_at = now() where id = ${bookingId}::uuid`);
+  const result = await sendETicketEmail(bookingId);
+  revalidatePath("/admin/bookings");
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
 
 export async function cancelBooking(formData: FormData): Promise<void> {
@@ -110,6 +124,7 @@ export async function checkInByNumber(
   if (!booking) return { error: "Nomor booking tidak ditemukan." };
   if (booking.status === "CANCELLED") return { error: "Booking ini sudah dibatalkan." };
   if (booking.paymentStatus !== "PAID") return { error: "Booking ini belum lunas — verifikasi pembayaran dulu." };
+  if (booking.checkinStatus === "CHECKED_IN") return { error: `${booking.customerName} (${booking.bookingNumber}) sudah check-in sebelumnya.` };
 
   try {
     await rows(sql`select admin_check_in(${booking.id}::uuid)`);

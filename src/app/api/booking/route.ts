@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSeatBooking } from "@/lib/services/seat-booking";
+import { emailConfigured, sendPaymentInstructionsEmail } from "@/lib/services/mailer";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,11 @@ export async function POST(request: NextRequest) {
     note: str(body.note, 400),
     agree: body.agree === true,
   });
-  if (result.ok) return NextResponse.json({ ok: true, url: result.url });
+  if (result.ok) {
+    // "Selesaikan transfermu" email; a failed send must never fail the order
+    if (emailConfigured()) await sendPaymentInstructionsEmail(result.bookingId).catch(() => {});
+    return NextResponse.json({ ok: true, url: result.url });
+  }
   const { status, ...rest } = result;
   return NextResponse.json(rest, { status });
 }
