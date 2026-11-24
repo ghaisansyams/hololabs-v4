@@ -3,15 +3,16 @@ import type { Ctx } from "./chapters";
 
 /**
  * Showcase of typical 3D-printed objects (lattice vase, voronoi torso, twisted
- * vase, rocket, knot, perforated star, lattice ball), shared by the printing
- * chapter (ch.6, revealed bottom-up by `cut`) and the keepsake chapter (ch.7).
+ * vase, rocket, knot, perforated star, lattice ball), used by the printing
+ * chapter (ch.6, revealed bottom-up by `cut`), and the 3D-printed sneaker of
+ * the keepsake chapter (ch.7).
  *
  * Every object uses one shader: a neutral matcap tinted per object, printed
  * layer lines, a holographic rim and scan band, and an optional voronoi
  * lattice that cuts real holes (back faces stay lit darker, so the openings
  * read clearly). Each geometry sits with its base at y = 0.
  */
-export type PrintKind = "latticeVase" | "torso" | "twistVase" | "rocket" | "knot" | "star" | "ball";
+export type PrintKind = "latticeVase" | "torso" | "twistVase" | "rocket" | "knot" | "star" | "ball" | "shoeSole" | "shoeUpper" | "shoeOutsole";
 
 interface FaderLike {
   add<M extends { opacity: number }>(mat: M, base?: number): M;
@@ -132,6 +133,115 @@ function sample(n: number, fn: (f: number) => [number, number]) {
   return Array.from({ length: n + 1 }, (_, i) => fn(i / n));
 }
 
+
+/* ------------------------------------------------------------------ */
+/* A 3D-printed sneaker: lattice midsole, perforated knit upper and a   */
+/* solid outsole. Length 1 along x (heel at -0.5), base at y = 0.        */
+/* ------------------------------------------------------------------ */
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+/** Half width of the foot at f (0 heel .. 1 toe); the medial side (side < 0) has the arch. */
+function footW(f: number, side: number) {
+  let w = 0.165 + 0.04 * Math.exp(-(((f - 0.72) / 0.16) ** 2)) - 0.012 * Math.exp(-(((f - 0.08) / 0.1) ** 2));
+  if (side < 0) w -= 0.035 * Math.exp(-(((f - 0.45) / 0.12) ** 2));
+  return w;
+}
+const toeSpring = (f: number) => 0.07 * smooth(0.74, 1, f) ** 1.5;
+const soleBottom = (f: number) => 0.04 + toeSpring(f) + 0.015 * smooth(0.12, 0, f);
+const soleTop = (f: number) => 0.2 - 0.07 * f + toeSpring(f);
+/** Outline point at angle a (0 heel, PI toe, lateral side first). */
+function outline(a: number): [number, number, number] {
+  const f = (1 - Math.cos(a)) / 2;
+  const sn = Math.sin(a);
+  return [f - 0.5, sn * footW(f, sn >= 0 ? 1 : -1), f];
+}
+
+function gridGeometry(nu: number, nv: number, at: (u: number, v: number) => [number, number, number], keep?: (u: number, v: number) => boolean) {
+  const pos: number[] = [];
+  const uv: number[] = [];
+  const idx: number[] = [];
+  for (let j = 0; j <= nv; j++) {
+    for (let i = 0; i <= nu; i++) {
+      pos.push(...at(i / nu, j / nv));
+      uv.push(i / nu, j / nv);
+    }
+  }
+  const row = nu + 1;
+  for (let j = 0; j < nv; j++) {
+    for (let i = 0; i < nu; i++) {
+      if (keep && !keep((i + 0.5) / nu, (j + 0.5) / nv)) continue;
+      const a = j * row + i;
+      idx.push(a, a + 1, a + row, a + 1, a + row + 1, a + row);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Wall around the outline between two heights (u around, v up). */
+function soleWall(lo: (f: number) => number, hi: (f: number) => number, bulge: number, levels: number) {
+  return gridGeometry(160, levels, (u, v) => {
+    const [x, z, f] = outline(u * Math.PI * 2);
+    const b = 1 + bulge * Math.sin(Math.PI * v);
+    return [x * (1 + bulge * 0.3 * Math.sin(Math.PI * v)), lo(f) + (hi(f) - lo(f)) * v, z * b];
+  });
+}
+/** Flat-ish cap across the outline at height y(f) (u lateral to medial, v heel to toe). */
+function soleCap(y: (f: number) => number, inset = 1) {
+  return gridGeometry(8, 60, (u, v) => {
+    const f = v;
+    const r = Math.sqrt(Math.max(0, 1 - (2 * f - 1) ** 2));
+    const z = (u < 0.5 ? footW(f, 1) * (1 - 2 * u) : -footW(f, -1) * (2 * u - 1)) * r * inset;
+    return [f - 0.5, y(f), z];
+  });
+}
+function merge(geos: THREE.BufferGeometry[]) {
+  const pos: number[] = [];
+  const uv: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  let base = 0;
+  for (const g of geos) {
+    pos.push(...(g.attributes.position.array as Float32Array));
+    uv.push(...(g.attributes.uv.array as Float32Array));
+    nor.push(...(g.attributes.normal.array as Float32Array));
+    for (const i of g.index!.array as Uint32Array) idx.push(i + base);
+    base += g.attributes.position.count;
+    g.dispose();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  geo.setIndex(idx);
+  return geo;
+}
+
+function shoeUpper() {
+  return gridGeometry(
+    48,
+    96,
+    (u, v) => {
+      const f = v;
+      const r = Math.sqrt(Math.max(0, 1 - (2 * f - 1) ** 2));
+      const th = Math.PI * u;
+      const hw = (u < 0.5 ? footW(f, 1) : footW(f, -1)) * Math.max(r, 0.02) * 0.97;
+      // tall at the heel and instep, low over the toes
+      let H = 0.12 + 0.2 * smooth(0.95, 0.4, f);
+      if (f > 0.5) H *= 0.35 + 0.65 * Math.sqrt(r);
+      return [f - 0.5, soleTop(f) - 0.01 + H * Math.sin(th) ** 0.75, Math.cos(th) * hw];
+    },
+    // ankle opening at the back of the top
+    (u, v) => ((v - 0.17) / 0.21) ** 2 + ((u - 0.5) / 0.3) ** 2 > 1,
+  );
+}
+
 interface Spec {
   geo: () => THREE.BufferGeometry;
   color: number;
@@ -236,6 +346,23 @@ const SPECS: Record<PrintKind, Spec> = {
     height: 0.56,
     lattice: { cells: [16, 9], strut: 0.13 },
     geo: () => new THREE.SphereGeometry(0.28, 64, 40).translate(0, 0.28, 0),
+  },
+  shoeSole: {
+    color: 0xf1f5f9,
+    height: 0.22,
+    lattice: { cells: [44, 4], strut: 0.17 },
+    geo: () => soleWall(soleBottom, soleTop, 0.05, 16),
+  },
+  shoeOutsole: {
+    color: 0x475569,
+    height: 0.2,
+    geo: () => merge([soleWall((f) => soleBottom(f) - 0.025, soleBottom, 0, 2), soleCap((f) => soleBottom(f) - 0.025), soleCap((f) => soleTop(f) - 0.012, 0.98)]),
+  },
+  shoeUpper: {
+    color: 0xa855f7,
+    height: 0.5,
+    lattice: { cells: [12, 26], strut: 0.3 },
+    geo: shoeUpper,
   },
 };
 

@@ -58,6 +58,11 @@ class Fader {
   }
 }
 
+/** Every chapter panel (babak 1-5) has the size of the Road to Smart Living photo. */
+const PANEL_ASPECT = 1400 / 1140;
+/** Height of the AI screen canvas, so it matches PANEL_ASPECT at 1024 px wide. */
+const HOLO_H = Math.round(1024 / PANEL_ASPECT);
+
 function additive(ctx: Ctx, color: number, opacity: number, side: THREE.Side = THREE.FrontSide) {
   return ctx.track(
     new THREE.MeshBasicMaterial({
@@ -345,7 +350,7 @@ function ticketChapter(ctx: Ctx): Chapter {
 function projectionChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 16 / 9;
+  const aspect = PANEL_ASPECT;
   const cols = ctx.mobile ? 6 : 8;
   const rows = ctx.mobile ? 4 : 5;
   const curve = 0.28;
@@ -354,7 +359,7 @@ function projectionChapter(ctx: Ctx): Chapter {
   // The projection wall is cut into tiles that fly in from scattered
   // positions and lock together as the chapter comes into focus, the way a
   // video-mapping rig stitches many surfaces into one picture.
-  const screenMat = fader.add(photoMaterial(ctx, ctx.image("/experience/enter-the-story.jpg"), aspect), 1);
+  const screenMat = fader.add(photoMaterial(ctx, ctx.image("/experience/journey-of-life.jpg"), aspect), 1);
   screenMat.side = THREE.DoubleSide;
   type Tile = { mesh: THREE.Mesh; x: number; y: number; delay: number; off: THREE.Vector3; spin: THREE.Vector3 };
   const tiles: Tile[] = [];
@@ -426,8 +431,6 @@ function projectionChapter(ctx: Ctx): Chapter {
     layout(width) {
       w = width;
       h = w / aspect;
-      w *= 0.92;
-      h *= 0.92;
       band.scale.set(w, h, 1);
       halo.scale.set(w * 1.9, h * 1.9, 1);
     },
@@ -453,7 +456,7 @@ function projectionChapter(ctx: Ctx): Chapter {
 function djChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1.15;
+  const aspect = PANEL_ASPECT;
   // clips of the DJ set with video mapping on the walls (seconds in the file);
   // the closing logo at the end of the file is left out
   const video = clipVideo(
@@ -474,18 +477,12 @@ function djChapter(ctx: Ctx): Chapter {
   const panel = framedPanel(ctx, mat, 0xd946ef, fader);
   group.add(panel.root);
 
-  // one slow ring turning behind the panel is the only extra effect
-  const ring = new THREE.Mesh(ctx.track(new THREE.RingGeometry(0.97, 1, 96)), additive(ctx, 0xe879f9, 0.4, THREE.DoubleSide));
-  ring.position.z = -0.3;
-  group.add(ring);
-
   let w = 4.4;
   return {
     group,
     layout(width) {
       w = width;
       panel.setSize(w, w / aspect);
-      ring.scale.setScalar(w * 0.62);
     },
     update({ act, vis, time }) {
       fader.apply(vis);
@@ -494,8 +491,6 @@ function djChapter(ctx: Ctx): Chapter {
       // the glow breathes with a calm pulse, the panel sways slightly
       (panel.glow.material as THREE.MeshBasicMaterial).opacity = vis * (0.4 + 0.2 * Math.sin(time * 1.6));
       panel.root.rotation.y = Math.sin(time * 0.5) * 0.06;
-      ring.rotation.z = time * 0.15;
-      (ring.material as THREE.MeshBasicMaterial).opacity = vis * act * 0.35;
     },
   };
 }
@@ -506,9 +501,9 @@ function djChapter(ctx: Ctx): Chapter {
 function holomedisChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1024 / 768;
-  const [c, g] = canvas(1024, 768);
-  drawHolomedis(g, 0);
+  const aspect = PANEL_ASPECT;
+  const [c, g] = canvas(1024, HOLO_H);
+  drawHolomedis(g, 0, false, 1024, HOLO_H);
   const tex = canvasTexture(ctx, c);
   const mat = fader.add(ctx.track(new THREE.MeshBasicMaterial({ map: tex, transparent: true })), 1);
   const panel = framedPanel(ctx, mat, 0xa855f7, fader);
@@ -572,14 +567,14 @@ function holomedisChapter(ctx: Ctx): Chapter {
       scanMat.uniforms.uOpacity.value = vis * act;
       if (vis > 0.05 && time - lastDraw > 1 / 24) {
         lastDraw = time;
-        drawHolomedis(g, time);
+        drawHolomedis(g, time, false, 1024, HOLO_H);
         tex.needsUpdate = true;
       }
       // ECG floats 0.45 in front of the strip drawn on the screen
       const x0 = (56 / 1024 - 0.5) * w;
       const x1 = ((1024 - 56) / 1024 - 0.5) * w;
-      const yc = (0.5 - 260 / 768) * h;
-      const amp = (48 / 768) * h;
+      const yc = (0.5 - 260 / HOLO_H) * h;
+      const amp = (48 / HOLO_H) * h;
       const z = 0.12 + 0.35 * act;
       for (let i = 0; i < N; i++) {
         const f = i / (N - 1);
@@ -592,7 +587,7 @@ function holomedisChapter(ctx: Ctx): Chapter {
       head.scale.setScalar(0.35);
 
       const ax = (116 / 1024 - 0.5) * w;
-      const ay = (0.5 - 116 / 768) * h;
+      const ay = (0.5 - 116 / HOLO_H) * h;
       const beat = (time * 72) / 60;
       pulses.forEach((r, j) => {
         const p = (beat + j * 0.5) % 1;
@@ -612,7 +607,7 @@ function holomedisChapter(ctx: Ctx): Chapter {
 function smartHomeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1400 / 1140;
+  const aspect = PANEL_ASPECT;
   const photo = fader.add(photoMaterial(ctx, ctx.image("/experience/smarthome.jpg"), aspect), 1);
   const panel = framedPanel(ctx, photo, 0xf59e0b, fader);
   group.add(panel.root);
@@ -697,7 +692,7 @@ function smartHomeChapter(ctx: Ctx): Chapter {
 function printChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
-  const aspect = 1.3;
+  const aspect = PANEL_ASPECT;
   // clips from one phone video of a dragon printing: the first layers, the pieces
   // coming together, then the finished dragon in a hand (seconds in the file)
   const video = clipVideo(
@@ -777,28 +772,20 @@ function printChapter(ctx: Ctx): Chapter {
 }
 
 /* ------------------------------------------------------------------ */
-/* 7. Keepsake: printed objects on a turntable inside a hologram column */
+/* 7. Keepsake: a 3D-printed sneaker on a turntable in a hologram column */
 /* ------------------------------------------------------------------ */
 function keepsakeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
 
-  // a little gallery of typical prints; lattice pieces show their holes against the light
-  const prints = buildPrints(ctx, fader, ["torso", "latticeVase", "twistVase", "ball", "rocket", "knot", "star"]);
+  // one big 3D-printed sneaker: lattice midsole, perforated knit upper, solid outsole
+  const prints = buildPrints(ctx, fader, ["shoeOutsole", "shoeSole", "shoeUpper"]);
   const P = prints.meshes;
-  P.torso.position.set(0.04, 0, -0.36);
-  P.latticeVase.position.set(-0.6, 0, -0.12);
-  P.twistVase.position.set(0.6, 0, -0.14);
-  P.ball.position.set(-0.3, 0, 0.42);
-  P.rocket.position.set(0.4, 0, 0.4);
-  P.rocket.scale.setScalar(0.85);
-  P.knot.position.set(0.6, 0.8, -0.14);
-  P.star.rotation.x = Math.PI / 2;
-  P.star.scale.setScalar(0.75);
-  P.star.position.set(-0.62, 1.12, -0.22);
+  const shoe = new THREE.Group();
+  shoe.add(P.shoeOutsole, P.shoeSole, P.shoeUpper);
+  shoe.scale.setScalar(2.35);
   const cluster = new THREE.Group();
-  cluster.add(...Object.values(P));
-  cluster.scale.setScalar(1.3);
+  cluster.add(shoe);
 
   const pedestal = new THREE.Mesh(
     ctx.track(new THREE.CylinderGeometry(1.26, 1.36, 0.22, 96)),
@@ -870,19 +857,16 @@ function keepsakeChapter(ctx: Ctx): Chapter {
     group,
     layout(width) {
       stand.scale.setScalar(width * 0.31);
-      stand.position.set(width * (ctx.mobile ? 0.08 : 0.2), -width * 0.3, 0.4);
+      stand.position.set(ctx.mobile ? 0 : -width * 0.1, -width * 0.27, 0.4);
     },
     update({ act, vis, time, dt }) {
       fader.apply(vis);
       prints.update(time);
       columnMat.uniforms.uOpacity.value = columnMat.opacity;
       columnMat.uniforms.uTime.value = time;
-      cluster.rotation.y = Math.sin(time * 0.3) * 0.55;
-      cluster.position.y = 0.04 + Math.sin(time * 1.1) * 0.03 * act;
-      P.knot.rotation.set(time * 0.7, time * 0.9, 0);
-      P.knot.position.y = 0.8 + Math.sin(time * 1.4) * 0.04;
-      P.star.rotation.y = time * 0.8;
-      P.star.position.y = 1.12 + Math.sin(time * 1.2 + 1) * 0.04;
+      // the shoe turns slowly to show its side profile and the lattice sole
+      cluster.rotation.y = -0.45 + Math.sin(time * 0.3) * 0.6;
+      cluster.position.y = 0.06 + Math.sin(time * 1.1) * 0.04 * act;
       // scan ring sweeps up through the prints every 3.2 s
       const k = (time % 3.2) / 3.2;
       const sy = k * COL_H * 0.75;

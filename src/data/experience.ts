@@ -40,7 +40,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Show dibuka dengan video mapping yang membawamu mengikuti cerita visual tentang perjalanan hidup. Proyeksi di sekeliling ruangan, suara, dan tata cahaya bergerak bersama, jadi kamu ikut berada di dalam ceritanya.",
     minutes: "±15 menit",
     flow: ["Lihat", "Dengar", "Masuk ke cerita", "Rasakan"],
-    image: "/experience/enter-the-story.jpg",
+    image: "/experience/journey-of-life.jpg",
   },
   {
     mood: "Feel the Beat",

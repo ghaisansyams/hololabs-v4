@@ -194,7 +194,8 @@ export function createStage(o: StageOptions): () => void {
     const chapterCtx: Ctx = { ...ctx, image: (fallback) => o.images?.[i] || fallback };
     const ch = chapterFactories[i % chapterFactories.length](chapterCtx);
     scene.add(ch.group);
-    chapters.push({ ...ch, side: i % 2 === 0 ? -1 : 1 });
+    // every chapter sits on the right; its text is on the left
+    chapters.push({ ...ch, side: 1 });
   }
 
   let portrait = false;

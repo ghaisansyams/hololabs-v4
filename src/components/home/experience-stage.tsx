@@ -233,7 +233,6 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
 
   const stepIndex = Math.min(Math.max(0, active), count - 1);
   const step = steps[stepIndex];
-  const side = stepIndex % 2 === 0 ? "right" : "left";
   const starts = steps.slice(0, count).reduce<number[]>((acc, _st, i) => {
     acc.push(i === 0 ? 0 : acc[i - 1] + minutesOf(steps[i - 1].minutes));
     return acc;
@@ -269,7 +268,8 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                   className={cn(
                     "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-40 pt-24 sm:px-10",
                     "bg-gradient-to-t from-[#040208] via-[#040208]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[44%] lg:items-center lg:bg-none lg:p-0 lg:pb-32",
-                    side === "right" ? "lg:left-auto lg:right-0 lg:pr-16" : "lg:left-0 lg:pl-16",
+                    // the 3D panel is always on the right, so the text is always on the left
+                    "lg:left-0 lg:pl-16",
                   )}
                   style={{ opacity: "var(--o, 0)" }}
                 >
@@ -514,7 +514,7 @@ function CanvasArt({ kind }: { kind: "ticket" | "holomedis" | "souvenir" }) {
 
 const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: string; position: string; video?: string })[] = [
   { art: "ticket" },
-  { src: "/experience/enter-the-story.jpg", position: "50% 40%" },
+  { src: "/experience/journey-of-life.jpg", position: "50% 40%" },
   { src: "/experience/dj.jpg", position: "50% 40%", video: "/experience/dj-beat.mp4" },
   { art: "holomedis" },
   { src: "/experience/smarthome.jpg", position: "50% 40%" },
@@ -532,7 +532,7 @@ function StaticExperience({ steps }: { steps: StageStep[] }) {
           const photo = "art" in v ? "" : s.image || v.src;
           return (
             <li key={i} className="grid items-center gap-6 md:grid-cols-2 md:gap-12">
-              <div className={cn("relative aspect-[4/3] overflow-hidden rounded-xl border border-line", i % 2 === 1 && "md:order-2")}>
+              <div className={cn("relative aspect-[1400/1140] overflow-hidden rounded-xl border border-line md:order-2")}>
                 {"art" in v ? (
                   <CanvasArt kind={v.art} />
                 ) : v.video ? (
