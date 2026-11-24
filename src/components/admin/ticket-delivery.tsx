@@ -100,7 +100,7 @@ export function TicketDelivery({ booking, emailReady, notice }: { booking: Admin
       {!emailReady ? (
         <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-warning-soft px-2.5 py-2 text-xs text-warning">
           <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
-          Email otomatis belum aktif. Isi GMAIL_USER dan GMAIL_APP_PASSWORD di server, lalu jalankan ulang.
+          Email otomatis belum aktif. Isi SMTP_HOST, SMTP_USER, SMTP_PASS (atau GMAIL_USER dan GMAIL_APP_PASSWORD) di server, lalu jalankan ulang.
         </p>
       ) : null}
       {error ? (

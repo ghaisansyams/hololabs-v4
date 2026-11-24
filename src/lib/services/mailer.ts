@@ -32,18 +32,43 @@ export type MailResult = { ok: true } | { ok: false; error: string };
 /** `MAIL_DRY_RUN=1` (local testing only): nothing is sent, each email is written as an .eml file in the system temp folder. */
 const dryRun = () => process.env.MAIL_DRY_RUN === "1";
 
+/**
+ * Mail server. Any SMTP server through SMTP_HOST / SMTP_PORT / SMTP_USER /
+ * SMTP_PASS (e.g. a domain mailbox such as noreply@hololabs.id on Hostinger:
+ * smtp.hostinger.com, port 465); otherwise Gmail through GMAIL_USER +
+ * GMAIL_APP_PASSWORD. MAIL_FROM (optional) overrides the sender address.
+ */
+function smtpSettings() {
+  const env = process.env;
+  if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
+    const port = Number(env.SMTP_PORT || 465);
+    return { host: env.SMTP_HOST, port, secure: port === 465, user: env.SMTP_USER, pass: env.SMTP_PASS };
+  }
+  if (env.GMAIL_USER && env.GMAIL_APP_PASSWORD) {
+    return { host: "smtp.gmail.com", port: 465, secure: true, user: env.GMAIL_USER, pass: env.GMAIL_APP_PASSWORD.replace(/\s+/g, "") };
+  }
+  return null;
+}
+
+function senderAddress(): string {
+  const from = process.env.MAIL_FROM?.trim();
+  if (from) return from.includes("<") ? from : `"HOLOLABS" <${from}>`;
+  return `"HOLOLABS" <${smtpSettings()?.user || "dry-run@hololabs.local"}>`;
+}
+
 export function emailConfigured(): boolean {
-  return dryRun() || Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  return dryRun() || smtpSettings() !== null;
 }
 
 let transport: Transporter | null = null;
 function getTransport() {
   if (dryRun()) return nodemailer.createTransport({ streamTransport: true, buffer: true });
+  const cfg = smtpSettings();
   transport ??= nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: { user: process.env.GMAIL_USER, pass: (process.env.GMAIL_APP_PASSWORD ?? "").replace(/\s+/g, "") },
+    host: cfg?.host,
+    port: cfg?.port,
+    secure: cfg?.secure,
+    auth: { user: cfg?.user, pass: cfg?.pass },
   });
   return transport;
 }
@@ -121,13 +146,13 @@ function plain(paragraphs: string[], b: AdminBookingRow, extraLines: string[] = 
 
 async function deliver(b: AdminBookingRow, subject: string, html: string, text: string, attachQr: boolean): Promise<MailResult> {
   if (!emailConfigured()) {
-    return { ok: false, error: "Email otomatis belum aktif: isi GMAIL_USER dan GMAIL_APP_PASSWORD di server, lalu jalankan ulang." };
+    return { ok: false, error: "Email otomatis belum aktif: isi SMTP_HOST, SMTP_USER, SMTP_PASS (atau GMAIL_USER dan GMAIL_APP_PASSWORD) di server, lalu jalankan ulang." };
   }
   if (!b.email) return { ok: false, error: "Tamu tidak mengisi email." };
   try {
     const attachments = attachQr ? [{ filename: "qr-checkin.png", content: await qrPng(b.bookingNumber), cid: "qr-checkin", contentType: "image/png" }] : [];
     const info = await getTransport().sendMail({
-      from: `"HOLOLABS" <${process.env.GMAIL_USER || "dry-run@hololabs.local"}>`,
+      from: senderAddress(),
       to: b.email,
       subject,
       text,
@@ -143,7 +168,7 @@ async function deliver(b: AdminBookingRow, subject: string, html: string, text: 
   } catch (cause) {
     const msg = cause instanceof Error ? cause.message : "";
     if (/Invalid login|Username and Password not accepted|535/i.test(msg)) {
-      return { ok: false, error: "Gmail menolak login. Pastikan GMAIL_APP_PASSWORD adalah App Password 16 karakter (bukan password biasa)." };
+      return { ok: false, error: process.env.SMTP_HOST ? "Server email menolak login. Periksa SMTP_USER dan SMTP_PASS." : "Gmail menolak login. Pastikan GMAIL_APP_PASSWORD adalah App Password 16 karakter (bukan password biasa)." };
     }
     return { ok: false, error: "Email gagal terkirim. Coba lagi sebentar lagi." };
   }
