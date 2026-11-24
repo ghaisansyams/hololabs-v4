@@ -240,21 +240,12 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
 
   return (
     <div ref={sectionRef} id="journey" className="relative" style={{ height: `${100 + (count - 1) * 90}dvh` }}>
-      <div ref={stageRef} data-mode="stage" data-ready={ready} className="sticky top-0 h-dvh overflow-hidden bg-[#040208]">
+      <div ref={stageRef} data-mode="stage" data-ready={ready} className="sticky top-0 h-dvh overflow-hidden bg-[#0a0618]">
         <canvas
           ref={canvasRef}
           aria-hidden
           className={cn("absolute inset-0 size-full transition-opacity duration-1000", ready ? "opacity-100" : "opacity-0")}
         />
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgb(4_2_8/0.8))]" />
-
-        {/* HUD frame */}
-        <div aria-hidden className="pointer-events-none absolute inset-3 sm:inset-5">
-          <span className="absolute left-0 top-0 size-5 border-l border-t border-cyan/50" />
-          <span className="absolute right-0 top-0 size-5 border-r border-t border-cyan/50" />
-          <span className="absolute bottom-0 left-0 size-5 border-b border-l border-cyan/50" />
-          <span className="absolute bottom-0 right-0 size-5 border-b border-r border-cyan/50" />
-        </div>
 
         {/* Chapter copy: name, what it is, and on wide screens a glass card with the story and the guest's flow */}
         {step
@@ -267,7 +258,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                   key={active}
                   className={cn(
                     "pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-40 pt-24 sm:px-10",
-                    "bg-gradient-to-t from-[#040208] via-[#040208]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[44%] lg:items-center lg:bg-none lg:p-0 lg:pb-32",
+                    "bg-gradient-to-t from-[#0a0618] via-[#0a0618]/85 to-transparent lg:top-0 lg:flex lg:h-full lg:w-[44%] lg:items-center lg:bg-none lg:p-0 lg:pb-32",
                     // the 3D panel is always on the right, so the text is always on the left
                     "lg:left-0 lg:pl-16",
                   )}
@@ -517,7 +508,7 @@ const STATIC_VISUALS: ({ art: "ticket" | "holomedis" | "souvenir" } | { src: str
   { src: "/experience/journey-of-life.jpg", position: "50% 40%" },
   { src: "/experience/dj.jpg", position: "50% 40%", video: "/experience/dj-beat.mp4" },
   { art: "holomedis" },
-  { src: "/experience/smarthome.jpg", position: "50% 40%" },
+  { src: "/showroom/32.jpg", position: "50% 40%" },
   { src: "/experience/print3d.jpg", position: "60% 50%", video: "/experience/dragon-print.mp4" },
   { art: "souvenir" },
 ];

@@ -1,5 +1,8 @@
 import * as THREE from "three";
-import { ledWall, matcap, nightSky, softDot } from "./art";
+import { matcap, softDot } from "./art";
+
+/** The single background colour of the journey (also used by the page around the canvas). */
+export const BACKDROP = 0x0a0618;
 import { chapterFactories, type Chapter, type Ctx } from "./chapters";
 
 const SPACING = 11;
@@ -54,7 +57,7 @@ export function createStage(o: StageOptions): () => void {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x070414, 0.016);
+  scene.fog = new THREE.FogExp2(BACKDROP, 0.016);
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 160);
 
   const disposables: { dispose: () => void }[] = [];
@@ -115,78 +118,8 @@ export function createStage(o: StageOptions): () => void {
   cap.colorSpace = THREE.SRGBColorSpace;
   const ctx: Ctx = { track, tex, image: (fallback) => fallback, dot, matcap: cap, mobile };
 
-  // ---- backdrop: the hall from the hero photo -------------------------
-  // A night-sky gradient behind everything, then LED walls behind and beside
-  // the column of chapters.
-  const sky = track(new THREE.CanvasTexture(nightSky()));
-  sky.colorSpace = THREE.SRGBColorSpace;
-  scene.background = sky;
-  const wallTex = track(new THREE.CanvasTexture(ledWall()));
-  wallTex.colorSpace = THREE.SRGBColorSpace;
-  // the vertical range the camera travels, with a margin above and below
-  const total = Math.max(0, o.count - 1) * SPACING;
-  const midY = -total / 2;
-  const wallGeo = track(new THREE.PlaneGeometry(7, 11));
-  const wallMat = track(
-    new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }),
-  );
-  // a tall LED wall far behind the chapters, and angled LED pillars down both
-  // sides that slide past faster than the chapters (depth parallax as you scroll)
-  const backTex = track(wallTex.clone());
-  backTex.wrapS = backTex.wrapT = THREE.RepeatWrapping;
-  backTex.repeat.set(6, (total + 40) / 9);
-  backTex.needsUpdate = true;
-  const back = new THREE.Mesh(
-    track(new THREE.PlaneGeometry(80, total + 40)),
-    track(new THREE.MeshBasicMaterial({ map: backTex, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending })),
-  );
-  back.position.set(0, midY, -32);
-  scene.add(back);
-  const wallStep = mobile ? 14 : 9;
-  for (let y = 8; y > -total - 8; y -= wallStep) {
-    for (const sideX of [-1, 1]) {
-      const wall = new THREE.Mesh(wallGeo, wallMat);
-      wall.position.set(sideX * 8.5, y + (sideX > 0 ? wallStep / 2 : 0), -18);
-      wall.rotation.y = -sideX * 0.5;
-      scene.add(wall);
-    }
-  }
-
-  // ---- ambient: star field + two dotted rails ----------------------------
-  const starCount = mobile ? 700 : 1600;
-  const pos = new Float32Array(starCount * 3);
-  const col = new Float32Array(starCount * 3);
-  const palette = [new THREE.Color(0x67e8f9), new THREE.Color(0x818cf8), new THREE.Color(0xf0abfc), new THREE.Color(0xffffff)];
-  for (let i = 0; i < starCount; i++) {
-    pos[i * 3] = (Math.random() - 0.5) * 60;
-    pos[i * 3 + 1] = 10 - Math.random() * (total + 20);
-    pos[i * 3 + 2] = 4 - Math.random() * 40;
-    const c = palette[Math.floor(Math.random() * palette.length)];
-    col.set([c.r, c.g, c.b], i * 3);
-  }
-  const starGeo = track(new THREE.BufferGeometry());
-  starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  starGeo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  scene.add(
-    new THREE.Points(
-      starGeo,
-      track(new THREE.PointsMaterial({ size: 0.14, map: dot, vertexColors: true, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending })),
-    ),
-  );
-
-  const runwayCount = 240;
-  const rp = new Float32Array(runwayCount * 3);
-  for (let i = 0; i < runwayCount; i++) {
-    rp[i * 3] = (i % 2 === 0 ? -1 : 1) * 6.2;
-    rp[i * 3 + 1] = 8 - (i / runwayCount) * (total + 16);
-    rp[i * 3 + 2] = -12;
-  }
-  const runwayGeo = track(new THREE.BufferGeometry());
-  runwayGeo.setAttribute("position", new THREE.BufferAttribute(rp, 3));
-  const runwayMat = track(
-    new THREE.PointsMaterial({ size: 0.2, map: dot, color: 0x67e8f9, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  scene.add(new THREE.Points(runwayGeo, runwayMat));
+  // ---- backdrop: one plain colour, nothing else behind the chapters ----
+  scene.background = new THREE.Color(BACKDROP);
 
   // ---- chapters --------------------------------------------------------
   const chapters: (Chapter & { side: number })[] = [];

@@ -608,7 +608,7 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
   const aspect = PANEL_ASPECT;
-  const photo = fader.add(photoMaterial(ctx, ctx.image("/experience/smarthome.jpg"), aspect), 1);
+  const photo = fader.add(photoMaterial(ctx, ctx.image("/showroom/32.jpg"), aspect), 1);
   const panel = framedPanel(ctx, photo, 0xf59e0b, fader);
   group.add(panel.root);
 

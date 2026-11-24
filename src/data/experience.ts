@@ -67,7 +67,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Jelajahi perkembangan teknologi rumah, dari cara hidup konvensional sampai rumah yang terhubung dan cerdas. Ucapkan perintah, lalu lihat lampu, tirai, dan suasana ruangan berubah: gambaran cara kita hidup bersama teknologi di masa depan.",
     minutes: "±20 menit",
     flow: ["Perangkat", "Terhubung", "Otomatis", "Dibantu AI", "Rumah pintar"],
-    image: "/experience/smarthome.jpg",
+    image: "/showroom/32.jpg",
   },
   {
     mood: "Create Something",
