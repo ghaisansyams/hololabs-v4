@@ -7,7 +7,7 @@ export default function AdminCheckInPage() {
   return (
     <>
       <AdminHeader title="Check-in" description="Untuk petugas di pintu. Hanya booking yang sudah lunas bisa di-check-in." />
-      <div className="max-w-xl">
+      <div className="max-w-6xl">
         <CheckInForm />
       </div>
     </>

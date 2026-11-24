@@ -153,22 +153,68 @@ export function CheckInForm() {
     }
   }
 
+  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    void fromPhoto(e.target.files?.[0]);
+    e.target.value = "";
+  };
+
   return (
-    <div className="space-y-5">
-      <section className="space-y-3 rounded-card border border-line bg-surface p-4 sm:p-5">
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      {/* left: the camera */}
+      <section className="space-y-4 rounded-card border border-line bg-surface p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-ink">Scan QR e-ticket</h2>
+          <div>
+            <h2 className="text-sm font-bold text-ink">Scan QR e-ticket</h2>
+            <p className="mt-0.5 text-xs text-muted">{scanning ? "Arahkan QR ke kotak. Check-in tercatat otomatis begitu terbaca." : "Kamera membaca QR di e-ticket pengunjung."}</p>
+          </div>
           {scanning ? (
-            <button type="button" onClick={stop} className="inline-flex items-center gap-1.5 rounded-pill border border-line px-3 py-1.5 text-xs font-semibold text-ink-soft hover:border-accent/50 hover:text-ink">
+            <button type="button" onClick={stop} className="inline-flex shrink-0 items-center gap-1.5 rounded-pill border border-line px-3 py-1.5 text-xs font-semibold text-ink-soft hover:border-accent/50 hover:text-ink">
               <CameraOff className="size-3.5" aria-hidden />
               Matikan kamera
             </button>
           ) : null}
         </div>
 
-        <div className={cn("relative aspect-[4/3] w-full overflow-hidden rounded-2xl border bg-black transition-colors", flash === "ok" ? "border-success" : flash === "bad" ? "border-danger" : "border-line", !scanning && "hidden")}>
-          <video ref={videoRef} playsInline muted className="size-full object-cover" />
-          <div aria-hidden className="pointer-events-none absolute inset-[18%] rounded-2xl border-2 border-white/70 shadow-[0_0_0_999px_rgba(0,0,0,0.38)]" />
+        <div className={cn("relative aspect-square w-full overflow-hidden rounded-2xl border bg-[#07050f] transition-colors sm:aspect-[4/3]", flash === "ok" ? "border-success" : flash === "bad" ? "border-danger" : "border-line")}>
+          <video ref={videoRef} playsInline muted className={cn("size-full object-cover", !scanning && "hidden")} />
+          {/* viewfinder corners, shown with and without the camera */}
+          <div aria-hidden className={cn("pointer-events-none absolute inset-[8%] rounded-2xl sm:inset-[16%]", scanning && "shadow-[0_0_0_999px_rgba(0,0,0,0.38)]")}>
+            <span className="absolute left-0 top-0 size-8 rounded-tl-2xl border-l-2 border-t-2 border-white/70" />
+            <span className="absolute right-0 top-0 size-8 rounded-tr-2xl border-r-2 border-t-2 border-white/70" />
+            <span className="absolute bottom-0 left-0 size-8 rounded-bl-2xl border-b-2 border-l-2 border-white/70" />
+            <span className="absolute bottom-0 right-0 size-8 rounded-br-2xl border-b-2 border-r-2 border-white/70" />
+          </div>
+
+          {!scanning ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <span className="flex size-14 items-center justify-center rounded-full border border-line bg-surface-raised text-ink-soft">
+                {cameraOk ? <Camera className="size-6" aria-hidden /> : <CameraOff className="size-6" aria-hidden />}
+              </span>
+              {cameraOk ? (
+                <>
+                  <p className="max-w-xs text-sm text-ink-soft">Izinkan akses kamera untuk mulai memindai.</p>
+                  <button
+                    type="button"
+                    onClick={start}
+                    className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-brand to-accent px-6 py-3 text-sm font-bold text-canvas transition hover:opacity-90"
+                  >
+                    <Camera className="size-4" aria-hidden />
+                    Izinkan & buka kamera
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="max-w-sm text-sm text-ink-soft">Kamera langsung hanya aktif di HTTPS (domain asli) atau localhost. Di sini, foto QR-nya saja.</p>
+                  <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-brand to-accent px-6 py-3 text-sm font-bold text-canvas transition hover:opacity-90 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent">
+                    <ImageUp className="size-4" aria-hidden />
+                    Foto / unggah QR
+                    <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={pickPhoto} />
+                  </label>
+                </>
+              )}
+            </div>
+          ) : null}
+
           <div
             aria-hidden
             className={cn(
@@ -182,82 +228,66 @@ export function CheckInForm() {
         </div>
         <canvas ref={canvasRef} className="hidden" />
 
-        {!scanning ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={start}
-              disabled={!cameraOk}
-              className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-brand to-accent px-4 py-3 text-sm font-bold text-canvas transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Camera className="size-4" aria-hidden />
-              Buka kamera
-            </button>
-            <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-pill border border-line px-4 py-3 text-sm font-semibold text-ink-soft transition hover:border-accent/50 hover:text-ink">
-              <ImageUp className="size-4" aria-hidden />
-              Foto / unggah QR
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="sr-only"
-                onChange={(e) => {
-                  void fromPhoto(e.target.files?.[0]);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-        ) : (
-          <p className="text-xs text-muted">Arahkan QR di e-ticket ke kotak. Check-in tercatat otomatis begitu terbaca.</p>
-        )}
-
-        {!cameraOk ? (
-          <p className="rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
-            Kamera langsung hanya aktif di halaman HTTPS (domain asli) atau localhost. Di sini pakai Foto / unggah QR, atau ketik nomor booking di bawah.
-          </p>
+        {cameraOk ? (
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-pill border border-line px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-accent/50 hover:text-ink focus-within:border-accent">
+            <ImageUp className="size-4" aria-hidden />
+            Atau foto / unggah gambar QR
+            <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={pickPhoto} />
+          </label>
         ) : null}
         {cameraError ? (
           <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-xs text-danger">
             {cameraError}
           </p>
         ) : null}
-
-        {log.length ? (
-          <ul aria-live="polite" className="space-y-1.5">
-            {log.map((l) => (
-              <li
-                key={l.id}
-                className={cn("flex items-start gap-2 rounded-xl border px-3 py-2 text-sm", l.ok ? "border-success/40 bg-success-soft text-ink" : "border-danger/40 bg-danger-soft text-ink")}
-              >
-                {l.ok ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden /> : <XCircle className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden />}
-                {l.text}
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </section>
 
-      <form action={formAction} className="space-y-4 rounded-card border border-line bg-surface p-6">
-        <Field label="Atau ketik nomor booking" htmlFor="bookingNumber" required>
-          <TextInput id="bookingNumber" name="bookingNumber" placeholder="HLM-BOOK-2026-00001" />
-        </Field>
-        {state.error ? (
-          <p role="alert" className="text-sm font-medium text-danger">
-            {state.error}
-          </p>
-        ) : null}
-        <Button type="submit" size="lg" disabled={pending} className="w-full">
-          <ScanLine className="size-4" aria-hidden />
-          {pending ? "Memproses…" : "Check-in"}
-        </Button>
-      </form>
-      {state.success ? (
-        <div className="flex items-start gap-3 rounded-card border border-success/40 bg-success-soft px-5 py-4 text-sm text-ink">
-          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
-          {state.success}
-        </div>
-      ) : null}
+      {/* right: manual entry and the scan log */}
+      <div className="space-y-5">
+        <form action={formAction} className="space-y-4 rounded-card border border-line bg-surface p-5 sm:p-6">
+          <div>
+            <h2 className="text-sm font-bold text-ink">Ketik nomor booking</h2>
+            <p className="mt-0.5 text-xs text-muted">Kalau QR tidak terbaca, masukkan nomor di e-ticket.</p>
+          </div>
+          <Field label="Nomor booking" htmlFor="bookingNumber" required>
+            <TextInput id="bookingNumber" name="bookingNumber" placeholder="HLM-BOOK-2026-00001" autoComplete="off" />
+          </Field>
+          {state.error ? (
+            <p role="alert" className="text-sm font-medium text-danger">
+              {state.error}
+            </p>
+          ) : null}
+          <Button type="submit" size="lg" disabled={pending} className="w-full">
+            <ScanLine className="size-4" aria-hidden />
+            {pending ? "Memproses…" : "Check-in"}
+          </Button>
+          {state.success ? (
+            <div className="flex items-start gap-3 rounded-xl border border-success/40 bg-success-soft px-4 py-3 text-sm text-ink">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
+              {state.success}
+            </div>
+          ) : null}
+        </form>
+
+        <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+          <h2 className="text-sm font-bold text-ink">Hasil scan</h2>
+          {log.length ? (
+            <ul aria-live="polite" className="mt-3 space-y-1.5">
+              {log.map((l) => (
+                <li
+                  key={l.id}
+                  className={cn("flex items-start gap-2 rounded-xl border px-3 py-2 text-sm", l.ok ? "border-success/40 bg-success-soft text-ink" : "border-danger/40 bg-danger-soft text-ink")}
+                >
+                  {l.ok ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden /> : <XCircle className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden />}
+                  {l.text}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p aria-live="polite" className="mt-2 text-sm text-muted">Belum ada scan. Hasil tiap scan muncul di sini.</p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
