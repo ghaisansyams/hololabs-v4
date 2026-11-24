@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExperienceStage } from "@/components/home/experience-stage";
 import { HeroSection } from "@/components/home/hero-section";
+import { ShowroomSection } from "@/components/home/showroom-section";
 import { VisitSection } from "@/components/home/visit-section";
 import { AboutSection } from "@/components/home/about-section";
 import { FaqSection } from "@/components/home/faq-section";
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Homepage: a full-screen photo hero, then the 3D scroll journey (the seven
+ * Homepage: a full-screen photo hero, the showroom plan, then the 3D scroll journey (the seven
  * chapters of the show),
  * then what Hololabs is, how to reserve, and FAQ. The founder/team block
  * (PeopleSection, still editable in the CMS) is left off until real bios exist.
@@ -43,6 +44,7 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <HeroSection />
+      <ShowroomSection />
       <ExperienceStage steps={steps} />
       <AboutSection />
       <VisitSection />

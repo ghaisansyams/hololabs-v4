@@ -12,6 +12,8 @@ export interface StageStep {
   description: string;
   minutes: string;
   flow?: string[];
+  /** CMS photo of the chapter; "" or missing = the built-in one. */
+  image?: string;
 }
 
 /** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
@@ -96,6 +98,8 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
   const [active, setActive] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const count = Math.min(steps.length, MAX_CHAPTERS);
+  // the chapter photos, joined so the effect below depends on their values, not on the array identity
+  const imageKey = steps.map((st) => st.image ?? "").join("|");
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -119,6 +123,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
           stage,
           section,
           count,
+          images: imageKey.split("|"),
           onReady: () => {
             if (!disposed) setReady(true);
           },
@@ -140,7 +145,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
       disposed = true;
       dispose();
     };
-  }, [mode, count]);
+  }, [mode, count, imageKey]);
 
   useEffect(() => {
     if (!detailOpen) return;
@@ -461,15 +466,16 @@ function StaticExperience({ steps }: { steps: StageStep[] }) {
       <ol className="mx-auto max-w-5xl space-y-16 px-5 py-16 sm:px-10">
         {steps.map((s, i) => {
           const v = STATIC_VISUALS[i % STATIC_VISUALS.length];
+          const photo = "art" in v ? "" : s.image || v.src;
           return (
             <li key={i} className="grid items-center gap-6 md:grid-cols-2 md:gap-12">
               <div className={cn("relative aspect-[4/3] overflow-hidden rounded-xl border border-line", i % 2 === 1 && "md:order-2")}>
                 {"art" in v ? (
                   <CanvasArt kind={v.art} />
                 ) : v.video ? (
-                  <video src={v.video} poster={v.src} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: "50% 40%" }} />
+                  <video src={v.video} poster={photo} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: "50% 40%" }} />
                 ) : (
-                  <Image src={v.src} alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" style={{ objectPosition: v.position }} />
+                  <Image src={photo} alt="" fill unoptimized={photo.startsWith("/media/")} sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" style={{ objectPosition: v.position }} />
                 )}
               </div>
               <div>

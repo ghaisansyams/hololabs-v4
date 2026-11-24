@@ -1,5 +1,6 @@
 import { siteConfig } from "@/data/site";
 import { experienceSteps, visitStats } from "@/data/experience";
+import { showroomDefaults } from "@/data/showroom";
 import { faqItems } from "@/data/faq";
 import { mainNav } from "@/data/site";
 
@@ -86,6 +87,28 @@ export const sections = [
     ],
   },
   {
+    key: "showroom",
+    label: "Denah showroom",
+    description:
+      "Bagian denah interaktif tepat di bawah hero. Foto tiap zona tetap, sedangkan judul, pengantar, dan nama serta penjelasan delapan zona bisa diubah. Urutan zona: pintu masuk, Experience Hall, panggung DJ, Break Out Area, ruang rapat, Command Center (lantai dasar), lalu Viewing Deck dan Meeting Area (mezzanine).",
+    fields: [
+      t("eyebrow", "Label kecil di atas judul", 40),
+      t("title", "Judul", 80),
+      ta("body", "Kalimat pengantar", 360),
+      t("note", "Catatan di bawah denah", 160),
+      t("cta", "Teks tombol reservasi", 40),
+      {
+        key: "zones",
+        label: "Zona",
+        type: "list",
+        itemLabel: "Zona",
+        min: 8,
+        max: 8,
+        fields: [t("name", "Nama zona", 40), ta("description", "Penjelasan zona", 320)],
+      },
+    ],
+  },
+  {
     key: "experience",
     label: "Journey 3D (7 babak)",
     description:
@@ -104,6 +127,7 @@ export const sections = [
           ta("description", "Penjelasan", 360),
           t("minutes", "Durasi (mis. ±15 menit)", 20),
           { key: "flow", label: "Alur yang dialami pengunjung", type: "tags", hint: "Satu langkah per baris, 3 sampai 5 langkah. Kosongkan untuk babak pertama dan terakhir." },
+          img("image", "Gambar babak", "Dipakai pada Enter the Story, Feel the Beat, Road to Smart Living, dan Create Something. Babak pertama, Meet AI, dan terakhir memakai ilustrasi 3D yang tidak bisa diganti, jadi kolom ini diabaikan di sana. Kosongkan untuk memakai gambar bawaan. Disarankan rasio mendatar, gambar akan dipotong menyesuaikan bingkai."),
         ],
       },
     ],
@@ -292,8 +316,9 @@ export const defaults = {
     ctaPrimary: "Pilih Jadwal Show",
     ctaSecondary: "Lihat Journey",
   },
+  showroom: showroomDefaults,
   experience: {
-    steps: experienceSteps.map(({ mood, title, description, minutes, flow }) => ({ mood, title, description, minutes, flow })),
+    steps: experienceSteps.map(({ mood, title, description, minutes, flow, image }) => ({ mood, title, description, minutes, flow, image })),
   },
   visit: {
     stats: visitStats.map(({ value, label }) => ({ value, label })),

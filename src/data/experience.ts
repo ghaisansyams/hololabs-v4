@@ -13,6 +13,11 @@ export interface ExperienceStep {
   minutes: string;
   /** What the guest goes through, in order; shown as a little flow under the text. */
   flow: string[];
+  /**
+   * Photo shown with the chapter (a path in /public or an upload "/media/<id>").
+   * Only chapters 2, 3, 5 and 6 use one; the others are drawn in 3D and ignore it.
+   */
+  image: string;
 }
 
 /*
@@ -26,6 +31,7 @@ export const experienceSteps: ExperienceStep[] = [
     description: "Scan e-ticket QR di pintu masuk, lalu duduk di kursi yang sudah kamu pilih.",
     minutes: "5 menit",
     flow: [],
+    image: "",
   },
   {
     mood: "Enter the Story",
@@ -34,6 +40,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Show dibuka dengan video mapping yang membawamu mengikuti cerita visual tentang perjalanan hidup. Proyeksi di sekeliling ruangan, suara, dan tata cahaya bergerak bersama, jadi kamu ikut berada di dalam ceritanya.",
     minutes: "±15 menit",
     flow: ["Lihat", "Dengar", "Masuk ke cerita", "Rasakan"],
+    image: "/experience/journey-of-life.jpg",
   },
   {
     mood: "Feel the Beat",
@@ -42,6 +49,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Musik dari DJ menjadi pemicu visual. Soundtrack, proyeksi, dan visual yang bereaksi pada suara bertemu dalam satu pertunjukan live, dan visual di layar ikut bergerak mengikuti ketukan dan gerakan penonton. Di babak ini kamu ikut jadi bagian dari pertunjukan.",
     minutes: "±15 menit",
     flow: ["Musik", "Visual", "Interaksi", "Jadi bagian show"],
+    image: "/experience/dj.jpg",
   },
   {
     mood: "Meet AI",
@@ -50,6 +58,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Saatnya bicara dengan teknologi. Kamu bisa bertanya dan mengobrol langsung dengan AI Health Assistant, asisten virtual berwujud avatar 3D yang mendengarkan suaramu lalu menjawab. Coba ceritakan keluhan kesehatanmu, dan ia membantu mencatatnya sebelum kamu berkonsultasi dengan dokter.",
     minutes: "±15 menit",
     flow: ["Tanya", "Bicara", "Interaksi", "Temukan"],
+    image: "",
   },
   {
     mood: "Road to Smart Living",
@@ -58,6 +67,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Jelajahi perkembangan teknologi rumah, dari cara hidup konvensional sampai rumah yang terhubung dan cerdas. Ucapkan perintah, lalu lihat lampu, tirai, dan suasana ruangan berubah: gambaran cara kita hidup bersama teknologi di masa depan.",
     minutes: "±20 menit",
     flow: ["Perangkat", "Terhubung", "Otomatis", "Dibantu AI", "Rumah pintar"],
+    image: "/experience/smarthome.jpg",
   },
   {
     mood: "Create Something",
@@ -66,6 +76,7 @@ export const experienceSteps: ExperienceStep[] = [
       "Dari dunia digital kembali ke dunia fisik. Kamu mengubah sebuah desain 3D sesuai seleramu, lalu melihat printer membangunnya lapis demi lapis sampai menjadi benda nyata yang bisa kamu pegang.",
     minutes: "±15 menit",
     flow: ["Ide", "Desain 3D", "Kustomisasi", "Cetak", "Benda nyata"],
+    image: "/experience/print3d.jpg",
   },
   {
     mood: "Remember",
@@ -73,6 +84,7 @@ export const experienceSteps: ExperienceStep[] = [
     description: "Ambil hasil 3D print-mu dan bawa pulang sebagai kenang-kenangan dari HOLOLABS.",
     minutes: "5 menit",
     flow: [],
+    image: "",
   },
 ];
 

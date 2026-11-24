@@ -17,7 +17,10 @@ import { buildPrints } from "./prints";
 
 export interface Ctx {
   track: <D extends { dispose: () => void }>(d: D) => D;
-  tex: (src: string) => THREE.Texture;
+  /** A photo texture; with `aspect` it is cropped (cover) to fill a panel of that width / height. */
+  tex: (src: string, aspect?: number) => THREE.Texture;
+  /** The CMS image of this chapter when one is set, else the built-in `fallback`. */
+  image: (fallback: string) => string;
   dot: THREE.Texture;
   matcap: THREE.Texture;
   mobile: boolean;
@@ -128,8 +131,8 @@ function framedPanel(ctx: Ctx, mat: THREE.Material & { opacity: number }, tint: 
   };
 }
 
-function photoMaterial(ctx: Ctx, src: string) {
-  return ctx.track(new THREE.MeshBasicMaterial({ map: ctx.tex(src), transparent: true }));
+function photoMaterial(ctx: Ctx, src: string, aspect?: number) {
+  return ctx.track(new THREE.MeshBasicMaterial({ map: ctx.tex(src, aspect), transparent: true }));
 }
 
 /**
@@ -138,7 +141,7 @@ function photoMaterial(ctx: Ctx, src: string) {
  * `panelAspect`. Until the first frame is playing (or if autoplay is blocked)
  * the still photo shows instead. `tick(true)` plays, `tick(false)` pauses.
  */
-function clipVideo(ctx: Ctx, src: string, still: THREE.Texture, stillAspect: number, clips: [number, number][], panelAspect: number, focusY: number) {
+function clipVideo(ctx: Ctx, src: string, still: THREE.Texture, clips: [number, number][], panelAspect: number, focusY: number) {
   const video = document.createElement("video");
   video.muted = true;
   video.defaultMuted = true;
@@ -150,10 +153,6 @@ function clipVideo(ctx: Ctx, src: string, still: THREE.Texture, stillAspect: num
   const map = ctx.track(new THREE.VideoTexture(video));
   map.colorSpace = THREE.SRGBColorSpace;
   const material = ctx.track(new THREE.MeshBasicMaterial({ map: still, transparent: true }));
-
-  // crop the still (sides if it is wider than the panel, top and bottom if taller) to fill the panel
-  still.repeat.set(Math.min(1, panelAspect / stillAspect), Math.min(1, stillAspect / panelAspect));
-  still.offset.set((1 - still.repeat.x) / 2, (1 - still.repeat.y) / 2);
 
   let idx = 0;
   let live = false;
@@ -355,7 +354,7 @@ function projectionChapter(ctx: Ctx): Chapter {
   // The projection wall is cut into tiles that fly in from scattered
   // positions and lock together as the chapter comes into focus, the way a
   // video-mapping rig stitches many surfaces into one picture.
-  const screenMat = fader.add(photoMaterial(ctx, "/experience/journey-of-life.jpg"), 1);
+  const screenMat = fader.add(photoMaterial(ctx, ctx.image("/experience/journey-of-life.jpg"), aspect), 1);
   screenMat.side = THREE.DoubleSide;
   type Tile = { mesh: THREE.Mesh; x: number; y: number; delay: number; off: THREE.Vector3; spin: THREE.Vector3 };
   const tiles: Tile[] = [];
@@ -460,8 +459,7 @@ function djChapter(ctx: Ctx): Chapter {
   const video = clipVideo(
     ctx,
     "/experience/dj-beat.mp4",
-    ctx.tex("/experience/dj.jpg"),
-    1400 / 1269,
+    ctx.tex(ctx.image("/experience/dj.jpg"), aspect),
     [
       [0.3, 3.3],
       [6, 8.5],
@@ -615,7 +613,7 @@ function smartHomeChapter(ctx: Ctx): Chapter {
   const group = new THREE.Group();
   const fader = new Fader();
   const aspect = 1400 / 1140;
-  const photo = fader.add(photoMaterial(ctx, "/experience/smarthome.jpg"), 1);
+  const photo = fader.add(photoMaterial(ctx, ctx.image("/experience/smarthome.jpg"), aspect), 1);
   const panel = framedPanel(ctx, photo, 0xf59e0b, fader);
   group.add(panel.root);
 
@@ -731,8 +729,7 @@ function printChapter(ctx: Ctx): Chapter {
   const video = clipVideo(
     ctx,
     "/experience/dragon-print.mp4",
-    ctx.tex("/experience/print3d.jpg"),
-    1070 / 600,
+    ctx.tex(ctx.image("/experience/print3d.jpg"), aspect),
     [
       [0.8, 4.6],
       [5.4, 7.6],

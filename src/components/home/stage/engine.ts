@@ -11,17 +11,21 @@ const smooth = (v: number) => v * v * (3 - 2 * v);
 /** 1 while the camera rests at a stop, fading to 0 as it travels away. */
 const restOpacity = (distance: number) => clamp(1 - (distance - 0.12) / 0.2);
 
-/** One stop per chapter: the camera rests VIEW_DIST in front of it. */
-function stopZ(index: number) {
-  return FIRST_Z - index * SPACING + VIEW_DIST;
-}
+/**
+ * The chapters are stacked vertically and the camera descends through them as
+ * the page scrolls down: each chapter sits at its own height, all at the same
+ * depth, and the camera rests in front of one at a time.
+ */
+const FOCUS_Z = FIRST_Z;
+const CAM_Z = FOCUS_Z + VIEW_DIST;
+const chapterY = (index: number) => -index * SPACING;
 
-/** Camera depth for a scroll position t in [0, stops-1], dwelling at each stop. */
-function cameraZ(t: number, stops: number) {
-  if (stops < 2) return stopZ(0);
+/** Camera height for a scroll position t in [0, stops-1], dwelling at each stop. */
+function cameraY(t: number, stops: number) {
+  if (stops < 2) return chapterY(0);
   const s = Math.min(stops - 2, Math.floor(t));
   const u = smooth(clamp((t - s - 0.18) / 0.64));
-  return stopZ(s) + (stopZ(s + 1) - stopZ(s)) * u;
+  return chapterY(s) + (chapterY(s + 1) - chapterY(s)) * u;
 }
 
 export interface StageOptions {
@@ -29,6 +33,8 @@ export interface StageOptions {
   stage: HTMLElement;
   section: HTMLElement;
   count: number;
+  /** CMS image per chapter ("" = use the built-in one). */
+  images?: string[];
   onReady: () => void;
   onActive: (index: number) => void;
   onError: (error: unknown) => void;
@@ -68,20 +74,37 @@ export function createStage(o: StageOptions): () => void {
   const readyTimer = window.setTimeout(fireReady, 2500);
   const loader = new THREE.TextureLoader();
   const cache = new Map<string, THREE.Texture>();
-  const tex = (src: string) => {
+  // crop a texture to fill a panel of the given aspect, whatever shape the image is
+  const cover = (t: THREE.Texture) => {
+    const aspect = t.userData.cover as number | undefined;
+    const img = t.image as { width?: number; height?: number } | undefined;
+    if (!aspect || !img?.width || !img?.height) return;
+    const ia = img.width / img.height;
+    t.repeat.set(Math.min(1, aspect / ia), Math.min(1, ia / aspect));
+    t.offset.set((1 - t.repeat.x) / 2, (1 - t.repeat.y) / 2);
+  };
+  const tex = (src: string, aspect?: number) => {
     const hit = cache.get(src);
-    if (hit) return hit;
+    if (hit) {
+      if (aspect) {
+        hit.userData.cover = aspect;
+        cover(hit);
+      }
+      return hit;
+    }
     const t = track(
       loader.load(
         src,
-        () => {
+        (loadedTex) => {
           loaded += 1;
+          cover(loadedTex);
           if (loaded >= 2) fireReady();
         },
         undefined,
         () => fireReady(),
       ),
     );
+    if (aspect) t.userData.cover = aspect;
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
     cache.set(src, t);
@@ -90,46 +113,54 @@ export function createStage(o: StageOptions): () => void {
   const dot = track(new THREE.CanvasTexture(softDot()));
   const cap = track(new THREE.CanvasTexture(matcap()));
   cap.colorSpace = THREE.SRGBColorSpace;
-  const ctx: Ctx = { track, tex, dot, matcap: cap, mobile };
+  const ctx: Ctx = { track, tex, image: (fallback) => fallback, dot, matcap: cap, mobile };
 
   // ---- backdrop: the hall from the hero photo -------------------------
-  // A night-sky gradient behind everything, then LED walls down both sides
-  // of the runway and a glossy floor catching their colour.
+  // A night-sky gradient behind everything, then LED walls behind and beside
+  // the column of chapters.
   const sky = track(new THREE.CanvasTexture(nightSky()));
   sky.colorSpace = THREE.SRGBColorSpace;
   scene.background = sky;
   const wallTex = track(new THREE.CanvasTexture(ledWall()));
   wallTex.colorSpace = THREE.SRGBColorSpace;
+  // the vertical range the camera travels, with a margin above and below
+  const total = Math.max(0, o.count - 1) * SPACING;
+  const midY = -total / 2;
   const wallGeo = track(new THREE.PlaneGeometry(7, 11));
   const wallMat = track(
     new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }),
   );
+  // a tall LED wall far behind the chapters, and angled LED pillars down both
+  // sides that slide past faster than the chapters (depth parallax as you scroll)
+  const backTex = track(wallTex.clone());
+  backTex.wrapS = backTex.wrapT = THREE.RepeatWrapping;
+  backTex.repeat.set(6, (total + 40) / 9);
+  backTex.needsUpdate = true;
+  const back = new THREE.Mesh(
+    track(new THREE.PlaneGeometry(80, total + 40)),
+    track(new THREE.MeshBasicMaterial({ map: backTex, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending })),
+  );
+  back.position.set(0, midY, -32);
+  scene.add(back);
   const wallStep = mobile ? 14 : 9;
-  for (let z = 6; z > -96; z -= wallStep) {
+  for (let y = 8; y > -total - 8; y -= wallStep) {
     for (const sideX of [-1, 1]) {
       const wall = new THREE.Mesh(wallGeo, wallMat);
-      wall.position.set(sideX * 11.5, 1.6, z + (sideX > 0 ? wallStep / 2 : 0));
-      wall.rotation.y = -sideX * Math.PI * 0.42;
+      wall.position.set(sideX * 8.5, y + (sideX > 0 ? wallStep / 2 : 0), -18);
+      wall.rotation.y = -sideX * 0.5;
       scene.add(wall);
     }
   }
-  const floorMat = track(
-    new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  const floor = new THREE.Mesh(track(new THREE.PlaneGeometry(26, 110)), floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.set(0, -3.5, -40);
-  scene.add(floor);
 
-  // ---- ambient: star field + floor runway -------------------------------
+  // ---- ambient: star field + two dotted rails ----------------------------
   const starCount = mobile ? 700 : 1600;
   const pos = new Float32Array(starCount * 3);
   const col = new Float32Array(starCount * 3);
   const palette = [new THREE.Color(0x67e8f9), new THREE.Color(0x818cf8), new THREE.Color(0xf0abfc), new THREE.Color(0xffffff)];
   for (let i = 0; i < starCount; i++) {
     pos[i * 3] = (Math.random() - 0.5) * 60;
-    pos[i * 3 + 1] = (Math.random() - 0.5) * 30;
-    pos[i * 3 + 2] = 14 - Math.random() * 110;
+    pos[i * 3 + 1] = 10 - Math.random() * (total + 20);
+    pos[i * 3 + 2] = 4 - Math.random() * 40;
     const c = palette[Math.floor(Math.random() * palette.length)];
     col.set([c.r, c.g, c.b], i * 3);
   }
@@ -146,9 +177,9 @@ export function createStage(o: StageOptions): () => void {
   const runwayCount = 240;
   const rp = new Float32Array(runwayCount * 3);
   for (let i = 0; i < runwayCount; i++) {
-    rp[i * 3] = (i % 2 === 0 ? -1 : 1) * 2.4;
-    rp[i * 3 + 1] = -3.4;
-    rp[i * 3 + 2] = -2 - (i / runwayCount) * 88;
+    rp[i * 3] = (i % 2 === 0 ? -1 : 1) * 6.2;
+    rp[i * 3 + 1] = 8 - (i / runwayCount) * (total + 16);
+    rp[i * 3 + 2] = -12;
   }
   const runwayGeo = track(new THREE.BufferGeometry());
   runwayGeo.setAttribute("position", new THREE.BufferAttribute(rp, 3));
@@ -160,7 +191,8 @@ export function createStage(o: StageOptions): () => void {
   // ---- chapters --------------------------------------------------------
   const chapters: (Chapter & { side: number })[] = [];
   for (let i = 0; i < o.count; i++) {
-    const ch = chapterFactories[i % chapterFactories.length](ctx);
+    const chapterCtx: Ctx = { ...ctx, image: (fallback) => o.images?.[i] || fallback };
+    const ch = chapterFactories[i % chapterFactories.length](chapterCtx);
     scene.add(ch.group);
     chapters.push({ ...ch, side: i % 2 === 0 ? -1 : 1 });
   }
@@ -218,21 +250,25 @@ export function createStage(o: StageOptions): () => void {
     ptr.x += (ptr.tx - ptr.x) * (1 - Math.exp(-dt * 4));
     ptr.y += (ptr.ty - ptr.y) * (1 - Math.exp(-dt * 4));
 
-    const camZ = cameraZ(smoothT, stops);
-    camera.position.set(ptr.x * 0.55, -ptr.y * 0.3, camZ);
-    camera.lookAt(ptr.x * 0.15, -ptr.y * 0.08, camZ - 10);
+    const camY = cameraY(smoothT, stops);
+    // lean the view in the direction of travel while the page is moving
+    const lean = clamp((p * (stops - 1) - smoothT) * 0.5, -1, 1);
+    camera.position.set(ptr.x * 0.55, camY - ptr.y * 0.3, CAM_Z);
+    camera.lookAt(ptr.x * 0.15, camY - ptr.y * 0.08 + lean * 0.9, CAM_Z - 10);
 
     for (let i = 0; i < chapters.length; i++) {
       const ch = chapters[i];
-      const focus = FIRST_Z - i * SPACING;
-      const dist = camZ - focus;
-      const vis = clamp((20 - dist) / 8) * (dist > -2 ? 1 : 0);
+      // d: 0 when the camera rests at this chapter, +1 one chapter past it (it left upward), -1 one chapter before
+      const d = (camY - chapterY(i)) / SPACING;
+      const vis = clamp(1 - (Math.abs(d) - 0.3) / 0.45);
       ch.group.visible = vis > 0.01;
       if (!ch.group.visible) continue;
-      const act = clamp(1 - Math.abs(dist - VIEW_DIST) / 9);
+      const act = clamp(1 - Math.abs(d) / 0.8);
       const x = portrait ? 0 : ch.side * 3.0;
       const y = portrait ? 1.8 : 0.15;
-      ch.group.position.set(x, y + Math.sin(time * 0.6 + i) * 0.06, focus + act * 0.6);
+      ch.group.position.set(x, chapterY(i) + y + Math.sin(time * 0.6 + i) * 0.06, FOCUS_Z + act * 0.6 - Math.abs(d) * 2.2);
+      // tilts back as it leaves or approaches, so the stack reads as a 3D column
+      ch.group.rotation.x = clamp(d, -1, 1) * 0.35;
       ch.group.rotation.y = portrait ? 0 : -ch.side * (0.24 - 0.1 * act);
       ch.group.scale.setScalar(0.94 + 0.08 * act);
       ch.update({ act, vis, time, dt });

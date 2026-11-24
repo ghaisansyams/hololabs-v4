@@ -44,6 +44,7 @@ export interface NavLink {
 // FAQ) plus the ticket lookup. Editable in the CMS (Menu & tombol).
 export const mainNav: NavLink[] = [
   { href: "/#about", label: "Tentang" },
+  { href: "/#showroom", label: "Showroom" },
   { href: "/#journey", label: "Journey" },
   { href: "/#reservasi", label: "Info" },
   { href: "/#faq", label: "FAQ" },
