@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils/cn";
 export function MapCard({
   href,
   address,
+  name = "HOLOLABS",
   cta,
   className,
   sizes = "(min-width: 1024px) 50vw, 100vw",
@@ -18,6 +19,8 @@ export function MapCard({
 }: {
   href: string;
   address: string;
+  /** Site name shown above the address. */
+  name?: string;
   cta: string;
   className?: string;
   sizes?: string;
@@ -29,7 +32,7 @@ export function MapCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`${cta}: HOLOLABS, ${address}`}
+      aria-label={`${cta}: ${name}, ${address}`}
       className={cn(
         "group relative block overflow-hidden rounded-2xl border border-white/10 bg-[#0a0716] outline-none focus-visible:ring-2 focus-visible:ring-cyan",
         className,
@@ -64,9 +67,7 @@ export function MapCard({
       ) : (
         <div className="absolute inset-x-3 bottom-3 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/70 p-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="text-sm font-bold tracking-[0.14em] text-ink">
-              HOLOLABS
-            </p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-ink">{name}</p>
             <p className="mt-1 text-xs leading-5 text-ink-soft">{address}</p>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full bg-gradient-to-r from-brand to-accent px-4 py-2 text-xs font-bold text-white sm:self-auto">

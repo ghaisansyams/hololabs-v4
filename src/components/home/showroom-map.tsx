@@ -9,8 +9,23 @@ import { cn } from "@/lib/utils/cn";
 
 interface ZoneText {
   name: string;
+  /** Short label on the plan; empty = the built-in one. */
+  tag?: string;
   /** CMS photos; empty = the built-in ones. */
   photos: string[];
+}
+
+/** Every other text of the plan, from the CMS ("Denah showroom"). */
+export interface MapText {
+  noPhoto: string;
+  floorGround: string;
+  floorUpper: string;
+  swipeHint: string;
+  ledLabel: string;
+  gateLabel: string;
+  office: string;
+  doorLegend: string;
+  note: string;
 }
 
 const FLOORS: Floor[] = ["ground", "mezzanine"];
@@ -35,13 +50,18 @@ const BIKES = [1028, 1048, 1068];
  * plus the parking lot in front. Zones are buttons on the plan (keyboard
  * accessible). On phones the plan keeps a readable size and scrolls sideways.
  */
-export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: string; office: string }) {
+export function ShowroomMap({ zones, text }: { zones: ZoneText[]; text: MapText }) {
+  const { note, office } = text;
+  const floorName: Record<Floor, string> = {
+    ground: text.floorGround || floorLabels.ground,
+    mezzanine: text.floorUpper || floorLabels.mezzanine,
+  };
   const [floor, setFloor] = useState<Floor>("ground");
   const [activeId, setActiveId] = useState("hall");
   const [photo, setPhoto] = useState(0);
   const detailRef = useRef<HTMLDivElement>(null);
 
-  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
+  const all = showroomZones.map((z, i) => ({ ...z, name: zones[i]?.name || z.name, tag: zones[i]?.tag || z.tag, photos: zones[i]?.photos?.length ? zones[i].photos : z.photos, n: i + 1 }));
   const active = all.find((z) => z.id === activeId) ?? all[1];
   const groundZones = all.filter((z) => z.floor === "ground");
   const upperZones = all.filter((z) => z.floor === "mezzanine");
@@ -74,7 +94,7 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[radial-gradient(ellipse_at_30%_20%,rgb(99_102_241/0.25),transparent_60%),radial-gradient(ellipse_at_80%_90%,rgb(217_70_239/0.18),transparent_60%)] px-6 text-center">
                 <span className="flex size-12 items-center justify-center rounded-full border border-line bg-surface-raised text-lg font-bold text-ink">{active.n}</span>
                 <p className="text-base font-semibold text-ink">{active.name}</p>
-                <p className="text-sm text-muted">Foto ruang ini akan segera ditambahkan.</p>
+                {text.noPhoto ? <p className="text-sm text-muted">{text.noPhoto}</p> : null}
               </div>
             ) : null}
             {active.photos.map((src, i) => (
@@ -140,16 +160,16 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                   floor === f ? "bg-gradient-to-r from-brand to-accent text-canvas" : "text-ink-soft hover:text-ink",
                 )}
               >
-                {floorLabels[f]}
+                {floorName[f]}
               </button>
             ))}
           </div>
-          <p className="text-xs text-muted sm:hidden">Geser denah ke samping untuk melihat area parkir.</p>
+          {text.swipeHint ? <p className="text-xs text-muted sm:hidden">{text.swipeHint}</p> : null}
         </div>
 
         <div className="rounded-2xl border border-line bg-[#0a0720]/80 p-3 sm:p-5">
           <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-            <svg viewBox="0 0 1260 480" role="group" aria-label={`Denah ${floorLabels[floor]} dan area parkir`} className="h-auto w-full min-w-[760px] sm:min-w-0">
+            <svg viewBox="0 0 1260 480" role="group" aria-label={`Denah ${floorName[floor]}`} className="h-auto w-full min-w-[760px] sm:min-w-0">
               <defs>
                 <linearGradient id="zone-active" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="#6366f1" stopOpacity="0.55" />
@@ -185,7 +205,7 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                     <rect key={i} x={73 + (i % 4) * 23} y={262 + Math.floor(i / 4) * 19} width="20" height="16" rx="2" fill="#22d3ee" fillOpacity={activeId === "command" ? 0.95 : 0.7} />
                   ))}
                   <text x="117" y="322" textAnchor="middle" fontSize="12" fill="#67e8f9" className="hidden sm:block">
-                    Dinding LED · 8 TV
+                    {text.ledLabel}
                   </text>
 
                   {/* parking: stalls, planters, motorbikes, the gate (middle of the far side) and the main door */}
@@ -204,7 +224,7 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                   <path d="M1246 205 v70" stroke="#0a0720" strokeWidth="6" />
                   <path d="M1240 240 h-36 m10 -9 l-10 9 l10 9" fill="none" stroke="#67e8f9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   <text x="1218" y="222" textAnchor="middle" fontSize="13" fill="#67e8f9" className="hidden sm:block">
-                    Gerbang
+                    {text.gateLabel}
                   </text>
                   <rect x="748" y="200" width="10" height="130" rx="3" fill="#f97316" fillOpacity="0.9" />
                 </g>
@@ -240,10 +260,12 @@ export function ShowroomMap({ zones, note, office }: { zones: ZoneText[]; note: 
                 {office}
               </p>
             ) : null}
-            <p className="flex items-center gap-2">
-              <span aria-hidden className="inline-block h-3 w-1.5 shrink-0 rounded-sm bg-[#f97316]" />
-              Pintu utama, dari area parkir ke aula
-            </p>
+            {text.doorLegend ? (
+              <p className="flex items-center gap-2">
+                <span aria-hidden className="inline-block h-3 w-1.5 shrink-0 rounded-sm bg-[#f97316]" />
+                {text.doorLegend}
+              </p>
+            ) : null}
           </div>
           {note ? <p className="mt-2 text-xs leading-relaxed text-muted">{note}</p> : null}
         </div>

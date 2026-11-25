@@ -45,7 +45,10 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <HeroSection />
       <ShowroomSection />
-      <ExperienceStage steps={steps} />
+      <ExperienceStage
+        steps={steps}
+        text={{ startTag: experience.startTag, endTag: experience.endTag, actWord: experience.actWord, flowHeading: experience.flowHeading }}
+      />
       <AboutSection />
       <VisitSection />
       <FaqSection />

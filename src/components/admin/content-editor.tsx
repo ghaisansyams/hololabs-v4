@@ -179,6 +179,8 @@ function ListEditor({
 }) {
   const max = field.max ?? 20;
   const min = field.min ?? 0;
+  // a list with a fixed count (the nine zones) is tied to fixed places on the page: no moving or removing
+  const fixed = min === max;
   const blank = (): Item =>
     Object.fromEntries(field.fields.map((f) => [f.key, f.type === "tags" ? [] : ""]));
 
@@ -197,10 +199,13 @@ function ListEditor({
       {items.map((item, index) => (
         <div key={index} className="rounded-2xl border border-line bg-canvas-deep p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">
+            <span className="min-w-0 truncate text-xs font-bold uppercase tracking-wide text-muted">
               {field.itemLabel} {index + 1}
+              {field.itemTitle && item[field.itemTitle] ? (
+                <span className="font-semibold normal-case tracking-normal text-ink-soft"> · {String(item[field.itemTitle])}</span>
+              ) : null}
             </span>
-            <div className="flex gap-1">
+            <div className={fixed ? "hidden" : "flex gap-1"}>
               <button
                 type="button"
                 aria-label="Naikkan"
@@ -287,15 +292,21 @@ function describeChanges(section: SectionDef, before: Values, after: Values): Ch
     if (a !== b) changes.push({ label, kind: type === "image" ? "image" : "text", from: a, to: b });
   };
 
+  let part = "";
   for (const field of section.fields) {
+    if (field.type === "heading") {
+      part = field.label;
+      continue;
+    }
     if (field.type !== "list") {
-      push(field.label, field.type, before[field.key], after[field.key]);
+      push(part ? `${part} › ${field.label}` : field.label, field.type, before[field.key], after[field.key]);
       continue;
     }
     const a = (before[field.key] as Item[]) ?? [];
     const b = (after[field.key] as Item[]) ?? [];
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
-      const name = `${field.label} › ${field.itemLabel} ${i + 1}`;
+      const title = field.itemTitle ? asText((b[i] ?? a[i])?.[field.itemTitle]) : "";
+      const name = `${field.label} › ${field.itemLabel} ${i + 1}${title ? ` (${title})` : ""}`;
       if (!a[i]) {
         changes.push({ label: name, kind: "text", from: "", to: "(item baru ditambahkan)" });
       } else if (!b[i]) {
@@ -536,9 +547,16 @@ export function ContentEditor({
     >
       {section.fields.map((field: FieldDef) => (
         <div key={field.key}>
-          {field.type === "list" ? (
+          {field.type === "heading" ? (
+            <div className="border-t border-line pt-6">
+              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-accent">{field.label}</h2>
+              {field.hint ? <p className="mt-1 text-xs text-muted">{field.hint}</p> : null}
+            </div>
+          ) : field.type === "list" ? (
             <>
-              <p className="mb-2 text-sm font-bold text-ink">{field.label}</p>
+              <p className="text-sm font-bold text-ink">{field.label}</p>
+              {field.hint ? <p className="mt-1 text-xs leading-relaxed text-muted">{field.hint}</p> : null}
+              <div className="mt-2" />
               <ListEditor
                 field={field}
                 items={(values[field.key] as Item[]) ?? []}

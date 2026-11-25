@@ -26,7 +26,20 @@ export async function ShowroomSection() {
           </Reveal>
         </div>
         <Reveal delay={120} className="mt-12">
-          <ShowroomMap zones={showroom.zones.map((z) => ({ name: z.name, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))} note={showroom.note} office={showroom.office} />
+          <ShowroomMap
+            zones={showroom.zones.map((z) => ({ name: z.name, tag: z.tag, photos: [z.photo1, z.photo2, z.photo3, z.photo4].filter(Boolean) }))}
+            text={{
+              noPhoto: showroom.noPhoto,
+              floorGround: showroom.floorGround,
+              floorUpper: showroom.floorUpper,
+              swipeHint: showroom.swipeHint,
+              ledLabel: showroom.ledLabel,
+              gateLabel: showroom.gateLabel,
+              office: showroom.office,
+              doorLegend: showroom.doorLegend,
+              note: showroom.note,
+            }}
+          />
         </Reveal>
       </Container>
     </section>

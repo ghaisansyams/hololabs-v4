@@ -26,7 +26,7 @@ export interface ExperienceStep {
  */
 export const experienceSteps: ExperienceStep[] = [
   {
-    mood: "Penasaran",
+    mood: "Registrasi",
     title: "Registrasi & ambil kursi",
     description: "Pindai QR e-tiket di pintu masuk, lalu duduk di kursi yang sudah kamu pilih.",
     minutes: "5 menit",
@@ -79,7 +79,7 @@ export const experienceSteps: ExperienceStep[] = [
     image: "/experience/print3d.jpg",
   },
   {
-    mood: "Kenangan",
+    mood: "Penutup",
     title: "Bawa pulang karyamu",
     description: "Ambil hasil cetak 3D-mu dan bawa pulang sebagai kenang-kenangan dari HOLOLABS.",
     minutes: "5 menit",

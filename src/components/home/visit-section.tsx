@@ -15,7 +15,7 @@ import { toWhatsappE164 } from "@/lib/utils/phone";
  * a private show for schools, companies and brands.
  */
 export async function VisitSection() {
-  const { visit, contact, location } = await getSiteContent();
+  const { visit, contact, location, brand } = await getSiteContent();
   const whatsapp = toWhatsappE164(contact.whatsapp);
   const groupHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent(visit.groupMessage)}`;
   const address = contact.address.split("\n").map((l) => l.trim()).filter(Boolean).join(", ");
@@ -36,12 +36,12 @@ export async function VisitSection() {
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
             </Reveal>
             <Reveal variant="zoom" delay={120} className="mt-10">
-              <CommandCenterScene note={visit.ticketNote} className="mx-0 max-w-[30rem]" />
+              <CommandCenterScene note={visit.ticketNote} sign={visit.sceneSign} className="mx-0 max-w-[30rem]" />
             </Reveal>
           </div>
 
           <Reveal delay={160} className="flex">
-            <MapCard href={location.mapLink} address={address} cta={location.cardCta} className="aspect-[4/5] w-full sm:aspect-[4/3] lg:aspect-auto lg:min-h-[32rem]" />
+            <MapCard href={location.mapLink} address={address} name={brand.siteName} cta={location.cardCta} className="aspect-[4/5] w-full sm:aspect-[4/3] lg:aspect-auto lg:min-h-[32rem]" />
           </Reveal>
         </div>
 

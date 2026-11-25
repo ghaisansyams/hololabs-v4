@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronRight, Clock3, Disc3, Flag, Gift, House, LogIn, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
+import { ChevronRight, Clock3, Disc3, Gift, House, Printer, Projector, Stethoscope, Ticket, type LucideIcon } from "lucide-react";
 import { canvas, drawHolomedis, drawTicket } from "@/components/home/stage/art";
 import { ShoeScene } from "@/components/home/shoe-scene";
 import { cn } from "@/lib/utils/cn";
@@ -20,22 +20,24 @@ export interface StageStep {
 /** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
 const CHAPTER_ICONS: LucideIcon[] = [Ticket, Projector, Disc3, Stethoscope, House, Printer, Gift];
 
-/**
- * The first and last chapters are the arrival and the send-off, not show acts,
- * so the timeline gives them their own names and a MULAI / SELESAI marker
- * instead of a number. The acts in between are numbered from 1.
- */
-const TIMELINE_ENDS = {
-  start: { label: "Registrasi", tag: "Mulai", Icon: LogIn },
-  end: { label: "Penutup", tag: "Selesai", Icon: Flag },
-} as const;
+/** Words of the timeline, from the CMS ("Perjalanan"). */
+export interface StageText {
+  startTag: string;
+  endTag: string;
+  actWord: string;
+  flowHeading: string;
+}
 
 const MAX_CHAPTERS = 7; // one visual per chapter in VISUALS
 
-/** Start/end chapters get their own name; acts in between are numbered from 1. */
-function chapterLabel(i: number, count: number) {
-  if (count > 2 && i === 0) return { edge: TIMELINE_ENDS.start, num: null };
-  if (count > 2 && i === count - 1) return { edge: TIMELINE_ENDS.end, num: null };
+/**
+ * The first and last chapters are the arrival and the send-off, not show acts,
+ * so the timeline marks them MULAI / SELESAI instead of a number. The acts in
+ * between are numbered from 1.
+ */
+function chapterLabel(i: number, count: number, text: StageText) {
+  if (count > 2 && i === 0) return { edge: text.startTag, num: null };
+  if (count > 2 && i === count - 1) return { edge: text.endTag, num: null };
   return { edge: null, num: count > 2 ? i : i + 1 };
 }
 
@@ -93,7 +95,8 @@ const VISUALS: ({ art: "ticket" | "holomedis" } | { scene: "shoe"; src: string }
  * wide screens as a sticky index that follows the chapter being read, on
  * phones and tablets as a rail with one node per chapter.
  */
-export function ExperienceStage({ steps }: { steps: StageStep[] }) {
+export function ExperienceStage({ steps, text }: { steps: StageStep[]; text: StageText }) {
+  const act = (n: number) => `${text.actWord} ${String(n).padStart(2, "0")}`.trim();
   const list = steps.slice(0, MAX_CHAPTERS);
   const count = list.length;
   const acts = count > 2 ? count - 2 : count;
@@ -135,7 +138,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                 <span className="block w-full rounded-full bg-gradient-to-b from-cyan to-[#a855f7] shadow-[0_0_12px_rgb(34_211_238/0.55)] transition-[height] duration-500" style={{ height: `${progress * 100}%` }} />
               </span>
               {list.map((st, i) => {
-                const { edge, num } = chapterLabel(i, count);
+                const { edge, num } = chapterLabel(i, count, text);
                 const Icon = CHAPTER_ICONS[i % CHAPTER_ICONS.length];
                 const current = i === active;
                 const done = i < active;
@@ -157,7 +160,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                       </span>
                       <span className="min-w-0">
                         <span className={cn("block font-mono text-[0.625rem] font-semibold uppercase tracking-[0.16em]", current ? "text-cyan" : "text-muted")}>
-                          {edge ? edge.tag : `Babak ${String(num).padStart(2, "0")}`}
+                          {edge ?? act(num ?? 0)}
                           {st.minutes ? <span className="font-normal normal-case tracking-normal text-muted"> · {st.minutes}</span> : null}
                         </span>
                         <span
@@ -166,7 +169,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                             current ? "text-ink" : done ? "text-ink-soft" : "text-muted group-hover:text-ink-soft",
                           )}
                         >
-                          {edge ? edge.label : st.mood}
+                          {st.mood}
                         </span>
                       </span>
                     </button>
@@ -181,7 +184,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
         <ol className="relative space-y-16 pl-12 sm:space-y-20 sm:pl-16 lg:space-y-28 lg:pl-0">
           <span aria-hidden className="absolute bottom-2 left-[1.125rem] top-2 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-cyan/60 via-[#a78bfa]/45 to-[#e879f9]/30 sm:left-[1.375rem] lg:hidden" />
           {list.map((st, i) => {
-            const { edge, num } = chapterLabel(i, count);
+            const { edge, num } = chapterLabel(i, count, text);
             const Icon = CHAPTER_ICONS[i % CHAPTER_ICONS.length];
             const v = VISUALS[i % VISUALS.length];
             const photo = "art" in v ? "" : "scene" in v ? v.src : st.image || v.src;
@@ -204,7 +207,7 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                   <div>
                     <p className="flex flex-wrap items-center gap-2 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.18em]">
                       <span className="rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-1 text-cyan">
-                        {edge ? edge.tag : `Babak ${String(num).padStart(2, "0")} / ${String(acts).padStart(2, "0")}`}
+                        {edge ?? `${act(num ?? 0)} / ${String(acts).padStart(2, "0")}`}
                       </span>
                       {st.minutes ? (
                         <span className="flex items-center gap-1.5 normal-case tracking-normal text-ink-soft">
@@ -213,12 +216,12 @@ export function ExperienceStage({ steps }: { steps: StageStep[] }) {
                         </span>
                       ) : null}
                     </p>
-                    <h2 className="mt-4 font-display text-[1.65rem] font-semibold uppercase leading-[1.08] text-ink sm:text-4xl">{edge ? edge.label : st.mood}</h2>
+                    <h2 className="mt-4 font-display text-[1.65rem] font-semibold uppercase leading-[1.08] text-ink sm:text-4xl">{st.mood}</h2>
                     <p className="mt-2 bg-gradient-to-r from-cyan via-[#a5b4fc] to-[#f0abfc] bg-clip-text text-sm font-semibold text-transparent sm:text-base">{st.title}</p>
                     <p className="mt-4 text-[0.9375rem] leading-7 text-ink-soft sm:text-base sm:leading-8">{st.description}</p>
                     {st.flow?.length ? (
                       <div className="mt-5 border-t border-white/10 pt-4">
-                        <p className="mb-2.5 font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted">Yang kamu alami</p>
+                        {text.flowHeading ? <p className="mb-2.5 font-mono text-[0.625rem] uppercase tracking-[0.2em] text-muted">{text.flowHeading}</p> : null}
                         <FlowSteps flow={st.flow} />
                       </div>
                     ) : null}

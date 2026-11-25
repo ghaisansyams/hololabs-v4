@@ -7,8 +7,8 @@ import { getSiteContent } from "@/lib/cms";
  * numbers that matter (length, chapters, seats, price) on the right.
  */
 export async function AboutSection() {
-  const { about, visit } = await getSiteContent();
-  const stats = visit.stats.filter((s) => s.value);
+  const { about } = await getSiteContent();
+  const stats = about.stats.filter((s) => s.value);
 
   return (
     <section id="about" className="bg-hall relative isolate overflow-hidden py-20 sm:py-28">

@@ -180,7 +180,7 @@ function drawTiles() {
   return c;
 }
 
-function drawSign() {
+function drawSign(text: string) {
   const c = document.createElement("canvas");
   c.width = 1024;
   c.height = 160;
@@ -191,13 +191,14 @@ function drawSign() {
   (g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "6px";
   g.lineWidth = 10;
   g.strokeStyle = "rgba(60,20,20,0.8)";
-  g.strokeText("RUANG KENDALI", 512, 84);
+  // long signs are squeezed to fit the board
+  g.strokeText(text, 512, 84, 960);
   g.fillStyle = "#ffffff";
-  g.fillText("RUANG KENDALI", 512, 84);
+  g.fillText(text, 512, 84, 960);
   return c;
 }
 
-export function CommandCenterScene({ note, className }: { note?: string; className?: string }) {
+export function CommandCenterScene({ note, sign: signText = "RUANG KENDALI", className }: { note?: string; sign?: string; className?: string }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -345,7 +346,7 @@ export function CommandCenterScene({ note, className }: { note?: string; classNa
     });
     const sign = new THREE.Mesh(
       track(new THREE.PlaneGeometry(1.7, 0.266)),
-      track(new THREE.MeshBasicMaterial({ map: canvasTex(drawSign()), transparent: true, opacity: 0, toneMapped: false, depthWrite: false })),
+      track(new THREE.MeshBasicMaterial({ map: canvasTex(drawSign(signText.toUpperCase())), transparent: true, opacity: 0, toneMapped: false, depthWrite: false })),
     );
     sign.position.set(0, 2.24, backZ + 0.07);
     root.add(sign);
@@ -579,7 +580,7 @@ export function CommandCenterScene({ note, className }: { note?: string; classNa
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, []);
+  }, [signText]);
 
   return (
     <figure className={className ? `w-full ${className}` : "mx-auto w-full max-w-md"}>
@@ -589,7 +590,7 @@ export function CommandCenterScene({ note, className }: { note?: string; classNa
       >
         {failed ? (
           <div aria-hidden className="absolute inset-0 grid place-items-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
-            Ruang Kendali
+            {signText}
           </div>
         ) : null}
       </div>

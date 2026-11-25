@@ -79,7 +79,7 @@ function cleanField(field: FieldDef, value: unknown): Value {
     const list = Array.isArray(value) ? value : String(value ?? "").split("\n");
     return list.map((v) => cleanText(v, 120)).filter(Boolean).slice(0, 30);
   }
-  if (field.type !== "list") return "";
+  if (field.type !== "list") return ""; // headings hold no value
   const items = Array.isArray(value) ? value : [];
   const max = field.max ?? 20;
   return items.slice(0, max).map((item) => {
@@ -101,6 +101,7 @@ export function sanitizeSection(key: string, input: unknown): Record<string, Val
   const data = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   const out: Record<string, Value> = {};
   for (const field of def.fields) {
+    if (field.type === "heading") continue;
     const value = cleanField(field, data[field.key]);
     if (field.type === "list" && Array.isArray(value) && value.length < (field.min ?? 0)) {
       return `${field.label} minimal ${field.min} item.`;

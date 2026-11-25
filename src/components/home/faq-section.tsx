@@ -23,20 +23,23 @@ export async function FaqSection() {
           <Reveal>
             <h2 className="text-[clamp(1.75rem,3.1vw,2.6rem)] font-bold leading-[1.1] text-ink">{faq.title}</h2>
           </Reveal>
+          {faq.askPrompt || faq.askLink ? (
           <Reveal delay={60}>
             <p className="mt-4 text-base text-ink-soft">
-              Masih ada pertanyaan?{" "}
+              {faq.askPrompt ? `${faq.askPrompt} ` : null}
+              {faq.askLink ? (
               <a
                 href={`https://wa.me/${wa}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-cyan underline-offset-4 transition-colors hover:text-white hover:underline"
               >
-                Hubungi kami di WhatsApp
+                {faq.askLink}
               </a>
-              .
+              ) : null}
             </p>
           </Reveal>
+          ) : null}
         </div>
 
         <FaqAccordion items={items} />

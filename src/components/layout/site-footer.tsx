@@ -39,7 +39,7 @@ export async function SiteFooter() {
             <Logo className="h-14 sm:h-16" />
             <p className="mt-5 text-base font-bold text-ink">{brand.siteName}</p>
             <p className="mt-1 text-sm text-ink-soft">{contact.footerTagline}</p>
-            <div className="mt-5 flex gap-3">
+            <div className="mt-5 flex gap-3 lg:mt-7">
               {instagram ? (
                 <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={iconButton}>
                   <InstagramIcon className="size-[1.125rem]" />
@@ -54,7 +54,7 @@ export async function SiteFooter() {
           </div>
 
           <div>
-            <h2 className={headingClass}>Kontak</h2>
+            {contact.contactHeading ? <h2 className={headingClass}>{contact.contactHeading}</h2> : null}
             <ul className="mt-4 flex flex-col gap-4 text-[0.9375rem] text-ink-soft">
               {address.length > 0 ? (
                 <li className="flex gap-3">
@@ -85,8 +85,9 @@ export async function SiteFooter() {
               address={address.join(", ")}
               cta={location.cardCta}
               sizes="(min-width: 1024px) 34vw, (min-width: 768px) 100vw, 100vw"
+              name={brand.siteName}
               compact
-              className="aspect-[16/10] md:col-span-2 lg:col-span-1"
+              className="aspect-[16/10] md:col-span-2 lg:col-span-1 lg:aspect-auto lg:min-h-48"
             />
           ) : null}
         </div>
