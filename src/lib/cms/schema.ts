@@ -1,6 +1,6 @@
 import { siteConfig } from "@/data/site";
 import { experienceSteps, visitStats } from "@/data/experience";
-import { showroomDefaults } from "@/data/showroom";
+import { showroomDefaults, showroomZones } from "@/data/showroom";
 import { faqItems } from "@/data/faq";
 import { mainNav } from "@/data/site";
 
@@ -116,6 +116,7 @@ export const sections = [
       h("photoPart", "Foto zona (di atas denah)"),
       t("noPhoto", "Teks saat zona belum punya foto", 80),
       h("planPart", "Denah"),
+      img("planImage", "Gambar denah", "Gambar denah tampak atas (bawaan 1784 × 621 px). Tombol zona dan bagian kantor yang diburamkan diletakkan mengikuti tata letak gambar bawaan, jadi gambar pengganti sebaiknya bertata letak dan berukuran sama."),
       t("floorGround", "Tombol lantai dasar", 24),
       t("floorUpper", "Tombol lantai 2", 24),
       t("swipeHint", "Petunjuk geser denah (hanya di HP)", 100),
@@ -130,19 +131,15 @@ export const sections = [
         max: 9,
         fields: [
           t("name", "Nama zona (judul di bawah foto)", 40),
-          t("tag", "Tulisan pada denah (singkat)", 24),
+          t("tag", "Nama singkat yang muncul di denah saat zona disorot atau dipilih", 24),
           img("photo1", "Foto 1 (tampil pertama)", "Disarankan mendatar 16:10 atau 16:9, minimal 1600 px lebar. Gambar dipotong mengikuti bingkai."),
           img("photo2", "Foto 2 (opsional)"),
           img("photo3", "Foto 3 (opsional)"),
           img("photo4", "Foto 4 (opsional)"),
         ],
       },
-      t("ledLabel", "Tulisan di Ruang Kendali pada denah", 30),
-      t("gateLabel", "Tulisan gerbang parkir pada denah", 20),
       h("legendPart", "Keterangan di bawah denah"),
-      t("office", "Keterangan area internal (kotak bergaris)", 120),
-      t("doorLegend", "Keterangan pintu utama (garis oranye)", 120),
-      t("note", "Catatan kecil paling bawah (kosongkan untuk menyembunyikan)", 160),
+      t("note", "Catatan kecil paling bawah (kosongkan untuk menyembunyikan)", 200),
     ],
   },
   {
@@ -202,16 +199,30 @@ export const sections = [
     key: "visit",
     page: "home",
     label: "Reservasi",
-    description: "Judul dan pengantar, dua ilustrasi 3D yang tersusun saat di-scroll (Ruang Kendali di kiri, Kursi Penonton lantai 2 di kanan), lalu kolom individu dan grup.",
+    description: "Judul dan pengantar, dua ilustrasi 3D yang tersusun saat di-scroll (Ruang Kendali di kiri, Kursi Penonton lantai 2 di kanan; diklik membuka pop up foto dan penjelasan ruangan), lalu kolom individu dan grup.",
     fields: [
       t("eyebrow", "Label kecil di atas judul"),
       t("title", "Judul", 80),
       ta("body", "Kalimat di bawah judul", 240),
-      h("scenePart", "Dua ilustrasi 3D (kiri: Ruang Kendali, kanan: Kursi Penonton lantai 2)"),
-      t("sceneSign", "Kiri: tulisan papan di 3D Ruang Kendali", 20),
-      t("ticketNote", "Kiri: keterangan di bawah 3D (kosongkan untuk menyembunyikan)", 60),
-      t("deckSign", "Kanan: tulisan papan di 3D Kursi Penonton", 20),
-      t("deckNote", "Kanan: keterangan di bawah 3D (kosongkan untuk menyembunyikan)", 60),
+      t("sceneHint", "Tulisan tombol di pojok kiri atas tiap 3D (diklik membuka pop up ruangan)", 30),
+      h("commandPart", "3D kiri: Ruang Kendali"),
+      t("sceneSign", "Tulisan papan di 3D", 20),
+      t("ticketNote", "Keterangan di bawah 3D (kosongkan untuk menyembunyikan)", 60),
+      t("commandFloor", "Pop up: label lantai", 30),
+      t("commandTitle", "Pop up: nama ruangan", 60),
+      ta("commandBody", "Pop up: penjelasan", 500),
+      img("commandPhoto1", "Pop up: foto 1", "Disarankan mendatar 16:10, minimal 1200 px lebar."),
+      img("commandPhoto2", "Pop up: foto 2 (opsional)"),
+      img("commandPhoto3", "Pop up: foto 3 (opsional)"),
+      h("deckPart", "3D kanan: Kursi Penonton lantai 2"),
+      t("deckSign", "Tulisan papan di 3D", 20),
+      t("deckNote", "Keterangan di bawah 3D (kosongkan untuk menyembunyikan)", 60),
+      t("deckFloor", "Pop up: label lantai", 30),
+      t("deckTitle", "Pop up: nama ruangan", 60),
+      ta("deckBody", "Pop up: penjelasan", 500),
+      img("deckPhoto1", "Pop up: foto 1", "Disarankan mendatar 16:10, minimal 1200 px lebar."),
+      img("deckPhoto2", "Pop up: foto 2 (opsional)"),
+      img("deckPhoto3", "Pop up: foto 3 (opsional)"),
       h("personalPart", "Kolom kiri: individu"),
       t("personalTitle", "Judul", 60),
       ta("personalBody", "Penjelasan", 240),
@@ -352,6 +363,9 @@ export const sections = [
 
 export type SectionKey = (typeof sections)[number]["key"];
 
+/** Built-in photos and description of one showroom zone, for the Reservasi room pop ups. */
+const zoneText = (id: string) => showroomZones.find((z) => z.id === id) ?? { description: "", photos: [] as string[] };
+
 export const defaults = {
   brand: {
     logoLockup: "/hololabs-lockup.png",
@@ -384,10 +398,23 @@ export const defaults = {
     eyebrow: "Reservasi",
     title: "Kursinya sedikit. Amankan sekarang.",
     body: "Pilih tanggal dan jam pertunjukan, bayar daring, lalu e-tiket ber-QR langsung dikirim ke email kamu.",
+    sceneHint: "Lihat ruangan",
     sceneSign: "RUANG KENDALI",
     ticketNote: "",
+    commandFloor: "Lantai dasar",
+    commandTitle: "Ruang Kendali",
+    commandBody: zoneText("command").description,
+    commandPhoto1: zoneText("command").photos[0] ?? "",
+    commandPhoto2: zoneText("command").photos[1] ?? "",
+    commandPhoto3: zoneText("command").photos[2] ?? "",
     deckSign: "KURSI PENONTON",
     deckNote: "",
+    deckFloor: "Lantai 2",
+    deckTitle: "Kursi Penonton",
+    deckBody: zoneText("viewing").description,
+    deckPhoto1: zoneText("viewing").photos[0] ?? "",
+    deckPhoto2: zoneText("viewing").photos[1] ?? "",
+    deckPhoto3: zoneText("viewing").photos[2] ?? "",
     personalTitle: "Individu, teman & keluarga",
     personalBody: "Pilih tanggal dan jam pertunjukan, bayar daring, kursi langsung tercatat. Maksimal 6 orang per pemesanan.",
     personalTags: ["Individu", "Teman & Keluarga", "Komunitas"],

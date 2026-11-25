@@ -33,10 +33,7 @@ export async function ShowroomSection() {
               floorGround: showroom.floorGround,
               floorUpper: showroom.floorUpper,
               swipeHint: showroom.swipeHint,
-              ledLabel: showroom.ledLabel,
-              gateLabel: showroom.gateLabel,
-              office: showroom.office,
-              doorLegend: showroom.doorLegend,
+              planImage: showroom.planImage,
               note: showroom.note,
             }}
           />

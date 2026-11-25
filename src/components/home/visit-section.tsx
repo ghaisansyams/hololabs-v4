@@ -2,8 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
-import { CommandCenterScene } from "@/components/home/command-center-scene";
-import { ViewingDeckScene } from "@/components/home/viewing-deck-scene";
+import { RoomScene } from "@/components/home/room-scene";
 import { buttonStyles } from "@/components/ui/button";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
@@ -36,12 +35,34 @@ export async function VisitSection() {
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
             </Reveal>
             <Reveal variant="zoom" delay={120} className="mt-10">
-              <CommandCenterScene note={visit.ticketNote} sign={visit.sceneSign} className="mx-0 max-w-[30rem]" />
+              <RoomScene
+                kind="command"
+                sign={visit.sceneSign}
+                note={visit.ticketNote}
+                hint={visit.sceneHint}
+                info={{
+                  floor: visit.commandFloor,
+                  title: visit.commandTitle,
+                  body: visit.commandBody,
+                  photos: [visit.commandPhoto1, visit.commandPhoto2, visit.commandPhoto3].filter(Boolean),
+                }}
+              />
             </Reveal>
           </div>
 
           <Reveal variant="zoom" delay={180}>
-            <ViewingDeckScene note={visit.deckNote} sign={visit.deckSign} className="mx-0 max-w-[30rem] lg:ml-auto" />
+            <RoomScene
+              kind="deck"
+              sign={visit.deckSign}
+              note={visit.deckNote}
+              hint={visit.sceneHint}
+              info={{
+                floor: visit.deckFloor,
+                title: visit.deckTitle,
+                body: visit.deckBody,
+                photos: [visit.deckPhoto1, visit.deckPhoto2, visit.deckPhoto3].filter(Boolean),
+              }}
+            />
           </Reveal>
         </div>
 
