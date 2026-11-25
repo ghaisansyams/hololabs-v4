@@ -337,9 +337,9 @@ export const sections = [
   {
     key: "eticket",
     page: "other",
-    label: "Email otomatis (transfer, verifikasi, e-tiket)",
+    label: "Email pelanggan (transfer, verifikasi, e-tiket, perubahan)",
     description:
-      "Tiga email yang dikirim otomatis, urut sesuai alur: (1) saat tamu selesai memesan, berisi rekening dan nominal transfer; (2) saat tamu melaporkan transfer; (3) saat admin mengonfirmasi pembayaran, berisi e-tiket dan QR. Kata dalam kurung kurawal diganti otomatis: {nama}, {booking}, {jadwal}, {kursi}, {jumlah}, {batas} (batas waktu transfer, hanya email 1).",
+      "Empat email, urut sesuai alur. Tiga pertama dikirim otomatis: (1) saat tamu selesai memesan, berisi rekening dan nominal transfer; (2) saat tamu melaporkan transfer; (3) saat admin mengonfirmasi pembayaran, berisi e-tiket dan QR. Email 4 (perubahan pesanan) tidak otomatis: admin mengirimnya sendiri lewat tombol di kolom Aksi setelah mengubah jadwal atau kursi. Kata dalam kurung kurawal diganti otomatis: {nama}, {booking}, {jadwal}, {kursi}, {jumlah}, {batas} (batas waktu transfer, hanya email 1).",
     fields: [
       h("mail1", "Email 1: selesaikan transfer"),
       t("instructSubject", "Subjek", 120),
@@ -350,6 +350,9 @@ export const sections = [
       h("mail3", "Email 3: pembayaran berhasil (e-tiket)"),
       t("emailSubject", "Subjek", 120),
       { key: "emailBody", label: "Isi", type: "textarea", max: 900, hint: "Pisahkan paragraf dengan satu baris kosong. QR check-in, tombol e-tiket dan lokasi ditempel otomatis di bawahnya." },
+      h("mail4", "Email 4: perubahan pesanan (dikirim admin)"),
+      t("changeSubject", "Subjek", 120),
+      { key: "changeBody", label: "Isi", type: "textarea", max: 900, hint: "Pisahkan paragraf dengan satu baris kosong. Jadwal, kursi dan total terbaru ditempel otomatis di bawahnya, dengan tombol ke halaman pesanan atau e-tiket." },
     ],
   },
   {
@@ -497,7 +500,7 @@ export const defaults = {
       "Tiket berlaku untuk tanggal dan jam pertunjukan yang dipilih. Datang paling lambat 15 menit sebelum pertunjukan untuk registrasi.",
       "Pertunjukan berlangsung sekitar 90 menit. Keterlambatan tidak memperpanjang durasi pertunjukan.",
       "Anak usia 2 tahun ke atas dihitung sebagai 1 pengunjung dan memerlukan tiket.",
-      "Selesaikan transfer dalam 120 menit dengan nominal persis sesuai tagihan (termasuk kode unik). Lewat dari itu, pesanan batal otomatis dan kursi dilepas.",
+      "Selesaikan transfer dalam 90 menit dengan nominal persis sesuai tagihan (termasuk kode unik). Lewat dari itu, pesanan batal otomatis dan kursi dilepas.",
       "Pesanan berlaku setelah pembayaran diverifikasi tim HOLOLABS. E-tiket dikirim ke email setelah terverifikasi.",
       "Ganti jadwal bisa dilakukan 1 kali, paling lambat 24 jam sebelum pertunjukan, lewat WhatsApp HOLOLABS.",
       "Tiket yang sudah dibayar tidak dapat diuangkan kembali, tetapi bisa dipindah ke jadwal lain sesuai aturan ganti jadwal.",
@@ -519,6 +522,11 @@ export const defaults = {
     ].join("\n\n"),
     emailSubject: "E-tiket HOLOLABS · {booking}",
     emailBody: "Pembayaran diterima. Sampai jumpa di HOLOLABS, {nama}!",
+    changeSubject: "Perubahan pesanan {booking}",
+    changeBody: [
+      "Halo {nama}, pesananmu sudah kami ubah sesuai permintaanmu.",
+      "Jadwal dan kursi terbaru ada di bawah. Kalau ada yang belum sesuai, balas email ini atau hubungi kami lewat WhatsApp.",
+    ].join("\n\n"),
   },
   contact: {
     whatsapp: String(siteConfig.whatsapp),

@@ -90,6 +90,9 @@ export const bookings = pgTable(
     ticketSentWaAt: timestamp("ticket_sent_wa_at", { withTimezone: true, mode: "string" }),
     ticketSentEmailAt: timestamp("ticket_sent_email_at", { withTimezone: true, mode: "string" }),
     paymentNoticeEmailAt: timestamp("payment_notice_email_at", { withTimezone: true, mode: "string" }),
+    /** An admin changed the show or seats and the guest has not been emailed about it yet. */
+    changePending: boolean("change_pending").notNull().default(false),
+    changeEmailAt: timestamp("change_email_at", { withTimezone: true, mode: "string" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("bookings_customer_idx").on(t.customerId), index("bookings_session_idx").on(t.sessionId)],

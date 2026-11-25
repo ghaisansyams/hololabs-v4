@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, ilike, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb, rows, schema } from "@/lib/db/client";
+import { ensureChangeColumns } from "@/lib/services/booking-edit";
 
 /* Read-side queries for the /admin area, on Drizzle: the query builder for
    the joins and lists, raw `sql` for the aggregates. Dates and times are
@@ -27,8 +28,6 @@ export interface AdminBookingRow {
   whatsapp: string;
   email: string;
   paymentMethod: string | null;
-  proofDataUrl: string | null;
-  proofSubmittedAt: string | null;
   senderName: string | null;
   seatLabels: string[];
   note: string;
@@ -37,6 +36,10 @@ export interface AdminBookingRow {
   accessToken: string;
   ticketSentWaAt: string | null;
   ticketSentEmailAt: string | null;
+  sessionId: string;
+  /** The show or seats were edited by an admin and the guest has not been emailed yet. */
+  changePending: boolean;
+  changeEmailAt: string | null;
 }
 
 export interface DashboardStats {
@@ -104,8 +107,6 @@ const bookingColumns = {
   whatsapp: c.whatsapp,
   email: c.email,
   paymentMethod: p.method,
-  proofDataUrl: p.proofDataUrl,
-  proofSubmittedAt: p.proofSubmittedAt,
   senderName: p.senderName,
   seatLabels: b.seatLabels,
   note: b.note,
@@ -113,6 +114,9 @@ const bookingColumns = {
   accessToken: b.accessToken,
   ticketSentWaAt: b.ticketSentWaAt,
   ticketSentEmailAt: b.ticketSentEmailAt,
+  sessionId: b.sessionId,
+  changePending: b.changePending,
+  changeEmailAt: b.changeEmailAt,
 };
 
 function bookingQuery() {
@@ -149,6 +153,7 @@ function filterCondition(filter: BookingFilter): SQL | undefined {
 }
 
 export async function listBookings(filter: BookingFilter, query: string): Promise<AdminBookingRow[]> {
+  await ensureChangeColumns();
   const needle = `%${query.trim()}%`;
   const search =
     needle === "%%" ? undefined : or(ilike(b.bookingNumber, needle), ilike(c.fullName, needle), ilike(c.whatsapp, needle));
@@ -160,6 +165,7 @@ export async function listBookings(filter: BookingFilter, query: string): Promis
 }
 
 export async function findBookingByNumber(bookingNumber: string): Promise<AdminBookingRow | null> {
+  await ensureChangeColumns();
   const [row] = await bookingQuery()
     .where(sql`upper(${b.bookingNumber}) = upper(${bookingNumber.trim()})`)
     .limit(1);
@@ -167,11 +173,13 @@ export async function findBookingByNumber(bookingNumber: string): Promise<AdminB
 }
 
 export async function getBookingById(id: string): Promise<AdminBookingRow | null> {
+  await ensureChangeColumns();
   const [row] = await bookingQuery().where(eq(b.id, id)).limit(1);
   return row ? toBookingRow(row) : null;
 }
 
 export async function allBookingsForExport(): Promise<AdminBookingRow[]> {
+  await ensureChangeColumns();
   const list = await bookingQuery().orderBy(asc(b.createdAt));
   return list.map(toBookingRow);
 }

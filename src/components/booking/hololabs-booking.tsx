@@ -556,9 +556,9 @@ export function HololabsBooking({
               <ol className="flex list-decimal flex-col gap-2 pl-5 text-[15px] leading-relaxed text-[#d3cee2]">
                 <li>Setelah klik tombol di bawah, nomor rekening dan nominal transfer muncul. Kursi ditahan {paymentMinutes} menit.</li>
                 <li>
-                  Nominal sudah dipotong <b>kode unik</b> (Rp1–999) supaya transfermu langsung kami kenali. Transfer persis sesuai angka itu.
+                  Nominal ditambah <b>kode unik</b> Rp10–100 supaya transfermu langsung kami kenali. Transfer persis sesuai angka itu.
                 </li>
-                <li>Tekan &quot;Saya sudah transfer&quot; dan (opsional) unggah bukti. E-tiket dikirim setelah tim kami memverifikasi.</li>
+                <li>Tekan &quot;Saya sudah transfer&quot;. E-tiket dikirim setelah tim kami memverifikasi.</li>
               </ol>
             </div>
           ) : null}
@@ -629,7 +629,7 @@ export function HololabsBooking({
           <span className="text-[#a9a3bc]">Total</span>
           <span className="hl-display text-3xl font-bold">{rupiah(total)}</span>
         </div>
-        {total > 0 ? <p className="mt-2 text-right text-[13px] text-[#a9a3bc]">Nanti dipotong kode unik Rp1–999</p> : null}
+        {total > 0 ? <p className="mt-2 text-right text-[13px] text-[#a9a3bc]">Nanti ditambah kode unik Rp10–100</p> : null}
       </aside>
     </div>
   );

@@ -1,19 +1,23 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { dbErrorMessage, isDatabaseConfigured, rows } from "@/lib/db/client";
+import { MAX_GUESTS } from "@/lib/services/seat-booking-constants";
 
 /**
  * The booking flow of hololabs.id/booking, end to end: a 30-day schedule of
  * shows, an 18-seat map per show, at most six seats per order, contact
- * details, terms, then a bank transfer within 120 minutes whose amount has a
- * unique code (Rp1–999) taken off so the team recognises it.
+ * details, terms, then a bank transfer within 90 minutes whose amount has a
+ * unique code (Rp10–100) added on top so the team recognises it.
  *
  * The shapes returned here are the ones hololabs.id's /api/booking/*
  * endpoints return, so the page and the API routes stay drop-in compatible.
  */
 
-export const MAX_GUESTS = 6;
-export const PAYMENT_MINUTES = 120;
+export { MAX_GUESTS };
+export const PAYMENT_MINUTES = 90;
+/** Range of the unique code added to each order's transfer amount. */
+export const UNIQUE_CODE_MIN = 10;
+export const UNIQUE_CODE_MAX = 100;
 export const SCHEDULE_DAYS = 30;
 const PACKAGE_ID = "journey";
 
@@ -186,9 +190,10 @@ export async function createSeatBooking(input: BookingInput): Promise<CreateResu
       )
     ).map((r) => r.unique_code),
   );
-  const free = Array.from({ length: 999 }, (_, i) => i + 1).filter((c) => !used.has(c));
-  const uniqueCode = free.length ? free[Math.floor(Math.random() * free.length)] : 1 + Math.floor(Math.random() * 999);
-  const amount = Number(session.price) * seats.length - uniqueCode;
+  const span = UNIQUE_CODE_MAX - UNIQUE_CODE_MIN + 1;
+  const free = Array.from({ length: span }, (_, i) => UNIQUE_CODE_MIN + i).filter((c) => !used.has(c));
+  const uniqueCode = free.length ? free[Math.floor(Math.random() * free.length)] : UNIQUE_CODE_MIN + Math.floor(Math.random() * span);
+  const amount = Number(session.price) * seats.length + uniqueCode;
 
   // Passed as a Postgres array literal: the labels are digits only (checked above).
   let booking: { id: string; access_token: string } | undefined;

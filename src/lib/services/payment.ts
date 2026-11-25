@@ -23,17 +23,13 @@ export async function createPayment(args: {
   await rows(sql`select * from create_payment(${args.bookingId}::uuid, ${args.amount}::numeric, ${args.expiresAt}::timestamptz)`);
 }
 
-/** A transfer screenshot is stored as a data: URL — capped well under Postgres's row limits. */
-export const MAX_PROOF_BYTES = 3 * 1024 * 1024;
-
-/** Guest self-service: moves a PENDING booking to SUBMITTED ("menunggu konfirmasi"). */
+/** Guest self-service: moves a PENDING booking to SUBMITTED ("menunggu konfirmasi"). No file upload. */
 export async function submitPaymentProof(
   token: string,
-  proofDataUrl?: string | null,
   senderName?: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    await rows(sql`select submit_payment_proof(${token}::uuid, ${proofDataUrl ?? null}::text, ${senderName ?? null}::text)`);
+    await rows(sql`select submit_payment_proof(${token}::uuid, null::text, ${senderName ?? null}::text)`);
     return { ok: true };
   } catch (cause) {
     const message = dbErrorMessage(cause);

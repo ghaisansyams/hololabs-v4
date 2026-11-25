@@ -12,8 +12,7 @@ import { cn } from "@/lib/utils/cn";
 
 /**
  * Confirm a transfer, then send the e-ticket, in one dialog (the pattern of
- * the Kelas Bermain admin): "Konfirmasi" opens a summary with the proof and
- * the exact amount to look for in the bank account; confirming marks the
+ * the Kelas Bermain admin): "Konfirmasi" opens a summary with the exact amount to look for in the bank account; confirming marks the
  * booking paid and the same dialog moves on to the WhatsApp / Gmail buttons.
  * For bookings that are already paid it opens straight on the send step.
  * The list refreshes when the dialog closes, so a row that leaves the
@@ -142,13 +141,6 @@ export function PaymentFlowDialog({
                     <dd className="text-lg font-extrabold text-ink">{formatRupiah(booking.amount)}</dd>
                   </div>
                 </dl>
-
-                {booking.proofDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image can't optimize it
-                  <img src={booking.proofDataUrl} alt={`Bukti transfer ${booking.bookingNumber}`} className="mt-3 max-h-56 w-full rounded-xl border border-line object-contain" />
-                ) : (
-                  <p className="mt-3 rounded-xl border border-dashed border-line px-3 py-4 text-center text-xs text-muted">Belum ada bukti transfer diunggah.</p>
-                )}
 
                 <p className="mt-3 text-xs leading-relaxed text-muted">
                   Pastikan dana dengan nominal persis di atas sudah masuk ke rekening. Setelah dikonfirmasi, e-ticket dan QR check-in langsung dikirim ke email pelanggan.

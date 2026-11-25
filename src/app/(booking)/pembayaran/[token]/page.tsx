@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { HlCopy } from "@/components/booking/hl-copy";
-import { HlProofUpload } from "@/components/booking/hl-proof-upload";
 import { PaymentCountdown } from "@/components/booking/payment-countdown";
 import { getSiteContent } from "@/lib/cms";
 import { getBookingByToken } from "@/lib/services/booking";
@@ -36,9 +35,9 @@ function fmtDeadline(iso: string): string {
 
 /**
  * Step after "Pesan & lihat rekening", laid out like hololabs.id: the
- * countdown for the 120-minute hold, the account and the exact amount (the
- * unique code taken off, last three digits highlighted), "Sudah transfer?"
- * with the sender's name and an optional proof, step-by-step transfer guides,
+ * countdown for the 90-minute hold, the account and the exact amount (the
+ * unique code added on top, last three digits highlighted), "Sudah transfer?"
+ * with the sender's name, step-by-step transfer guides,
  * and the order detail beside it. Once the team verifies the transfer the
  * page forwards to the e-ticket.
  */
@@ -61,8 +60,6 @@ export default async function PaymentPage({
   const waiting = booking.paymentStatus === "SUBMITTED";
   const pending = !closed && !waiting;
 
-  const gross = booking.amount + booking.uniqueCode;
-  const unitPrice = booking.seats ? gross / booking.seats : gross;
   const seatText = booking.seatLabels.length ? booking.seatLabels.join(", ") : `${booking.seats} kursi`;
   const wa = toWhatsappE164(contact.whatsapp);
   const waText = `Halo HOLOLABS, saya ingin konfirmasi pembayaran pemesanan ${booking.bookingNumber} sebesar ${rupiah(booking.amount)}.`;
@@ -169,8 +166,8 @@ export default async function PaymentPage({
                   </div>
                   {booking.uniqueCode ? (
                     <p className="mt-4 text-[14px] leading-relaxed text-amber-100">
-                      Transfer <strong className="font-semibold">persis {rupiah(booking.amount)}</strong>, termasuk 3 digit terakhir. Angka itu kode unik
-                      (potongan {rupiah(booking.uniqueCode).replace("Rp ", "Rp")}) supaya transfermu bisa langsung kami kenali.
+                      Transfer <strong className="font-semibold">persis {rupiah(booking.amount)}</strong>, termasuk 3 digit terakhir. Angka itu sudah
+                      termasuk kode unik (tambahan {rupiah(booking.uniqueCode).replace("Rp ", "Rp")}) supaya transfermu bisa langsung kami kenali.
                     </p>
                   ) : null}
                   {pending && booking.paymentExpiresAt ? (
@@ -195,12 +192,6 @@ export default async function PaymentPage({
                         placeholder="mis. Budi Santoso"
                         className="min-h-12 w-full rounded-xl border border-white/15 bg-hl-ink/70 px-4 text-[15px] text-hl-fg placeholder:text-[#6f6a82] focus:border-cyan-300/70 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                       />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label htmlFor="proof" className="text-[13px] text-[#c9c4d9]">
-                        Bukti transfer: screenshot atau foto struk (opsional)
-                      </label>
-                      <HlProofUpload />
                     </div>
                     <button
                       type="submit"
@@ -255,8 +246,7 @@ export default async function PaymentPage({
                 ["Tanggal", fmtDate(booking.sessionDate)],
                 ["Jam", `${clock(booking.startTime)} – ${clock(booking.endTime)} WIB`],
                 ["Kursi", seatText],
-                ["Tiket Reguler", `${booking.seats} × ${rupiah(unitPrice)}`],
-                ...(booking.uniqueCode ? ([["Kode unik", `−${rupiah(booking.uniqueCode)}`]] as [string, string][]) : []),
+                [`Tiket Reguler × ${booking.seats}`, rupiah(booking.amount)],
               ] as [string, string][]
             ).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-4">

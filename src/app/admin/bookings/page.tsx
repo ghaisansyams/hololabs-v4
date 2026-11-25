@@ -2,7 +2,9 @@ import Link from "next/link";
 import { AdminHeader, StatusPill, paymentTone } from "@/components/admin/page-header";
 import { Check } from "lucide-react";
 import { BookingDetailModal } from "@/components/admin/booking-detail-modal";
+import { EditBookingDialog } from "@/components/admin/edit-booking-dialog";
 import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
+import { SendChangeButton } from "@/components/admin/send-change-button";
 import { TicketSentChips } from "@/components/admin/ticket-delivery";
 import { cancelBooking, checkInBooking } from "../actions";
 import { emailConfigured } from "@/lib/services/mailer";
@@ -47,11 +49,14 @@ export default async function AdminBookingsPage({
           Sudah check-in
         </span>
       ) : null}
+      {b.changePending && b.status !== "CANCELLED" ? <StatusPill tone="accent">Perubahan belum dikirim</StatusPill> : null}
     </div>
   );
   const ActionsCell = ({ b }: { b: AdminBookingRow }) => (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center justify-end gap-1.5 lg:justify-end">
       {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} emailReady={emailReady} /> : null}
+      {b.status !== "CANCELLED" && b.checkinStatus !== "CHECKED_IN" ? <EditBookingDialog booking={b} /> : null}
+      <SendChangeButton booking={b} emailReady={emailReady} />
       <BookingDetailModal booking={b} emailReady={emailReady} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
     </div>
   );
@@ -147,7 +152,7 @@ export default async function AdminBookingsPage({
                       {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-ink-soft">
+                  <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
                     {seatText(b)}
                     <br />
                     <span className="text-xs text-muted">{b.seatLabels?.length ? `${b.seats} orang` : b.packageName}</span>

@@ -12,7 +12,13 @@ import {
   credentialsMatch,
 } from "@/lib/admin/session";
 import { findBookingByNumber, getBookingById } from "@/lib/services/admin";
-import { sendETicketEmail } from "@/lib/services/mailer";
+import { sendBookingChangeEmail, sendETicketEmail } from "@/lib/services/mailer";
+import {
+  listEditableSessions,
+  takenSeatsExcluding,
+  updateBookingShow,
+  type EditableSession,
+} from "@/lib/services/booking-edit";
 import { requireAdmin } from "@/lib/admin/guard";
 
 
@@ -88,6 +94,45 @@ export async function confirmBookingPaid(bookingId: string): Promise<ConfirmPaid
 export async function resendETicketEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
   const result = await sendETicketEmail(bookingId);
+  revalidatePath("/admin/bookings");
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+/** Shows an admin can move an order to (for the "Ubah pesanan" dialog). */
+export async function loadEditableSessions(bookingId: string): Promise<EditableSession[]> {
+  await requireAdmin();
+  return listEditableSessions(bookingId);
+}
+
+/** Seats other orders already hold in a show, so the dialog can grey them out. */
+export async function loadTakenSeats(bookingId: string, sessionId: string): Promise<string[]> {
+  await requireAdmin();
+  return takenSeatsExcluding(sessionId, bookingId);
+}
+
+/**
+ * Saves a new show and/or seats for an order. The guest is NOT emailed: the
+ * order is flagged and "Kirim email perubahan" in the Aksi column sends it.
+ */
+export async function saveBookingChange(
+  bookingId: string,
+  sessionId: string,
+  seats: string[],
+): Promise<{ ok: true; amount: number; previousAmount: number } | { ok: false; error: string }> {
+  await requireAdmin();
+  const result = await updateBookingShow(bookingId, sessionId, seats);
+  if (result.ok) {
+    revalidatePath("/admin");
+    revalidatePath("/admin/bookings");
+    revalidatePath("/admin/sessions");
+  }
+  return result;
+}
+
+/** The one place the "perubahan pesanan" email is sent from; an admin presses it. */
+export async function sendChangeEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const result = await sendBookingChangeEmail(bookingId);
   revalidatePath("/admin/bookings");
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }

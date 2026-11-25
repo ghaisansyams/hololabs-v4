@@ -10,6 +10,8 @@ import { StatusPill } from "@/components/admin/page-header";
 import { cn } from "@/lib/utils/cn";
 import { TicketDelivery } from "@/components/admin/ticket-delivery";
 import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
+import { EditBookingDialog } from "@/components/admin/edit-booking-dialog";
+import { SendChangeButton } from "@/components/admin/send-change-button";
 
 type ServerAction = (formData: FormData) => void;
 
@@ -108,6 +110,8 @@ export function BookingDetailModal({
                   {booking.status !== "CANCELLED" ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {booking.paymentStatus !== "PAID" ? <PaymentFlowDialog booking={booking} emailReady={emailReady} /> : null}
+                      {booking.checkinStatus !== "CHECKED_IN" ? <EditBookingDialog booking={booking} /> : null}
+                      <SendChangeButton booking={booking} emailReady={emailReady} className="items-start" />
                       {booking.paymentStatus === "PAID" && booking.checkinStatus !== "CHECKED_IN" ? (
                         <form action={checkInBooking}>
                           <input type="hidden" name="bookingId" value={booking.id} />
@@ -168,7 +172,7 @@ export function BookingDetailModal({
                     {booking.uniqueCode ? (
                       <div className="flex justify-between gap-3">
                         <dt className="text-muted">Kode unik</dt>
-                        <dd className="font-semibold text-ink">− {formatRupiah(booking.uniqueCode)}</dd>
+                        <dd className="font-semibold text-ink">+ {formatRupiah(booking.uniqueCode)}</dd>
                       </div>
                     ) : null}
                     {booking.note ? (
@@ -185,7 +189,7 @@ export function BookingDetailModal({
                 </section>
 
                 <section className="rounded-2xl border border-line bg-canvas-deep p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted">Metode & bukti pembayaran</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted">Metode pembayaran</p>
                   <div className="mt-2 flex items-center justify-between text-sm">
                     <span className="text-muted">Metode</span>
                     <span className="rounded-pill bg-surface-raised px-2.5 py-1 text-xs font-bold text-ink-soft">
@@ -198,20 +202,6 @@ export function BookingDetailModal({
                       <span className="font-semibold text-ink">{booking.senderName}</span>
                     </div>
                   ) : null}
-                  <div className="mt-3">
-                    {booking.proofDataUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image can't optimize it
-                      <img
-                        src={booking.proofDataUrl}
-                        alt={`Bukti transfer ${booking.bookingNumber}`}
-                        className="max-h-64 w-full rounded-xl border border-line object-contain"
-                      />
-                    ) : (
-                      <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-xs text-muted">
-                        Belum ada bukti pembayaran diunggah.
-                      </p>
-                    )}
-                  </div>
                 </section>
               </div>
 

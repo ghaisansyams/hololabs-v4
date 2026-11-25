@@ -19,7 +19,8 @@ import { qrPng } from "@/lib/utils/qr";
  * SMTP server (smtp.gmail.com) with an App Password (`GMAIL_APP_PASSWORD`,
  * a 16-character code from the Google account's 2-Step Verification page; the
  * normal password does not work). Three messages go out without anyone
- * pressing send:
+ * pressing send (a fourth, the order-change notice, only when an admin presses
+ * its button):
  *   1. "Selesaikan transfermu": account and exact amount, right after the order;
  *   2. "Sedang diverifikasi": when the guest reports the transfer;
  *   3. "E-ticket sudah siap": QR + link, once an admin confirms the payment.
@@ -267,5 +268,31 @@ ${address ? `<p style="margin:18px 0 0;color:${TEXT};font-size:14px;line-height:
     true,
   );
   if (result.ok) await rows(sql`update bookings set ticket_sent_email_at = now() where id = ${bookingId}::uuid`);
+  return result;
+}
+
+/**
+ * 4. "Perubahan pesanan": never automatic. An admin edits the show or seats of
+ * an order, then presses "Kirim email perubahan" in the Aksi column; the
+ * flag set by the edit is cleared once the email went out.
+ */
+export async function sendBookingChangeEmail(bookingId: string): Promise<MailResult> {
+  const b = await getBookingById(bookingId);
+  if (!b) return { ok: false, error: "Booking tidak ditemukan." };
+  if (b.status === "CANCELLED") return { ok: false, error: "Booking ini sudah dibatalkan." };
+  const [{ eticket, contact }, origin] = await Promise.all([getSiteContent(), siteOrigin()]);
+  const paid = b.paymentStatus === "PAID";
+  const link = `${origin}/${paid ? "e-tiket" : "pembayaran"}/${b.accessToken}`;
+  const values = valuesFor(b, { link });
+  const subject = fillTemplate(eticket.changeSubject, values);
+  const paragraphs = fillTemplate(eticket.changeBody, values).split(/\n{2,}/);
+  const result = await deliver(
+    b,
+    subject,
+    layout({ title: "Pesananmu sudah diubah", paragraphs, b, blocks: button(link, paid ? "Buka e-tiket" : "Lihat pesanan"), address: oneAddress(contact.address) }),
+    plain(paragraphs, b, [link]),
+    false,
+  );
+  if (result.ok) await rows(sql`update bookings set change_pending = false, change_email_at = now() where id = ${bookingId}::uuid`);
   return result;
 }

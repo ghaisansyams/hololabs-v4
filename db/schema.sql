@@ -745,3 +745,12 @@ alter table bookings add column if not exists ticket_sent_email_at timestamptz;
 -- guest reports the transfer and "pembayaran berhasil" (e-ticket + QR) when an
 -- admin confirms it. WhatsApp delivery was removed; ticket_sent_wa_at is unused.
 alter table bookings add column if not exists payment_notice_email_at timestamptz;
+
+-- Admin edits of a booking (Nov 2026): the show and seats of an order can be
+-- changed from /admin/bookings (for example a refund of one seat). The guest
+-- is not emailed automatically: the row is flagged and an admin sends the
+-- "perubahan pesanan" email from the Aksi column. The app also adds these
+-- columns itself on first use (lib/services/booking-edit.ts), so a database
+-- that has not run this file keeps working.
+alter table bookings add column if not exists change_pending boolean not null default false;
+alter table bookings add column if not exists change_email_at timestamptz;
