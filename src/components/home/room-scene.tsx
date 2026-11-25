@@ -3,12 +3,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
-import { CommandCenterScene } from "@/components/home/command-center-scene";
-import { ViewingDeckScene } from "@/components/home/viewing-deck-scene";
 import { cn } from "@/lib/utils/cn";
 
 export interface RoomInfo {
-  /** Small label above the title, e.g. "Lantai dasar". */
+  /** Small label above the title, e.g. "Lantai 1". */
   floor: string;
   title: string;
   body: string;
@@ -16,20 +14,17 @@ export interface RoomInfo {
 }
 
 /**
- * One of the two 3D rooms of the Reservasi section, made clickable: a click
- * (or Enter) anywhere on the card opens a pop up that says which room it is,
- * with its photos and a short description. Texts and photos come from the CMS.
+ * One of the two rooms of the Reservasi section (Ruang Kendali, Kursi
+ * Penonton), shown as a photo card with its name. A click (or Enter) anywhere
+ * on the card opens a pop up with the room's photos and a short description.
+ * Texts and photos come from the CMS; the card shows the first photo.
  */
 export function RoomScene({
-  kind,
-  sign,
   note,
   hint,
   info,
   className,
 }: {
-  kind: "command" | "deck";
-  sign: string;
   note: string;
   /** Chip on the card inviting a click. */
   hint: string;
@@ -38,16 +33,16 @@ export function RoomScene({
 }) {
   const [open, setOpen] = useState(false);
   const opener = useRef<HTMLDivElement>(null);
-  const Scene = kind === "command" ? CommandCenterScene : ViewingDeckScene;
+  const cover = info.photos[0];
 
   return (
-    <>
+    <figure className={cn("w-full", className)}>
       <div
         ref={opener}
         role="button"
         tabIndex={0}
         aria-haspopup="dialog"
-        aria-label={`${hint}: ${info.title}`}
+        aria-label={`${hint || "Lihat ruangan"}: ${info.title}`}
         onClick={() => setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -55,16 +50,31 @@ export function RoomScene({
             setOpen(true);
           }
         }}
-        className={cn("group relative cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-cyan focus-visible:ring-offset-4 focus-visible:ring-offset-canvas", className)}
+        className="group relative aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#0a0716] shadow-lift outline-none focus-visible:ring-2 focus-visible:ring-cyan focus-visible:ring-offset-4 focus-visible:ring-offset-canvas"
       >
-        <Scene sign={sign} note={note} className="mx-0 transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none" />
+        {cover ? (
+          <Image
+            src={cover}
+            alt={info.title}
+            fill
+            unoptimized={cover.startsWith("/media/")}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.04] motion-reduce:transition-none"
+          />
+        ) : null}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
         {hint ? (
           <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:border-cyan/60 group-hover:text-cyan">
             <Maximize2 className="size-3.5" aria-hidden />
             {hint}
           </span>
         ) : null}
+        <div className="pointer-events-none absolute inset-x-5 bottom-4 sm:inset-x-6 sm:bottom-5">
+          {info.floor ? <p className="font-label text-[0.6875rem] uppercase tracking-[0.24em] text-cyan">{info.floor}</p> : null}
+          <p className="mt-1 text-xl font-semibold text-white sm:text-2xl">{info.title}</p>
+        </div>
       </div>
+      {note ? <figcaption className="mt-4 text-center text-xs font-medium text-muted">{note}</figcaption> : null}
       {open ? (
         <RoomDialog
           info={info}
@@ -74,7 +84,7 @@ export function RoomScene({
           }}
         />
       ) : null}
-    </>
+    </figure>
   );
 }
 

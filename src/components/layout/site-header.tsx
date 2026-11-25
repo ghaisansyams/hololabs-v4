@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils/cn";
 
 /**
  * Logo on the left. On wide screens the page anchors and the Reservasi button
- * sit on the right. On phones and tablets the Reservasi button sits in the
- * middle and a hamburger on the right opens the same anchors in a panel under
- * the bar. The bar stays in place while scrolling, on translucent black.
+ * sit on the right. On phones and tablets a compact outlined Reservasi button
+ * sits on the right next to a hamburger that opens the same anchors in a panel
+ * under the bar. The bar stays in place while scrolling, on translucent black.
  */
 export function SiteHeader() {
   const pathname = usePathname();
@@ -60,7 +60,7 @@ export function SiteHeader() {
         Lompat ke konten
       </a>
 
-      <Container className="grid h-20 max-w-none grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:h-24 lg:justify-between lg:gap-4 lg:px-16 [@media(max-height:520px)]:h-16">
+      <Container className="grid h-20 max-w-none grid-cols-[1fr_auto_auto] items-center gap-3 lg:flex lg:h-24 lg:justify-between lg:gap-4 lg:px-16 [@media(max-height:520px)]:h-16">
         <Link href="/" aria-label="Hololabs — beranda" className="shrink-0 justify-self-start">
           <Logo className="h-12 sm:h-16 lg:h-[4.5rem] [@media(max-height:520px)]:h-11" />
         </Link>
@@ -84,7 +84,13 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <Link href="/booking" className={buttonStyles({ size: "sm", className: "justify-self-center lg:ml-8" })}>
+        {/* phones and tablets: a compact outlined button next to the menu button, in the style of "Lihat Perjalanan" */}
+        <Link href="/booking" className={buttonStyles({ variant: "secondary", className: "min-h-10 px-4 text-sm lg:hidden" })}>
+          <Ticket className="size-4" aria-hidden />
+          {reservationLabel}
+        </Link>
+        {/* wide screens: the gradient button after the menu */}
+        <Link href="/booking" className={buttonStyles({ size: "sm", className: "hidden lg:ml-8 lg:inline-flex" })}>
           <Ticket className="size-4" aria-hidden />
           {reservationLabel}
         </Link>

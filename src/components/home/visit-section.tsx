@@ -8,9 +8,9 @@ import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 /**
- * Reservation block: the pitch with the scroll-driven 3D command room under
- * it on the left, the 3D audience seating of the second floor on the right
- * (same card, same build-up on scroll, bottoms aligned), then the two ways to
+ * Reservation block: the pitch with a photo of the command room under it on
+ * the left, a photo of the mezzanine audience seating on the right (same
+ * card, bottoms aligned; a click opens the room's pop up), then the two ways to
  * come: booking online for up to six people, or a private show for schools,
  * companies and brands.
  */
@@ -34,10 +34,8 @@ export async function VisitSection() {
             <Reveal delay={140}>
               <p className="mt-6 max-w-lg text-lg leading-9 text-ink-soft">{visit.body}</p>
             </Reveal>
-            <Reveal variant="zoom" delay={120} className="mt-10">
+            <Reveal delay={120} className="mt-10">
               <RoomScene
-                kind="command"
-                sign={visit.sceneSign}
                 note={visit.ticketNote}
                 hint={visit.sceneHint}
                 info={{
@@ -50,10 +48,8 @@ export async function VisitSection() {
             </Reveal>
           </div>
 
-          <Reveal variant="zoom" delay={180}>
+          <Reveal delay={180}>
             <RoomScene
-              kind="deck"
-              sign={visit.deckSign}
               note={visit.deckNote}
               hint={visit.sceneHint}
               info={{

@@ -37,7 +37,7 @@ export const internalRooms = [
   { x: 24, y: 444, w: 242, h: 146 },
 ];
 
-export const floorLabels: Record<Floor, string> = { ground: "Lantai dasar", mezzanine: "Lantai 2" };
+export const floorLabels: Record<Floor, string> = { ground: "Lantai 1", mezzanine: "Mezzanine" };
 
 export const showroomZones: ShowroomZone[] = [
   {
@@ -83,7 +83,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/33.jpg", "/showroom/27.jpg", "/showroom/29.jpg", "/showroom/28.jpg"],
     name: "Area Santai",
     description:
-      "Area duduk dengan meja panjang dari kayu yang terbuka ke aula utama. Letaknya di bawah Kursi Penonton dan dekat tangga ke lantai 2, cocok untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
+      "Area duduk dengan meja panjang dari kayu yang terbuka ke aula utama. Letaknya di bawah Kursi Penonton dan dekat tangga ke mezzanine, cocok untuk berdiskusi atau bekerja dengan laptop sebelum dan sesudah sesi.",
   },
   {
     id: "meeting",
@@ -95,7 +95,7 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/30.jpg", "/showroom/31.jpg", "/showroom/32.jpg"],
     name: "Area Rapat",
     description:
-      "Area pertemuan di lantai dasar dengan meja panjang dan kursi kerja, bersebelahan dengan Area Santai. Beberapa sudutnya dilengkapi dinding video untuk presentasi tim.",
+      "Area pertemuan di lantai 1 dengan meja panjang dan kursi kerja, bersebelahan dengan Area Santai. Beberapa sudutnya dilengkapi dinding video untuk presentasi tim.",
   },
   {
     id: "command",
@@ -117,14 +117,14 @@ export const showroomZones: ShowroomZone[] = [
     photos: ["/showroom/35.jpg", "/showroom/34.jpg", "/showroom/36.jpg"],
     name: "Kursi Penonton",
     description:
-      "Satu-satunya ruang di lantai 2: deretan kursi bar yang menghadap langsung ke layar utama aula. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton. Akses melalui tangga di dekat Area Santai.",
+      "Satu-satunya ruang di mezzanine: deretan kursi bar yang menghadap langsung ke layar utama aula. Dari ketinggian ini pertunjukan terlihat utuh, dan meja panjangnya cukup untuk bekerja dengan laptop sambil menonton. Akses melalui tangga di dekat Area Santai.",
   },
 ];
 
 export const showroomDefaults = {
   eyebrow: "Denah ruang pamer",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Denah mencakup area parkir di depan gedung dan enam zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Kursi Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
+  body: "Denah mencakup area parkir di depan gedung dan enam zona di lantai 1 dan mezzanine. Lantai 1 memuat aula utama, Ruang Kendali, dan area rapat, sedangkan mezzanine hanya berisi Kursi Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
   noPhoto: "Foto ruang ini akan segera ditambahkan.",
   floorGround: floorLabels.ground,
   floorUpper: floorLabels.mezzanine,
