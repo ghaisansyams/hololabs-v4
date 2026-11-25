@@ -168,6 +168,7 @@ export const sections = [
           ta("description", "Penjelasan", 360),
           t("minutes", "Durasi (mis. ±15 menit)", 20),
           { key: "flow", label: "Alur yang dialami pengunjung", type: "tags", hint: "Satu langkah per baris, 3 sampai 5 langkah. Kosongkan untuk babak pertama dan terakhir." },
+          url("video", "Video babak (opsional)", "Link file video .mp4, mis. /experience/dj-beat.mp4 atau https://…. Video diputar tanpa suara dan berulang, dengan gambar babak sebagai sampul. Kosongkan untuk memakai video bawaan (babak 3 dan 6) atau tanpa video. Tidak dipakai pada babak pertama, babak 4, dan terakhir."),
           img("image", "Gambar babak", "Dipakai pada babak 2, 3, 5, dan 6. Babak pertama, babak 4 (Bertemu AI), dan terakhir memakai ilustrasi bawaan, jadi kolom ini diabaikan di sana. Mengganti gambar babak 3 atau 6 juga mengganti videonya dengan foto. Kosongkan untuk memakai gambar bawaan."),
         ],
       },
@@ -278,6 +279,7 @@ export const sections = [
     label: "Peta lokasi (footer)",
     description: "Gambar peta di footer. Saat diklik membuka Google Maps.",
     fields: [
+      img("mapImage", "Gambar peta", "Pin ungu diletakkan di tengah gambar, jadi lokasi HOLOLABS harus tepat di tengah. Disarankan mendatar, minimal 1280 px lebar."),
       url("mapLink", "Link Google Maps", "Tempel link dari Google Maps (https://…)."),
       t("cardCta", "Teks tombol di atas peta", 40),
     ],
@@ -390,7 +392,7 @@ export const defaults = {
     endTag: "Selesai",
     actWord: "Babak",
     flowHeading: "Yang kamu alami",
-    steps: experienceSteps.map(({ mood, title, description, minutes, flow, image }) => ({ mood, title, description, minutes, flow, image })),
+    steps: experienceSteps.map(({ mood, title, description, minutes, flow, image }) => ({ mood, title, description, minutes, flow, video: "", image })),
   },
   visit: {
     eyebrow: "Reservasi",
@@ -432,6 +434,7 @@ export const defaults = {
     stats: visitStats.map(({ value, label }) => ({ value, label })),
   },
   location: {
+    mapImage: "/map/hololabs-map.jpg",
     mapLink: "https://maps.google.com/?q=Jl.+Duren+Sawit+Indah+Blok+K1+No+10+Klender+Jakarta+Timur",
     cardCta: "Buka di Google Maps",
   },

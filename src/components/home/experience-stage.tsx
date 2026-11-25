@@ -15,6 +15,8 @@ export interface StageStep {
   flow?: string[];
   /** CMS photo of the chapter; "" or missing = the built-in one. */
   image?: string;
+  /** CMS video of the chapter (an .mp4 link); "" or missing = the built-in one, if any. */
+  video?: string;
 }
 
 /** One icon per chapter, in order: ticket, projector, DJ deck, doctor, home, printer, gift. */
@@ -231,8 +233,8 @@ export function ExperienceStage({ steps, text }: { steps: StageStep[]; text: Sta
                       <CanvasArt kind={v.art} />
                     ) : "scene" in v ? (
                       <ShoeScene fallback={v.src} />
-                    ) : v.video && (!st.image || st.image === v.src) ? (
-                      <video src={v.video} poster={photo} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: v.position }} />
+                    ) : st.video || (v.video && (!st.image || st.image === v.src)) ? (
+                      <video src={st.video || v.video} poster={photo} autoPlay muted loop playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" style={{ objectPosition: v.position }} />
                     ) : (
                       <Image
                         src={photo}

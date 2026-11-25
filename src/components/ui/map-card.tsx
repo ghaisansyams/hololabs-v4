@@ -12,6 +12,7 @@ export function MapCard({
   href,
   address,
   name = "HOLOLABS",
+  image = "/map/hololabs-map.jpg",
   cta,
   className,
   sizes = "(min-width: 1024px) 50vw, 100vw",
@@ -21,6 +22,8 @@ export function MapCard({
   address: string;
   /** Site name shown above the address. */
   name?: string;
+  /** The map picture (CMS upload or the built-in one); the pin sits at its centre. */
+  image?: string;
   cta: string;
   className?: string;
   sizes?: string;
@@ -39,7 +42,8 @@ export function MapCard({
       )}
     >
       <Image
-        src="/map/hololabs-map.jpg"
+        src={image}
+        unoptimized={image.startsWith("/media/")}
         alt=""
         fill
         sizes={sizes}

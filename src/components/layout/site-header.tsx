@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils/cn";
 
 /**
  * Logo on the left. On wide screens the page anchors and the Reservasi button
- * sit on the right. On phones and tablets a compact outlined Reservasi button
- * sits on the right next to a hamburger that opens the same anchors in a panel
+ * sit on the right; the Reservasi button is outlined, like the hero's "Lihat
+ * Perjalanan". On phones and tablets it is compact and sits next to a hamburger that opens the same anchors in a panel
  * under the bar. The bar stays in place while scrolling, on translucent black.
  */
 export function SiteHeader() {
@@ -84,13 +84,8 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        {/* phones and tablets: a compact outlined button next to the menu button, in the style of "Lihat Perjalanan" */}
-        <Link href="/booking" className={buttonStyles({ variant: "secondary", className: "min-h-10 px-4 text-sm lg:hidden" })}>
-          <Ticket className="size-4" aria-hidden />
-          {reservationLabel}
-        </Link>
-        {/* wide screens: the gradient button after the menu */}
-        <Link href="/booking" className={buttonStyles({ size: "sm", className: "hidden lg:ml-8 lg:inline-flex" })}>
+        {/* outlined, in the style of the hero's "Lihat Perjalanan" button; compact on phones, next to the menu button */}
+        <Link href="/booking" className={buttonStyles({ variant: "secondary", className: "min-h-10 px-4 text-sm lg:ml-8 lg:min-h-11 lg:px-5 lg:text-[0.9375rem]" })}>
           <Ticket className="size-4" aria-hidden />
           {reservationLabel}
         </Link>

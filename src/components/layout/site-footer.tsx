@@ -86,6 +86,7 @@ export async function SiteFooter() {
               cta={location.cardCta}
               sizes="(min-width: 1024px) 34vw, (min-width: 768px) 100vw, 100vw"
               name={brand.siteName}
+              image={location.mapImage}
               compact
               className="aspect-[16/10] md:col-span-2 lg:col-span-1 lg:aspect-auto lg:min-h-48"
             />
