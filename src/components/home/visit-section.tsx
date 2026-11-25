@@ -3,28 +3,28 @@ import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { CommandCenterScene } from "@/components/home/command-center-scene";
-import { MapCard } from "@/components/ui/map-card";
+import { ViewingDeckScene } from "@/components/home/viewing-deck-scene";
 import { buttonStyles } from "@/components/ui/button";
 import { getSiteContent } from "@/lib/cms";
 import { toWhatsappE164 } from "@/lib/utils/phone";
 
 /**
  * Reservation block: the pitch with the scroll-driven 3D command room under
- * it on the left, a map picture of the location on the right (opens Google
- * Maps), then the two ways to come: booking online for up to six people, or
- * a private show for schools, companies and brands.
+ * it on the left, the 3D audience seating of the second floor on the right
+ * (same card, same build-up on scroll, bottoms aligned), then the two ways to
+ * come: booking online for up to six people, or a private show for schools,
+ * companies and brands.
  */
 export async function VisitSection() {
-  const { visit, contact, location, brand } = await getSiteContent();
+  const { visit, contact } = await getSiteContent();
   const whatsapp = toWhatsappE164(contact.whatsapp);
   const groupHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent(visit.groupMessage)}`;
-  const address = contact.address.split("\n").map((l) => l.trim()).filter(Boolean).join(", ");
 
   return (
     <section id="reservasi" className="bg-hall-flip relative isolate overflow-hidden py-20 sm:py-28">
       <div aria-hidden className="hall-seam" />
       <Container>
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-end lg:gap-14">
           <div>
             <Reveal>
               <p className="font-label text-[0.8125rem] uppercase tracking-[0.3em] text-cyan sm:text-sm">{visit.eyebrow}</p>
@@ -40,8 +40,8 @@ export async function VisitSection() {
             </Reveal>
           </div>
 
-          <Reveal delay={160} className="flex">
-            <MapCard href={location.mapLink} address={address} name={brand.siteName} cta={location.cardCta} className="aspect-[4/5] w-full sm:aspect-[4/3] lg:aspect-auto lg:min-h-[32rem]" />
+          <Reveal variant="zoom" delay={180}>
+            <ViewingDeckScene note={visit.deckNote} sign={visit.deckSign} className="mx-0 max-w-[30rem] lg:ml-auto" />
           </Reveal>
         </div>
 
