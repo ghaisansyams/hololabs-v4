@@ -126,9 +126,9 @@ export const sections = [
         type: "list",
         itemLabel: "Zona",
         itemTitle: "name",
-        hint: "Urutan tetap sesuai nomor di denah: 1 Area parkir, 2 Aula Utama, 3 Panggung DJ, 4 Area Santai, 5 Area Rapat, 6 Ruang Kendali, 7 Pantri & loker, 8 Toilet & wudhu, 9 Kursi Penonton (lantai 2).",
-        min: 9,
-        max: 9,
+        hint: "Urutan tetap sesuai nomor di denah: 1 Area parkir, 2 Aula Utama, 3 Panggung DJ, 4 Area Santai, 5 Area Rapat, 6 Ruang Kendali, 7 Kursi Penonton (lantai 2).",
+        min: 7,
+        max: 7,
         fields: [
           t("name", "Nama zona (judul di bawah foto)", 40),
           t("tag", "Nama singkat yang muncul di denah saat zona disorot atau dipilih", 24),

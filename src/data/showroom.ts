@@ -1,5 +1,5 @@
 /**
- * Denah showroom HOLOLABS: the parking lot in front plus eight zones on two floors. The plan is the
+ * Denah showroom HOLOLABS: the parking lot in front plus six zones on two floors (the pantry and toilets are in the picture but not selectable). The plan is the
  * realistic top-view render in /public/showroom/denah-lantai-dasar.jpg (1784 x 621: the plan part of
  * "Realistic Showroom Floor Plan and Parking Layout.png", cropped without the dimension lines); each zone is a clickable area laid over
  * the room it covers in that picture. The internal rooms on the left (Technical Room, MAC, Green
@@ -44,9 +44,9 @@ export const showroomZones: ShowroomZone[] = [
     id: "parking",
     floor: "ground",
     shape: { kind: "rect", x: 1030, y: 4, w: 750, h: 612 },
-    badge: [1340, 216],
+    badge: [1560, 316],
     tag: "Area Parkir",
-    photos: ["/showroom/13.jpg"],
+    photos: ["/showroom/parkir-1.jpg", "/showroom/parkir-12.jpg", "/showroom/13.jpg"],
     name: "Area parkir",
     description:
       "Area parkir mobil dan motor di depan gedung. Dari sini pengunjung masuk ke aula utama melalui pintu utama berwarna oranye.",
@@ -92,7 +92,7 @@ export const showroomZones: ShowroomZone[] = [
     badge: [432, 66],
     tag: "Area Rapat",
     size: "sm",
-    photos: ["/showroom/38.jpg", "/showroom/39.jpg", "/showroom/37.jpg", "/showroom/31.jpg"],
+    photos: ["/showroom/30.jpg", "/showroom/31.jpg", "/showroom/32.jpg"],
     name: "Area Rapat",
     description:
       "Area pertemuan di lantai dasar dengan meja panjang dan kursi kerja, bersebelahan dengan Area Santai. Beberapa sudutnya dilengkapi dinding video untuk presentasi tim.",
@@ -107,28 +107,6 @@ export const showroomZones: ShowroomZone[] = [
     name: "Ruang Kendali",
     description:
       "Ruang kendali yang bersebelahan dengan aula utama. Dinding LED-nya tersusun dari 8 TV dalam dua baris, ditambah meja kerja panjang. Ruang ini dipakai untuk memantau dan mengelola konten visual.",
-  },
-  {
-    id: "pantry",
-    floor: "ground",
-    shape: { kind: "rect", x: 780, y: 136, w: 142, h: 112 },
-    badge: [802, 204],
-    tag: "Pantri",
-    size: "sm",
-    photos: [],
-    name: "Pantri & loker",
-    description: "Pantri, loker, dan ruang penyimpanan di sisi kanan bangunan, dekat toilet dan meja registrasi.",
-  },
-  {
-    id: "toilet",
-    floor: "ground",
-    shape: { kind: "rect", x: 780, y: 36, w: 194, h: 94 },
-    badge: [842, 106],
-    tag: "Toilet & Wudhu",
-    size: "sm",
-    photos: [],
-    name: "Toilet & tempat wudhu",
-    description: "Toilet dan tempat wudhu di sisi kanan bangunan, tidak jauh dari Area Santai.",
   },
   {
     id: "viewing",
@@ -146,7 +124,7 @@ export const showroomZones: ShowroomZone[] = [
 export const showroomDefaults = {
   eyebrow: "Denah ruang pamer",
   title: "Menelusuri ruang HOLOLABS",
-  body: "Denah mencakup area parkir di depan gedung dan delapan zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Kursi Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
+  body: "Denah mencakup area parkir di depan gedung dan enam zona di dua lantai. Lantai dasar memuat aula utama, Ruang Kendali, dan area rapat, sedangkan lantai 2 hanya berisi Kursi Penonton. Pilih sebuah zona pada denah untuk melihat fotonya.",
   noPhoto: "Foto ruang ini akan segera ditambahkan.",
   floorGround: floorLabels.ground,
   floorUpper: floorLabels.mezzanine,
