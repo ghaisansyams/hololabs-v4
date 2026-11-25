@@ -44,7 +44,7 @@ export const showroomZones: ShowroomZone[] = [
     id: "parking",
     floor: "ground",
     shape: { kind: "rect", x: 1030, y: 4, w: 750, h: 612 },
-    badge: [1560, 316],
+    badge: [1615, 316],
     tag: "Area Parkir",
     photos: ["/showroom/parkir-1.jpg", "/showroom/parkir-12.jpg", "/showroom/13.jpg"],
     name: "Area parkir",
