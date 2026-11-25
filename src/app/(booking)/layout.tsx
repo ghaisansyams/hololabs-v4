@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import localFont from "next/font/local";
+import { WhatsappFloat } from "@/components/layout/whatsapp-float";
 
 // The booking flow wears hololabs.id/booking's own type: Space Grotesk for
 // headings, Inter for text, Michroma for the wide eyebrow labels.
@@ -45,6 +46,7 @@ export default function BookingLayout({ children }: { children: React.ReactNode 
       <main id="konten" className="relative mx-auto flex max-w-6xl flex-col gap-6 px-5 pb-20 pt-4 sm:px-6">
         {children}
       </main>
+      <WhatsappFloat />
     </div>
   );
 }

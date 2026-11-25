@@ -898,3 +898,42 @@
     }
   }
 }
+
+/* Floating WhatsApp button: the label and number slide out on hover/focus (pointer devices only); a soft ping draws the eye three times after load. */
+.wa-float-text {
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1), margin 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s;
+}
+@media (hover: hover) {
+  .wa-float:hover .wa-float-text {
+    max-width: 12rem;
+    margin-left: 0.625rem;
+    margin-right: 0.25rem;
+    opacity: 1;
+  }
+}
+.wa-float:focus-visible .wa-float-text {
+  max-width: 12rem;
+  margin-left: 0.625rem;
+  margin-right: 0.25rem;
+  opacity: 1;
+}
+.wa-float::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: #25d366;
+  opacity: 0;
+  animation: wa-ping 3.2s ease-out 1.2s 3;
+}
+@keyframes wa-ping {
+  0% { transform: scale(1); opacity: 0.45; }
+  70%, 100% { transform: scale(1.55); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-float::before { display: none; }
+  .wa-float, .wa-float-text { transition: none; }
+}

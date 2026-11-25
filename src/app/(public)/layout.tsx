@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 // The footer reads contact info from the CMS on every public page.
 export const dynamic = "force-dynamic";
 import { SiteHeader } from "@/components/layout/site-header";
+import { WhatsappFloat } from "@/components/layout/whatsapp-float";
 
 /** Chrome for the customer-facing site. The ERP has its own shell. */
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
       <SiteFooter />
+      <WhatsappFloat />
     </>
   );
 }

@@ -257,13 +257,17 @@ export const sections = [
     key: "contact",
     page: "home",
     label: "Footer & kontak",
-    description: "Kolom paling bawah: nama dan deskripsi singkat, tombol Instagram dan WhatsApp, lalu kolom Kontak berisi alamat dan nomor.",
+    description: "Kolom paling bawah: nama dan deskripsi singkat, tombol Instagram dan WhatsApp, kolom Kontak berisi alamat dan nomor, serta tombol WhatsApp bulat di pojok kanan bawah.",
     fields: [
       t("footerTagline", "Deskripsi singkat di bawah nama", 80),
       t("instagram", "Instagram (tanpa @)", 60),
       t("contactHeading", "Judul kolom kontak", 30),
       ta("address", "Alamat (satu baris per alamat)", 200, "Juga dipakai di peta lokasi dan email."),
       t("whatsapp", "Nomor WhatsApp (format 08…)", 20, "Juga dipakai untuk tombol WhatsApp di FAQ, kolom grup, dan konfirmasi pembayaran."),
+      h("floatPart", "Tombol WhatsApp bulat (pojok kanan bawah)", "Selalu terlihat saat di-scroll, di beranda, halaman booking, pembayaran, dan e-tiket."),
+      t("floatWhatsapp", "Nomor WhatsApp tombol", 20, "Format 08… (spasi boleh). Tampil apa adanya saat tombol disorot. Kosongkan untuk menyembunyikan tombol."),
+      t("floatLabel", "Tulisan kecil di atas nomor saat disorot", 40),
+      ta("floatMessage", "Pesan awal otomatis di WhatsApp (opsional)", 300),
     ],
   },
   {
@@ -490,6 +494,9 @@ export const defaults = {
     address: "Jl. Duren Sawit Indah, Blok K1 No 10, RT.5/RW.3, Klender\nKec. Duren Sawit, Kota Jakarta Timur, DKI Jakarta 13440",
     footerTagline: "Laboratorium teknologi kreatif dari Holomoc",
     contactHeading: "Kontak",
+    floatWhatsapp: "0816 7123 39",
+    floatLabel: "Chat WhatsApp",
+    floatMessage: "",
   },
 };
 
