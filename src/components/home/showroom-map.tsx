@@ -160,10 +160,6 @@ export function ShowroomMap({ zones, text }: { zones: ZoneText[]; text: MapText 
           <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
             <svg viewBox={`0 0 ${PW} ${PH}`} role="group" aria-label={`Denah ${floorName[floor]}`} className="h-auto w-full min-w-[760px] overflow-hidden rounded-xl sm:min-w-0">
               <defs>
-                <linearGradient id="zone-active" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.42" />
-                  <stop offset="100%" stopColor="#d946ef" stopOpacity="0.36" />
-                </linearGradient>
                 <filter id="plan-blur">
                   <feGaussianBlur stdDeviation="3" />
                 </filter>
@@ -246,12 +242,13 @@ function Zone({
   const shape = {
     className: cn(
       "zone-shape transition-[fill,stroke,stroke-opacity] duration-200",
-      active ? "" : "group-hover:fill-[#8b5cf6]/20 group-hover:stroke-[#c4b5fd] group-hover:[stroke-opacity:1] group-focus-visible:stroke-white group-focus-visible:[stroke-opacity:1]",
+      // the selected zone looks the same as a hovered one: a white outline and a light white wash, no colour
+      active ? "" : "group-hover:fill-white/10 group-hover:[stroke-opacity:1] group-hover:[stroke-dasharray:none] group-focus-visible:fill-white/10 group-focus-visible:[stroke-opacity:1]",
     ),
-    fill: active ? "url(#zone-active)" : "transparent",
-    stroke: active ? "#c4b5fd" : "#ffffff",
+    fill: active ? "rgb(255 255 255 / 0.1)" : "transparent",
+    stroke: "#ffffff",
     strokeOpacity: active ? 1 : 0.35,
-    strokeWidth: active ? 4 : 2.5,
+    strokeWidth: active ? 3 : 2.5,
     strokeDasharray: active ? undefined : "10 8",
   };
   return (
@@ -275,9 +272,9 @@ function Zone({
         <circle {...shape} cx={s.cx} cy={s.cy} r={s.r} />
       )}
       {/* number badge */}
-      <circle cx={bx} cy={by} r={r + 5} fill={active ? "#a78bfa" : "#000000"} fillOpacity={active ? 0.45 : 0.25} />
-      <circle cx={bx} cy={by} r={r} fill={active ? "#ffffff" : "#1b1240"} stroke="#ffffff" strokeOpacity={active ? 0 : 0.7} strokeWidth={2} className={active ? undefined : "transition-[fill] duration-200 group-hover:fill-[#6d28d9]"} />
-      <text x={bx} y={by + (sm ? 7.5 : 9)} textAnchor="middle" fontSize={sm ? 21 : 26} fontWeight="700" fill={active ? "#1b1240" : "#ffffff"} style={{ pointerEvents: "none" }}>
+      <circle cx={bx} cy={by} r={r + 5} fill="#000000" fillOpacity={0.3} />
+      <circle cx={bx} cy={by} r={r} fill={active ? "#ffffff" : "#16161c"} stroke="#ffffff" strokeOpacity={active ? 0 : 0.7} strokeWidth={2} className={active ? undefined : "transition-[fill] duration-200 group-hover:fill-[#2a2a33]"} />
+      <text x={bx} y={by + (sm ? 7.5 : 9)} textAnchor="middle" fontSize={sm ? 21 : 26} fontWeight="700" fill={active ? "#16161c" : "#ffffff"} style={{ pointerEvents: "none" }}>
         {n}
       </text>
       {/* name chip: on hover and focus, and always for the selected zone */}
@@ -286,7 +283,7 @@ function Zone({
           style={{ pointerEvents: "none" }}
           className={cn("transition-opacity duration-200", active || alwaysTag ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100")}
         >
-          <rect x={bx - chipW / 2} y={chipY} width={chipW} height={chipFont + 16} rx={(chipFont + 16) / 2} fill="#0b0820" fillOpacity={0.88} stroke="#c4b5fd" strokeOpacity={0.6} />
+          <rect x={bx - chipW / 2} y={chipY} width={chipW} height={chipFont + 16} rx={(chipFont + 16) / 2} fill="#0b0b10" fillOpacity={0.85} stroke="#ffffff" strokeOpacity={0.45} />
           <text x={bx} y={chipY + chipFont + 3} textAnchor="middle" fontSize={chipFont} fontWeight="600" fill="#ffffff">
             {tag}
           </text>
