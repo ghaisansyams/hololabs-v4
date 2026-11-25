@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 export interface RoomInfo {
@@ -42,7 +42,7 @@ export function RoomScene({
         role="button"
         tabIndex={0}
         aria-haspopup="dialog"
-        aria-label={`${hint || "Lihat ruangan"}: ${info.title}`}
+        aria-label={`${hint || "Lihat deskripsi"}: ${info.title}`}
         onClick={() => setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -65,7 +65,7 @@ export function RoomScene({
         <div aria-hidden className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
         {hint ? (
           <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:border-cyan/60 group-hover:text-cyan">
-            <Maximize2 className="size-3.5" aria-hidden />
+            <Info className="size-3.5" aria-hidden />
             {hint}
           </span>
         ) : null}
