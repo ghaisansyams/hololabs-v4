@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { ADMIN_COOKIE, isValidSessionToken } from "@/lib/admin/session";
 import { listCustomers } from "@/lib/services/admin";
+import { logActivity } from "@/lib/services/activity-log";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export async function GET() {
     return new Response("Unauthorized", { status: 401 });
   }
   const rows = await listCustomers("", 0);
+  await logActivity({ category: "Ekspor", action: "Ekspor CSV pelanggan", detail: `${rows.length} baris` });
   const header = ["nama", "whatsapp", "email", "terdaftar", "jumlah_booking", "jumlah_kursi", "total_lunas", "show_terakhir"];
   const lines = [
     header.join(","),

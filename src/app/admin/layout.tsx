@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LayoutDashboard, Ticket, CalendarDays, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Ticket, CalendarDays, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink, History } from "lucide-react";
 import { logout } from "./actions";
 import { Logo } from "@/components/brand/logo";
 import { isAdmin } from "@/lib/admin/guard";
@@ -18,6 +18,7 @@ const nav = [
   { href: "/admin/customers", label: "Pelanggan", icon: Users },
   { href: "/admin/reports", label: "Laporan", icon: BarChart3 },
   { href: "/admin/konten", label: "Konten Website", icon: FileText },
+  { href: "/admin/log", label: "Log Aktivitas", icon: History },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

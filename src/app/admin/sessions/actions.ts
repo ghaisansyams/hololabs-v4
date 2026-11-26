@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/guard";
+import { logActivity } from "@/lib/services/activity-log";
 import { and, asc, eq, gt, lt, ne, or, sql } from "drizzle-orm";
 import { getDb, rows, schema } from "@/lib/db/client";
 
@@ -57,6 +58,7 @@ export async function createSession(formData: FormData): Promise<void> {
     capacity: slot.capacity,
   });
   await rows(sql`select renumber_session_slots(${date}::date)`);
+  await logActivity({ category: "Sesi", action: "Tambah sesi", target: date, detail: `${slot.startTime}-${slot.endTime}, kapasitas ${slot.capacity}` });
   done("Sesi ditambahkan.");
 }
 
@@ -92,6 +94,7 @@ export async function createDayFromTemplate(formData: FormData): Promise<void> {
       capacity: s.capacity,
     })),
   );
+  await logActivity({ category: "Sesi", action: "Tambah hari dari templat", target: date, detail: slots.map((x) => `${x.startTime}-${x.endTime} (kapasitas ${x.capacity})`).join(", ") });
   done(`${slots.length} sesi ditambahkan untuk tanggal baru.`);
 }
 
@@ -103,7 +106,7 @@ export async function updateSession(formData: FormData): Promise<void> {
 
   const db = getDb();
   const [current] = await db
-    .select({ sessionDate: sessions.sessionDate, seatsTaken: sessions.seatsTaken })
+    .select({ sessionDate: sessions.sessionDate, seatsTaken: sessions.seatsTaken, startTime: sessions.startTime, endTime: sessions.endTime, capacity: sessions.capacity })
     .from(sessions)
     .where(eq(sessions.id, id));
   if (!current) done("Sesi tidak ditemukan.", "error");
@@ -129,6 +132,12 @@ export async function updateSession(formData: FormData): Promise<void> {
     .set({ startTime: slot.startTime, endTime: slot.endTime, capacity: slot.capacity })
     .where(eq(sessions.id, id));
   await rows(sql`select renumber_session_slots(${current.sessionDate}::date)`);
+  await logActivity({
+    category: "Sesi",
+    action: "Ubah sesi",
+    target: current.sessionDate,
+    detail: `${String(current.startTime).slice(0, 5)}-${String(current.endTime).slice(0, 5)} (kapasitas ${current.capacity}) → ${slot.startTime}-${slot.endTime} (kapasitas ${slot.capacity})`,
+  });
   done("Sesi diperbarui.");
 }
 
@@ -145,7 +154,10 @@ export async function deleteSession(formData: FormData): Promise<void> {
   if (used.length > 0) {
     done("Sesi ini sudah punya booking, jadi tidak bisa dihapus. Batalkan booking-nya dulu atau ubah kapasitasnya.", "error");
   }
-  const [row] = await db.delete(sessions).where(eq(sessions.id, id)).returning({ sessionDate: sessions.sessionDate });
-  if (row) await rows(sql`select renumber_session_slots(${row.sessionDate}::date)`);
+  const [row] = await db.delete(sessions).where(eq(sessions.id, id)).returning({ sessionDate: sessions.sessionDate, startTime: sessions.startTime, endTime: sessions.endTime });
+  if (row) {
+    await rows(sql`select renumber_session_slots(${row.sessionDate}::date)`);
+    await logActivity({ category: "Sesi", action: "Hapus sesi", target: row.sessionDate, detail: `${String(row.startTime).slice(0, 5)}-${String(row.endTime).slice(0, 5)}` });
+  }
   done("Sesi dihapus.");
 }

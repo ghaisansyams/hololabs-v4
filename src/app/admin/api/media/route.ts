@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, schema } from "@/lib/db/client";
 import { isAdmin } from "@/lib/admin/guard";
 import { sniffImage } from "@/lib/utils/image";
+import { logActivity } from "@/lib/services/activity-log";
 
 export const runtime = "nodejs";
 
@@ -34,5 +35,6 @@ export async function POST(request: Request) {
     .insert(schema.cmsMedia)
     .values({ filename: file.name.slice(0, 120), contentType, size: data.length, data })
     .returning({ id: schema.cmsMedia.id });
+  await logActivity({ category: "Konten", action: "Unggah gambar", target: file.name.slice(0, 120), detail: `${Math.round(data.length / 1024)} KB, ${contentType}` });
   return NextResponse.json({ url: `/media/${row.id}` });
 }

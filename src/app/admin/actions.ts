@@ -20,7 +20,19 @@ import {
   type EditableSession,
 } from "@/lib/services/booking-edit";
 import { requireAdmin } from "@/lib/admin/guard";
+import { logActivity, rp } from "@/lib/services/activity-log";
+import { formatDayMonth } from "@/lib/utils/date";
 
+
+/** "HLM-BOOK-… · Nama": how a booking appears in the activity log. */
+async function bookingInfo(id: string): Promise<{ number: string; name: string }> {
+  const b = await getBookingById(id).catch(() => null);
+  return { number: b?.bookingNumber ?? id, name: b?.customerName ?? "" };
+}
+
+const showText = (b: { sessionDate: string; startTime: string; endTime: string }) =>
+  `${formatDayMonth(b.sessionDate)} ${b.sessionDate.slice(0, 4)} ${b.startTime.slice(0, 5)}-${b.endTime.slice(0, 5)}`;
+const seatsText = (labels: string[] | null | undefined, count: number) => (labels?.length ? `No. ${labels.join(", ")}` : `${count} kursi`);
 
 export interface LoginState {
   error?: string;
@@ -30,8 +42,10 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
   if (!(await credentialsMatch(username, password))) {
+    await logActivity({ category: "Login", action: "Login gagal", actor: username.slice(0, 40) || "-", detail: "Username atau password salah" });
     return { error: "Username atau password salah." };
   }
+  await logActivity({ category: "Login", action: "Login berhasil", actor: username.slice(0, 40) || "admin" });
   const token = await createSessionToken();
   // Flag "Secure" hanya bila koneksinya benar-benar HTTPS. Di HTTP biasa
   // (localhost / IP LAN) browser menolak cookie Secure, sehingga login
@@ -51,6 +65,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
 }
 
 export async function logout(): Promise<void> {
+  await logActivity({ category: "Login", action: "Logout" });
   (await cookies()).delete({ name: ADMIN_COOKIE, path: "/admin" });
   redirect("/admin/login");
 }
@@ -59,6 +74,8 @@ export async function markBookingPaid(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
   await rows(sql`select admin_mark_paid(${id}::uuid)`);
+  const info = await bookingInfo(id);
+  await logActivity({ category: "Pembayaran", action: "Tandai lunas", target: info.number, detail: info.name });
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
 }
@@ -85,8 +102,17 @@ export async function confirmBookingPaid(bookingId: string): Promise<ConfirmPaid
     return { ok: false, error: "Gagal menandai lunas. Muat ulang halaman lalu coba lagi." };
   }
   const booking = await getBookingById(bookingId);
-  if (!booking?.email) return { ok: true, email: "skipped" };
+  if (!booking?.email) {
+    await logActivity({ category: "Pembayaran", action: "Tandai lunas", target: booking?.bookingNumber ?? bookingId, detail: `${booking?.customerName ?? ""}. Tamu tidak mengisi email, e-ticket tidak dikirim.` });
+    return { ok: true, email: "skipped" };
+  }
   const sent = await sendETicketEmail(bookingId);
+  await logActivity({
+    category: "Pembayaran",
+    action: "Tandai lunas",
+    target: booking.bookingNumber,
+    detail: `${booking.customerName}. E-ticket ${sent.ok ? `terkirim ke ${booking.email}` : `gagal terkirim: ${sent.error}`}`,
+  });
   return sent.ok ? { ok: true, email: "sent" } : { ok: true, email: "failed", emailError: sent.error };
 }
 
@@ -94,6 +120,8 @@ export async function confirmBookingPaid(bookingId: string): Promise<ConfirmPaid
 export async function resendETicketEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
   const result = await sendETicketEmail(bookingId);
+  const info = await bookingInfo(bookingId);
+  await logActivity({ category: "Email", action: "Kirim ulang e-ticket", target: info.number, detail: `${info.name}. ${result.ok ? "Terkirim" : `Gagal: ${result.error}`}` });
   revalidatePath("/admin/bookings");
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
@@ -128,13 +156,28 @@ export type SaveChangeResult =
 /** Saves the new show/seats, then emails the guest the "perubahan pesanan" notice right away. */
 export async function saveBookingChange(bookingId: string, sessionId: string, seats: string[]): Promise<SaveChangeResult> {
   await requireAdmin();
+  const before = await getBookingById(bookingId).catch(() => null);
   const result = await updateBookingShow(bookingId, sessionId, seats);
   if (!result.ok) return result;
   let email: { sent: boolean; to: string; error?: string } = { sent: false, to: "" };
   if (result.changed) {
     const mail = await sendBookingChangeEmail(bookingId);
-    const booking = await getBookingById(bookingId);
-    email = { sent: mail.ok, to: booking?.email ?? "", ...(mail.ok ? {} : { error: mail.error }) };
+    const after = await getBookingById(bookingId);
+    email = { sent: mail.ok, to: after?.email ?? "", ...(mail.ok ? {} : { error: mail.error }) };
+    await logActivity({
+      category: "Booking",
+      action: "Reschedule / ubah pesanan",
+      target: after?.bookingNumber ?? bookingId,
+      detail: [
+        after?.customerName ?? "",
+        before && after ? `Jadwal: ${showText(before)} → ${showText(after)}` : "",
+        before && after ? `Kursi: ${seatsText(before.seatLabels, before.seats)} → ${seatsText(after.seatLabels, after.seats)}` : "",
+        `Total: ${rp(result.previousAmount)} → ${rp(result.amount)}`,
+        `Email perubahan ${mail.ok ? `terkirim ke ${after?.email}` : `gagal: ${mail.error}`}`,
+      ]
+        .filter(Boolean)
+        .join(". "),
+    });
   }
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
@@ -146,6 +189,8 @@ export async function saveBookingChange(bookingId: string, sessionId: string, se
 export async function sendChangeEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
   const result = await sendBookingChangeEmail(bookingId);
+  const info = await bookingInfo(bookingId);
+  await logActivity({ category: "Email", action: "Kirim ulang email perubahan", target: info.number, detail: `${info.name}. ${result.ok ? "Terkirim" : `Gagal: ${result.error}`}` });
   revalidatePath("/admin/bookings");
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
@@ -153,7 +198,9 @@ export async function sendChangeEmail(bookingId: string): Promise<{ ok: boolean;
 export async function cancelBooking(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
+  const info = await bookingInfo(id);
   await rows(sql`select admin_cancel_booking(${id}::uuid)`);
+  await logActivity({ category: "Booking", action: "Batalkan booking", target: info.number, detail: info.name });
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/sessions");
@@ -163,6 +210,8 @@ export async function checkInBooking(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("bookingId") ?? "");
   await rows(sql`select admin_check_in(${id}::uuid)`);
+  const info = await bookingInfo(id);
+  await logActivity({ category: "Booking", action: "Check-in", target: info.number, detail: info.name });
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
 }
@@ -189,6 +238,7 @@ export async function checkInByNumber(
   } catch {
     return { error: "Gagal check-in. Coba lagi." };
   }
+  await logActivity({ category: "Booking", action: "Check-in (input nomor)", target: booking.bookingNumber, detail: booking.customerName });
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
   return {

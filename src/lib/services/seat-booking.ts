@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { dbErrorMessage, isDatabaseConfigured, rows } from "@/lib/db/client";
 import { MAX_GUESTS } from "@/lib/services/seat-booking-constants";
+import { logActivity } from "@/lib/services/activity-log";
 
 /**
  * The booking flow of hololabs.id/booking, end to end: a 30-day schedule of
@@ -228,5 +229,13 @@ export async function createSeatBooking(input: BookingInput): Promise<CreateResu
   const expiresAt = new Date(Date.now() + PAYMENT_MINUTES * 60 * 1000).toISOString();
   await rows(sql`select * from create_payment_with_code(${booking.id}::uuid, ${amount}::numeric, ${uniqueCode}::int, ${expiresAt}::timestamptz)`);
 
+  const [numbered] = await rows<{ booking_number: string }>(sql`select booking_number from bookings where id = ${booking.id}::uuid`).catch(() => []);
+  await logActivity({
+    category: "Pelanggan",
+    actor: "pelanggan",
+    action: "Booking baru",
+    target: numbered?.booking_number ?? booking.id,
+    detail: `${input.name.trim()}. Kursi ${seats.join(", ")}, total Rp${Math.round(amount).toLocaleString("id-ID")}`,
+  });
   return { ok: true, url: `/pembayaran/${booking.access_token}`, bookingId: booking.id };
 }

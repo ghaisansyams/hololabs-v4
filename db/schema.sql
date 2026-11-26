@@ -754,3 +754,19 @@ alter table bookings add column if not exists payment_notice_email_at timestampt
 -- that has not run this file keeps working.
 alter table bookings add column if not exists change_pending boolean not null default false;
 alter table bookings add column if not exists change_email_at timestamptz;
+
+-- Activity log (Nov 2026): every admin change, login and guest order is recorded
+-- here and listed in /admin/log. Append-only. The app also creates this table
+-- itself on first use (lib/services/activity-log.ts).
+create table if not exists activity_log (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  actor text not null default 'admin',
+  category text not null,
+  action text not null,
+  target text not null default '',
+  detail text not null default '',
+  ip text not null default '',
+  user_agent text not null default ''
+);
+create index if not exists activity_log_created_idx on activity_log (created_at desc);

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { ADMIN_COOKIE, isValidSessionToken } from "@/lib/admin/session";
+import { logActivity } from "@/lib/services/activity-log";
 import { allBookingsForExport } from "@/lib/services/admin";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export async function GET() {
     return new Response("Unauthorized", { status: 401 });
   }
   const rows = await allBookingsForExport();
+  await logActivity({ category: "Ekspor", action: "Ekspor CSV booking", detail: `${rows.length} baris` });
   const header = [
     "booking_number", "created_at", "customer_name", "whatsapp", "email",
     "session_date", "start_time", "end_time", "package", "seats", "amount",
