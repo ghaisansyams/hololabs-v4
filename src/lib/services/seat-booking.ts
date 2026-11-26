@@ -7,7 +7,7 @@ import { MAX_GUESTS } from "@/lib/services/seat-booking-constants";
  * The booking flow of hololabs.id/booking, end to end: a 30-day schedule of
  * shows, an 18-seat map per show, at most six seats per order, contact
  * details, terms, then a bank transfer within 90 minutes whose amount has a
- * unique code (Rp10–100) added on top so the team recognises it.
+ * unique code (Rp10–99) added on top so the team recognises it.
  *
  * The shapes returned here are the ones hololabs.id's /api/booking/*
  * endpoints return, so the page and the API routes stay drop-in compatible.
@@ -17,7 +17,7 @@ export { MAX_GUESTS };
 export const PAYMENT_MINUTES = 90;
 /** Range of the unique code added to each order's transfer amount. */
 export const UNIQUE_CODE_MIN = 10;
-export const UNIQUE_CODE_MAX = 100;
+export const UNIQUE_CODE_MAX = 99;
 export const SCHEDULE_DAYS = 30;
 const PACKAGE_ID = "journey";
 
@@ -135,7 +135,7 @@ export type CreateResult =
 export function validateBookingInput(input: BookingInput): BookingFieldErrors {
   const errors: BookingFieldErrors = {};
   if (input.name.trim().length < 2) errors.name = "Nama minimal 2 huruf";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) errors.email = "Format email belum benar";
+  if (!/^[A-Za-z0-9._+-]{3,64}@gmail\.com$/i.test(input.email.trim())) errors.email = "Hanya Gmail yang diterima (contoh: nama@gmail.com)";
   if (!/^628\d{7,12}$/.test(toE164(input.whatsapp))) errors.whatsapp = "Nomor WhatsApp belum benar (contoh: 0812 3456 7890)";
   if (input.note.length > 300) errors.note = "Catatan maksimal 300 karakter";
   if (!input.agree) errors.agree = "Centang persetujuan syarat & ketentuan dulu.";

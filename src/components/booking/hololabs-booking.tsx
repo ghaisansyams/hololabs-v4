@@ -39,6 +39,7 @@ export type BookingCopy = {
   seatTitle: string;
   dataTitle: string;
   dataNote: string;
+  emailHint: string;
   termsTitle: string;
   paymentTitle: string;
 };
@@ -55,13 +56,26 @@ const LAST_STEP = 4;
 const sortSeats = (list: string[]) => [...list].sort((a, b) => Number(a) - Number(b));
 const seatList = (list: string[]) => sortSeats(list).join(", ");
 
+const GMAIL = "@gmail.com";
+
+/** The guest only types the part before @gmail.com; a typed "@" or a pasted full Gmail address is folded back to that part. */
+function gmailLocal(raw: string): string {
+  const v = raw.replace(/\s/g, "");
+  const at = v.indexOf("@");
+  if (at < 0) return v;
+  const domain = v.slice(at + 1).toLowerCase();
+  return domain === "" || "gmail.com".startsWith(domain) ? v.slice(0, at) : v;
+}
+
 const inputBase =
   "min-h-12 w-full rounded-xl border bg-hl-ink px-4 text-base text-hl-fg placeholder:text-[#7d7790] outline-none transition focus:border-hl-violet focus:ring-2 focus:ring-hl-violet/40";
 
 function validateContact(c: Contact): Errors {
   const e: Errors = {};
   if (c.name.trim().length < 2) e.name = "Nama minimal 2 huruf";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) e.email = "Format email belum benar";
+  const mail = c.email.trim();
+  if (mail.includes("@")) e.email = "Hanya Gmail yang diterima. Ketik bagian sebelum @gmail.com saja";
+  else if (!/^[A-Za-z0-9._+-]{3,64}$/.test(mail)) e.email = "Nama Gmail belum benar";
   const wa = c.whatsapp.replace(/[^\d]/g, "").replace(/^0/, "62").replace(/^8/, "628");
   if (!/^628\d{7,12}$/.test(wa)) e.whatsapp = "Nomor WhatsApp belum benar (contoh: 0812 3456 7890)";
   if (c.note.length > 300) e.note = "Catatan maksimal 300 karakter";
@@ -252,7 +266,7 @@ export function HololabsBooking({
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, seats, ...contact, agree }),
+        body: JSON.stringify({ sessionId, seats, ...contact, email: contact.email.trim() + GMAIL, agree }),
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.ok) {
@@ -485,7 +499,6 @@ export function HololabsBooking({
                 [
                   { k: "name", label: "Nama lengkap", type: "text", ac: "name", ph: "Nama sesuai identitas", im: "text" },
                   { k: "whatsapp", label: "Nomor WhatsApp", type: "tel", ac: "tel", ph: "08xx xxxx xxxx", im: "tel" },
-                  { k: "email", label: "Email", type: "email", ac: "email", ph: "nama@email.com", im: "email" },
                 ] as const
               ).map((f) => (
                 <label key={f.k} className="flex flex-col gap-1.5 text-[13px] text-[#c9c4d9]">
@@ -503,6 +516,28 @@ export function HololabsBooking({
                   {errors[f.k] ? <span className="text-rose-300">{errors[f.k]}</span> : null}
                 </label>
               ))}
+              <label className="flex flex-col gap-1.5 text-[13px] text-[#c9c4d9]">
+                Gmail
+                <span
+                  className={`flex min-h-12 w-full items-center rounded-xl border bg-hl-ink pl-4 pr-4 text-base transition focus-within:border-hl-violet focus-within:ring-2 focus-within:ring-hl-violet/40 ${errors.email ? "border-rose-400" : "border-white/15"}`}
+                >
+                  <input
+                    type="text"
+                    inputMode="email"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="nama kamu"
+                    value={contact.email}
+                    onChange={(e) => setContact({ ...contact, email: gmailLocal(e.target.value) })}
+                    aria-invalid={!!errors.email}
+                    className="min-w-0 flex-1 bg-transparent py-3 text-hl-fg outline-none placeholder:text-[#7d7790]"
+                  />
+                  <span className="shrink-0 select-none text-[#a9a3bc]">{GMAIL}</span>
+                </span>
+                {errors.email ? <span className="text-rose-300">{errors.email}</span> : <span className="text-[#a9a3bc]">{copy.emailHint}</span>}
+              </label>
               <label className="flex flex-col gap-1.5 text-[13px] text-[#c9c4d9]">
                 Catatan (opsional)
                 <textarea
@@ -556,7 +591,7 @@ export function HololabsBooking({
               <ol className="flex list-decimal flex-col gap-2 pl-5 text-[15px] leading-relaxed text-[#d3cee2]">
                 <li>Setelah klik tombol di bawah, nomor rekening dan nominal transfer muncul. Kursi ditahan {paymentMinutes} menit.</li>
                 <li>
-                  Nominal ditambah <b>kode unik</b> Rp10–100 supaya transfermu langsung kami kenali. Transfer persis sesuai angka itu.
+                  Nominal ditambah <b>kode unik</b> Rp10–99 supaya transfermu langsung kami kenali. Transfer persis sesuai angka itu.
                 </li>
                 <li>Tekan &quot;Saya sudah transfer&quot;. E-tiket dikirim setelah tim kami memverifikasi.</li>
               </ol>
@@ -629,7 +664,7 @@ export function HololabsBooking({
           <span className="text-[#a9a3bc]">Total</span>
           <span className="hl-display text-3xl font-bold">{rupiah(total)}</span>
         </div>
-        {total > 0 ? <p className="mt-2 text-right text-[13px] text-[#a9a3bc]">Nanti ditambah kode unik Rp10–100</p> : null}
+        {total > 0 ? <p className="mt-2 text-right text-[13px] text-[#a9a3bc]">Nanti ditambah kode unik Rp10–99</p> : null}
       </aside>
     </div>
   );

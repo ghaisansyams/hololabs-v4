@@ -300,6 +300,7 @@ export const sections = [
       t("seatTitle", "Langkah 1: judul pilih kursi", 40),
       t("dataTitle", "Langkah 2: judul data pemesan", 40),
       t("dataNote", "Langkah 2: keterangan di bawah judul", 120),
+      t("emailHint", "Langkah 2: keterangan di bawah kolom Gmail", 120),
       t("termsTitle", "Langkah 3: judul ketentuan", 40),
       {
         key: "terms",
@@ -456,7 +457,8 @@ export const defaults = {
     timeTitle: "Pilih jam pertunjukan",
     seatTitle: "Pilih kursi",
     dataTitle: "Data pemesan",
-    dataNote: "E-tiket dikirim ke email dan nomor ini.",
+    dataNote: "E-tiket dikirim ke Gmail dan nomor ini.",
+    emailHint: "Cukup ketik nama Gmail kamu, @gmail.com terisi otomatis.",
     termsTitle: "Syarat & ketentuan",
     paymentTitle: "Pembayaran",
     payEyebrow: "PESANAN DIBUAT",

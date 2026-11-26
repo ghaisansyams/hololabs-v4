@@ -38,6 +38,7 @@ export default async function BookingPage() {
           seatTitle: booking.seatTitle,
           dataTitle: booking.dataTitle,
           dataNote: booking.dataNote,
+          emailHint: booking.emailHint,
           termsTitle: booking.termsTitle,
           paymentTitle: booking.paymentTitle,
         }}
