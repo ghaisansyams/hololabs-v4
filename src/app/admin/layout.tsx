@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LayoutDashboard, Ticket, CalendarDays, Package, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Ticket, CalendarDays, Users, BarChart3, ScanLine, LogOut, FileText, ExternalLink } from "lucide-react";
 import { logout } from "./actions";
 import { Logo } from "@/components/brand/logo";
 import { isAdmin } from "@/lib/admin/guard";
@@ -15,7 +15,6 @@ const nav = [
   { href: "/admin/bookings", label: "Booking", icon: Ticket },
   { href: "/admin/check-in", label: "Check-in", icon: ScanLine },
   { href: "/admin/sessions", label: "Jadwal & Sesi", icon: CalendarDays },
-  { href: "/admin/packages", label: "Paket F&B", icon: Package },
   { href: "/admin/customers", label: "Pelanggan", icon: Users },
   { href: "/admin/reports", label: "Laporan", icon: BarChart3 },
   { href: "/admin/konten", label: "Konten Website", icon: FileText },

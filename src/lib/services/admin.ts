@@ -63,16 +63,6 @@ export interface SessionRow {
   seatsLeft: number;
 }
 
-export interface PackageRow {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  active: boolean;
-  sortOrder: number;
-  includes: string[];
-}
-
 export interface CustomerRow {
   id: string;
   fullName: string;
@@ -220,19 +210,6 @@ export async function listSessions(): Promise<SessionRow[]> {
     capacity: Number(r.capacity),
     seatsTaken: Number(r.seats_taken),
     seatsLeft: Number(r.seats_left),
-  }));
-}
-
-export async function listAllPackages(): Promise<PackageRow[]> {
-  const list = await getDb().select().from(pk).orderBy(asc(pk.sortOrder));
-  return list.map((r) => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    price: Number(r.price),
-    active: r.active,
-    sortOrder: r.sortOrder,
-    includes: r.includes,
   }));
 }
 

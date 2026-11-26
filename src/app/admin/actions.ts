@@ -3,8 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq, like, or, sql } from "drizzle-orm";
-import { getDb, rows, schema } from "@/lib/db/client";
+import { sql } from "drizzle-orm";
+import { rows } from "@/lib/db/client";
 import {
   ADMIN_COOKIE,
   SESSION_HOURS,
@@ -194,93 +194,4 @@ export async function checkInByNumber(
   return {
     success: `${booking.customerName} — ${booking.seats} kursi, sesi ${booking.sessionDate} ${booking.startTime.slice(0, 5)} berhasil check-in.`,
   };
-}
-
-export async function updatePackage(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const id = String(formData.get("packageId") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const price = Number(formData.get("price") ?? 0);
-  const active = formData.get("active") === "on";
-  const includes = readIncludes(formData);
-  if (!name || !Number.isFinite(price) || price < 0) return;
-
-  await getDb()
-    .update(schema.packages)
-    .set({ name, description, price: String(price), active, includes })
-    .where(eq(schema.packages.id, id));
-  revalidatePath("/admin/packages");
-  revalidatePath("/booking");
-  revalidatePath("/");
-}
-
-/**
- * Hapus paket permanen. Hanya boleh bila belum pernah dipesan (booking
- * menyimpan referensi ke paket); kalau sudah pernah, paket tetap ada dan admin
- * diarahkan untuk menonaktifkannya saja.
- */
-export async function deletePackage(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const id = String(formData.get("packageId") ?? "");
-  if (!id) redirect("/admin/packages");
-
-  const db = getDb();
-  const [used] = await db
-    .select({ id: schema.bookings.id })
-    .from(schema.bookings)
-    .where(eq(schema.bookings.packageId, id))
-    .limit(1);
-  if (used) redirect("/admin/packages?notice=used");
-
-  try {
-    await db.delete(schema.packages).where(eq(schema.packages.id, id));
-  } catch {
-    // Pemesanan masuk tepat saat dihapus: FK menolak, perlakukan sebagai "sudah dipakai".
-    redirect("/admin/packages?notice=used");
-  }
-  revalidatePath("/admin/packages");
-  revalidatePath("/booking");
-  revalidatePath("/");
-  redirect("/admin/packages?notice=deleted");
-}
-
-/** Bullet points, one per line in the form. */
-function readIncludes(formData: FormData): string[] {
-  return String(formData.get("includes") ?? "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 12);
-}
-
-export async function createPackage(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const name = String(formData.get("name") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const price = Number(formData.get("price") ?? 0);
-  if (!name || !Number.isFinite(price) || price < 0) return;
-
-  // Package ids are stable slugs (bookings reference them); add a suffix
-  // if the name's slug is already taken.
-  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "paket";
-  const { packages } = schema;
-  const db = getDb();
-  const taken = await db
-    .select({ id: packages.id })
-    .from(packages)
-    .where(or(eq(packages.id, base), like(packages.id, `${base}-%`)));
-  const id = taken.length === 0 ? base : `${base}-${taken.length + 1}`;
-  await db.insert(packages).values({
-    id,
-    name,
-    description,
-    includes: readIncludes(formData),
-    price: String(price),
-    sortOrder: sql`(select coalesce(max(sort_order), 0) + 1 from packages)`,
-    active: true,
-  });
-  revalidatePath("/admin/packages");
-  revalidatePath("/booking");
-  revalidatePath("/");
 }
