@@ -58,13 +58,29 @@ const seatList = (list: string[]) => sortSeats(list).join(", ");
 
 const GMAIL = "@gmail.com";
 
-/** The guest only types the part before @gmail.com; a typed "@" or a pasted full Gmail address is folded back to that part. */
-function gmailLocal(raw: string): string {
-  const v = raw.replace(/\s/g, "");
+/** No "@" typed means Gmail; a typed "@domain" is used as-is. */
+function fullEmail(raw: string): string {
+  const v = raw.replace(/\s/g, "").toLowerCase();
+  if (!v) return "";
+  return v.includes("@") ? v : v + GMAIL;
+}
+
+const DOMAIN_TYPOS: Record<string, string> = {
+  "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com", "gnail.com": "gmail.com",
+  "gmail.co": "gmail.com", "gmail.con": "gmail.com", "gmail.cm": "gmail.com", "gmail.om": "gmail.com", "gmail.comm": "gmail.com",
+  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com", "yahoo.con": "yahoo.com",
+  "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com", "outlok.com": "outlook.com", "outlook.con": "outlook.com",
+};
+
+/** A tappable fix for the part after "@": a half-typed Gmail, or a common misspelling. */
+function domainSuggestion(raw: string): { local: string; domain: string } | null {
+  const v = raw.replace(/\s/g, "").toLowerCase();
   const at = v.indexOf("@");
-  if (at < 0) return v;
-  const domain = v.slice(at + 1).toLowerCase();
-  return domain === "" || "gmail.com".startsWith(domain) ? v.slice(0, at) : v;
+  if (at < 1) return null;
+  const local = v.slice(0, at);
+  const domain = v.slice(at + 1);
+  if (domain === "" || (domain !== "gmail.com" && "gmail.com".startsWith(domain))) return { local, domain: "gmail.com" };
+  return DOMAIN_TYPOS[domain] ? { local, domain: DOMAIN_TYPOS[domain] } : null;
 }
 
 const inputBase =
@@ -73,9 +89,10 @@ const inputBase =
 function validateContact(c: Contact): Errors {
   const e: Errors = {};
   if (c.name.trim().length < 2) e.name = "Nama minimal 2 huruf";
-  const mail = c.email.trim();
-  if (mail.includes("@")) e.email = "Hanya Gmail yang diterima. Ketik bagian sebelum @gmail.com saja";
-  else if (!/^[A-Za-z0-9._+-]{3,64}$/.test(mail)) e.email = "Nama Gmail belum benar";
+  const mail = c.email.replace(/\s/g, "");
+  if (!mail.includes("@")) {
+    if (!/^[A-Za-z0-9._+-]{3,64}$/.test(mail)) e.email = "Nama Gmail belum benar";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) e.email = "Format email belum benar (contoh: nama@yahoo.com)";
   const wa = c.whatsapp.replace(/[^\d]/g, "").replace(/^0/, "62").replace(/^8/, "628");
   if (!/^628\d{7,12}$/.test(wa)) e.whatsapp = "Nomor WhatsApp belum benar (contoh: 0812 3456 7890)";
   if (c.note.length > 300) e.note = "Catatan maksimal 300 karakter";
@@ -266,7 +283,7 @@ export function HololabsBooking({
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, seats, ...contact, email: contact.email.trim() + GMAIL, agree }),
+        body: JSON.stringify({ sessionId, seats, ...contact, email: fullEmail(contact.email), agree }),
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.ok) {
@@ -517,26 +534,44 @@ export function HololabsBooking({
                 </label>
               ))}
               <label className="flex flex-col gap-1.5 text-[13px] text-[#c9c4d9]">
-                Gmail
+                Email
                 <span
                   className={`flex min-h-12 w-full items-center rounded-xl border bg-hl-ink pl-4 pr-4 text-base transition focus-within:border-hl-violet focus-within:ring-2 focus-within:ring-hl-violet/40 ${errors.email ? "border-rose-400" : "border-white/15"}`}
                 >
                   <input
                     type="text"
                     inputMode="email"
-                    autoComplete="username"
+                    autoComplete="email"
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
                     placeholder="nama kamu"
                     value={contact.email}
-                    onChange={(e) => setContact({ ...contact, email: gmailLocal(e.target.value) })}
+                    onChange={(e) => setContact({ ...contact, email: e.target.value.replace(/\s/g, "") })}
                     aria-invalid={!!errors.email}
                     className="min-w-0 flex-1 bg-transparent py-3 text-hl-fg outline-none placeholder:text-[#7d7790]"
                   />
-                  <span className="shrink-0 select-none text-[#a9a3bc]">{GMAIL}</span>
+                  {contact.email.includes("@") ? null : <span className="shrink-0 select-none text-[#a9a3bc]">{GMAIL}</span>}
                 </span>
-                {errors.email ? <span className="text-rose-300">{errors.email}</span> : <span className="text-[#a9a3bc]">{copy.emailHint}</span>}
+                {errors.email ? <span className="text-rose-300">{errors.email}</span> : null}
+                {(() => {
+                  const fix = domainSuggestion(contact.email);
+                  return fix ? (
+                    <button
+                      type="button"
+                      onClick={() => setContact({ ...contact, email: `${fix.local}@${fix.domain}` })}
+                      className="self-start rounded-pill border border-hl-violet/50 px-3 py-1.5 text-[13px] font-semibold text-hl-fg"
+                    >
+                      Maksud kamu {fix.local}@{fix.domain}?
+                    </button>
+                  ) : null;
+                })()}
+                {!errors.email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(fullEmail(contact.email)) ? (
+                  <span className="break-all text-[#a9a3bc]">
+                    E-tiket akan dikirim ke: <b className="text-hl-fg">{fullEmail(contact.email)}</b>
+                  </span>
+                ) : null}
+                <span className="text-[#a9a3bc]">{copy.emailHint}</span>
               </label>
               <label className="flex flex-col gap-1.5 text-[13px] text-[#c9c4d9]">
                 Catatan (opsional)

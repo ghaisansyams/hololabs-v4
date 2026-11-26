@@ -135,7 +135,7 @@ export type CreateResult =
 export function validateBookingInput(input: BookingInput): BookingFieldErrors {
   const errors: BookingFieldErrors = {};
   if (input.name.trim().length < 2) errors.name = "Nama minimal 2 huruf";
-  if (!/^[A-Za-z0-9._+-]{3,64}@gmail\.com$/i.test(input.email.trim())) errors.email = "Hanya Gmail yang diterima (contoh: nama@gmail.com)";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.email.trim())) errors.email = "Format email belum benar";
   if (!/^628\d{7,12}$/.test(toE164(input.whatsapp))) errors.whatsapp = "Nomor WhatsApp belum benar (contoh: 0812 3456 7890)";
   if (input.note.length > 300) errors.note = "Catatan maksimal 300 karakter";
   if (!input.agree) errors.agree = "Centang persetujuan syarat & ketentuan dulu.";
