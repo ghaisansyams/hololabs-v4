@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Send, X } from "lucide-react";
 import { confirmBookingPaid, type ConfirmPaidResult } from "@/app/admin/actions";
@@ -98,7 +99,7 @@ export function PaymentFlowDialog({
         {triggerLabel}
       </button>
 
-      {open ? (
+      {open ? createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -193,7 +194,7 @@ export function PaymentFlowDialog({
           </div>
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </>
   );
 }

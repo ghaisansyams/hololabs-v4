@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Pencil, X } from "lucide-react";
 import { loadEditableSessions, loadTakenSeats, saveBookingChange } from "@/app/admin/actions";
@@ -140,7 +141,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
         Ubah
       </button>
 
-      {open ? (
+      {open ? createPortal(
         <div role="dialog" aria-modal="true" aria-labelledby={`eb-${booking.id}`} className="fixed inset-0 z-[60] overflow-y-auto bg-black/65 backdrop-blur-sm">
           <button type="button" aria-label="Tutup" onClick={close} className="fixed inset-0 -z-10 cursor-default" />
           <div className="flex min-h-full items-center justify-center p-4 py-8 sm:p-6 sm:py-10">
@@ -254,7 +255,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
             </div>
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </>
   );
 }

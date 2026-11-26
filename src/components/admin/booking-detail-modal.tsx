@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import type { AdminBookingRow } from "@/lib/services/admin";
@@ -63,7 +64,7 @@ export function BookingDetailModal({
         Detail
       </button>
 
-      {open ? (
+      {open ? createPortal(
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
           {/* min-h-full + items-center keeps a short modal centred, while a tall one starts at the top and scrolls */}
           <div className="flex min-h-full items-center justify-center p-4 py-8 sm:p-6 sm:py-10">
@@ -212,7 +213,7 @@ export function BookingDetailModal({
           </div>
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </>
   );
 }
