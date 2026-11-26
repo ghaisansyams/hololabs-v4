@@ -45,7 +45,7 @@ export function TicketSentChips({ booking }: { booking: AdminBookingRow }) {
   );
 }
 
-export function TicketDelivery({ booking, emailReady, notice }: { booking: AdminBookingRow; emailReady: boolean; notice?: string }) {
+export function TicketDelivery({ booking, emailReady, notice, className }: { booking: AdminBookingRow; emailReady: boolean; notice?: string; className?: string }) {
   const router = useRouter();
   const [origin, setOrigin] = useState("");
   const [sentAt, setSentAt] = useState(booking.ticketSentEmailAt);
@@ -81,7 +81,7 @@ export function TicketDelivery({ booking, emailReady, notice }: { booking: Admin
   }
 
   return (
-    <section className="rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-transparent p-4">
+    <section className={cn("rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-transparent p-4", className)}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-bold uppercase tracking-wide text-accent">E-ticket lewat email</p>
         <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
@@ -114,7 +114,7 @@ export function TicketDelivery({ booking, emailReady, notice }: { booking: Admin
         type="button"
         onClick={send}
         disabled={pending || !hasEmail || !emailReady}
-        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-pill bg-gradient-to-r from-brand to-accent px-3 py-2.5 text-xs font-bold text-canvas transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-pill lg:w-auto lg:min-w-56 bg-gradient-to-r from-brand to-accent px-3 py-2.5 text-xs font-bold text-canvas transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Mail className="size-3.5" aria-hidden />
         {pending ? "Mengirim…" : sentAt ? "Kirim ulang email" : "Kirim email e-ticket"}

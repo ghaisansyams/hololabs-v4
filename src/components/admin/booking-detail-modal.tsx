@@ -149,6 +149,9 @@ export function BookingDetailModal({
                   </dl>
                 </section>
 
+              </div>
+
+              <div className="space-y-5">
                 <section className="rounded-2xl border border-line bg-canvas-deep p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-muted">Paket & waktu show</p>
                   <dl className="mt-2 space-y-1.5 text-sm">
@@ -210,9 +213,7 @@ export function BookingDetailModal({
                 </section>
               </div>
 
-              <div className="space-y-4">
-              <TicketDelivery booking={booking} emailReady={emailReady} />
-              </div>
+              <TicketDelivery booking={booking} emailReady={emailReady} className="lg:col-span-2" />
             </div>
           </div>
           </div>
