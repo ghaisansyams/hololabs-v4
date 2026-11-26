@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Pencil, X } from "lucide-react";
-import { loadEditableSessions, loadTakenSeats, saveBookingChange } from "@/app/admin/actions";
+import { AlertTriangle, ArrowRight, CheckCircle2, Pencil, X } from "lucide-react";
+import { loadEditableSessions, loadTakenSeats, saveBookingChange, type SaveChangeResult } from "@/app/admin/actions";
 import type { AdminBookingRow } from "@/lib/services/admin";
 import type { EditableSession } from "@/lib/services/booking-edit";
-import { MAX_GUESTS } from "@/lib/services/seat-booking-constants";
 import { formatDayMonth, formatWeekdayShort } from "@/lib/utils/date";
 import { formatRupiah } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -15,15 +14,34 @@ import { cn } from "@/lib/utils/cn";
 const label = (s: EditableSession) =>
   `${formatWeekdayShort(s.date)}, ${formatDayMonth(s.date)} ${s.date.slice(0, 4)} · ${s.startTime.replace(":", ".")}–${s.endTime.replace(":", ".")} (sisa ${s.left})`;
 
+const bookingShowText = (b: AdminBookingRow) =>
+  `${formatWeekdayShort(b.sessionDate)}, ${formatDayMonth(b.sessionDate)} ${b.sessionDate.slice(0, 4)} · ${b.startTime.slice(0, 5).replace(":", ".")}–${b.endTime.slice(0, 5).replace(":", ".")}`;
+const sessionText = (s: EditableSession) =>
+  `${formatWeekdayShort(s.date)}, ${formatDayMonth(s.date)} ${s.date.slice(0, 4)} · ${s.startTime.replace(":", ".")}–${s.endTime.replace(":", ".")}`;
+const seatsText = (list: string[]) => (list.length ? `No. ${list.join(", ")}` : "-");
+
+type Saved = Extract<SaveChangeResult, { ok: true }>;
+
 /**
- * "Ubah": change the show and the seats of an order (a guest asks to move to
- * another time, or to refund a seat). Saving only updates the order. The guest
- * is not emailed from here: the order is flagged, and "Kirim email perubahan"
- * in the Aksi column sends the notice when the admin is ready.
+ * Pencil icon beside "Sesi" / "Kursi" in the bookings list: reschedule an order
+ * (another date or time, other seats). The guest paid for a fixed number of
+ * seats, so no more than that can be picked. "Simpan perubahan" first opens a
+ * confirmation pop-up; confirming saves the change and emails the guest right away.
  */
-export function EditBookingDialog({ booking, className }: { booking: AdminBookingRow; className?: string }) {
+export function EditBookingDialog({
+  booking,
+  emailReady,
+  what = "sesi dan kursi",
+  className,
+}: {
+  booking: AdminBookingRow;
+  emailReady: boolean;
+  what?: string;
+  className?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [sessions, setSessions] = useState<EditableSession[]>([]);
   const [sessionId, setSessionId] = useState(booking.sessionId);
   const [taken, setTaken] = useState<string[]>([]);
@@ -31,8 +49,9 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState<{ amount: number; previousAmount: number } | null>(null);
+  const [saved, setSaved] = useState<Saved | null>(null);
 
+  const maxSeats = booking.seats;
   const current = sessions.find((s) => s.id === sessionId);
   const capacity = current?.capacity ?? 18;
   const price = current?.price ?? 0;
@@ -41,6 +60,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
 
   function close() {
     if (saving) return;
+    setConfirming(false);
     setOpen(false);
     if (saved) router.refresh();
   }
@@ -50,6 +70,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
     setSeats(booking.seatLabels ?? []);
     setError("");
     setSaved(null);
+    setConfirming(false);
     setOpen(true);
   }
 
@@ -81,13 +102,14 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !saving) {
+        if (confirming) return setConfirming(false);
         setOpen(false);
         if (saved) router.refresh();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, saving, saved, router]);
+  }, [open, saving, saved, confirming, router]);
 
   function pickSession(id: string) {
     setSessionId(id);
@@ -102,8 +124,9 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
     setError("");
     setSeats((prev) => {
       if (prev.includes(seat)) return prev.filter((s) => s !== seat);
-      if (prev.length >= MAX_GUESTS) {
-        setError(`Maksimal ${MAX_GUESTS} kursi per pesanan.`);
+      if (maxSeats === 1) return [seat];
+      if (prev.length >= maxSeats) {
+        setError(`Maksimal ${maxSeats} kursi, sesuai pembayaran pelanggan.`);
         return prev;
       }
       return [...prev, seat].sort((a, b) => Number(a) - Number(b));
@@ -120,7 +143,8 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
     setError("");
     const res = await saveBookingChange(booking.id, sessionId, seats);
     setSaving(false);
-    if (res.ok) setSaved({ amount: res.amount, previousAmount: res.previousAmount });
+    setConfirming(false);
+    if (res.ok) setSaved(res);
     else setError(res.error);
   }
 
@@ -132,13 +156,14 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
       <button
         type="button"
         onClick={openDialog}
+        aria-label={`Ubah ${what} (reschedule)`}
+        title={`Ubah ${what} (reschedule)`}
         className={cn(
-          "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-3 text-xs font-semibold text-ink-soft transition-colors hover:border-accent/50 hover:text-ink",
+          "inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-line text-muted transition-colors hover:border-accent/60 hover:text-accent",
           className,
         )}
       >
         <Pencil className="size-3.5" aria-hidden />
-        Ubah
       </button>
 
       {open ? createPortal(
@@ -148,7 +173,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
             <div className="w-full max-w-lg rounded-card border border-line bg-surface p-5 shadow-lift sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted">Ubah pesanan</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted">Reschedule pesanan</p>
                   <h2 id={`eb-${booking.id}`} className="mt-1 font-mono text-lg font-extrabold text-ink">
                     {booking.bookingNumber}
                   </h2>
@@ -181,7 +206,7 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
               <div className="mt-5 flex items-baseline justify-between gap-3">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted">Pilihan kursi</p>
                 <p className="text-xs text-muted">
-                  {seats.length} dipilih (maks. {MAX_GUESTS})
+                  {seats.length} dipilih (maks. {maxSeats})
                 </p>
               </div>
               <div className="mt-2 grid grid-cols-6 gap-2" role="group" aria-label="Pilihan kursi">
@@ -231,12 +256,23 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
                 </p>
               ) : null}
               {saved ? (
-                <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-success-soft px-3 py-2 text-xs text-success">
-                  <CheckCircle2 className="mt-px size-4 shrink-0" aria-hidden />
-                  Perubahan tersimpan. Email belum dikirim ke pelanggan: tekan &quot;Kirim email perubahan&quot; di kolom Aksi kalau sudah siap.
-                </p>
+                saved.email.sent ? (
+                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-success-soft px-3 py-2 text-xs text-success">
+                    <CheckCircle2 className="mt-px size-4 shrink-0" aria-hidden />
+                    Perubahan tersimpan dan email sudah dikirim ke {saved.email.to}.
+                  </p>
+                ) : (
+                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+                    <AlertTriangle className="mt-px size-4 shrink-0" aria-hidden />
+                    <span>
+                      Perubahan tersimpan, tetapi email belum terkirim{saved.email.error ? `: ${saved.email.error}` : "."} Setelah masalahnya beres, tekan &quot;Kirim email perubahan&quot; di kolom Aksi.
+                    </span>
+                  </p>
+                )
               ) : (
-                <p className="mt-3 text-xs leading-relaxed text-muted">Menyimpan hanya mengubah pesanan. Pelanggan tidak langsung dikirimi email.</p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  Maksimal {maxSeats} kursi, sesuai pembayaran pelanggan. Setelah dikonfirmasi, email perubahan langsung dikirim ke pelanggan.
+                </p>
               )}
 
               <div className="mt-4 flex gap-2">
@@ -245,15 +281,81 @@ export function EditBookingDialog({ booking, className }: { booking: AdminBookin
                 </button>
                 <button
                   type="button"
-                  onClick={save}
+                  onClick={() => setConfirming(true)}
                   disabled={saving || loading || seats.length === 0 || unchanged || Boolean(saved)}
                   className="flex-[1.4] rounded-pill bg-gradient-to-r from-brand to-accent px-4 py-2.5 text-sm font-bold text-canvas hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {saving ? "Menyimpan…" : "Simpan perubahan"}
+                  Simpan perubahan
                 </button>
               </div>
             </div>
           </div>
+
+          {confirming ? (
+            <div role="alertdialog" aria-modal="true" aria-labelledby={`eb-c-${booking.id}`} className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/70 p-4">
+              <div className="w-full max-w-md rounded-card border border-line bg-surface p-5 shadow-lift sm:p-6">
+                <h3 id={`eb-c-${booking.id}`} className="text-lg font-extrabold text-ink">
+                  Yakin data reschedule sudah sesuai?
+                </h3>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {booking.bookingNumber} · {booking.customerName}
+                </p>
+
+                <dl className="mt-4 space-y-3 rounded-2xl border border-line bg-canvas-deep p-4 text-sm">
+                  {(
+                    [
+                      ["Jadwal", bookingShowText(booking), current ? sessionText(current) : bookingShowText(booking)],
+                      ["Kursi", seatsText(booking.seatLabels ?? []), seatsText(seats)],
+                      ["Total", formatRupiah(booking.amount), formatRupiah(newAmount)],
+                    ] as const
+                  ).map(([name, from, to]) => (
+                    <div key={name}>
+                      <dt className="text-xs font-bold uppercase tracking-wide text-muted">{name}</dt>
+                      <dd className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className={cn("text-muted", from !== to && "line-through")}>{from}</span>
+                        {from !== to ? (
+                          <>
+                            <ArrowRight className="size-3.5 shrink-0 text-accent" aria-hidden />
+                            <span className="font-bold text-ink">{to}</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-muted">(tidak berubah)</span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {booking.email && emailReady ? (
+                  <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+                    Email perubahan akan <b className="text-ink">langsung dikirim</b> ke <b className="break-all text-ink">{booking.email}</b>.
+                  </p>
+                ) : (
+                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+                    <AlertTriangle className="mt-px size-4 shrink-0" aria-hidden />
+                    {!booking.email ? "Pelanggan tidak mengisi email, jadi perubahan hanya disimpan." : "Email otomatis belum aktif di server, jadi perubahan hanya disimpan."}
+                  </p>
+                )}
+                {booking.paymentStatus === "PAID" && seats.length > 0 && newAmount < booking.amount ? (
+                  <p className="mt-2 text-xs text-warning">Selisih {formatRupiah(booking.amount - newAmount)} dikembalikan ke pelanggan secara manual.</p>
+                ) : null}
+
+                <div className="mt-5 flex gap-2">
+                  <button type="button" onClick={() => setConfirming(false)} disabled={saving} className="flex-1 rounded-pill border border-line px-4 py-2.5 text-sm font-semibold text-ink-soft hover:border-accent/50 hover:text-ink disabled:opacity-50">
+                    Periksa lagi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={save}
+                    disabled={saving}
+                    className="flex-[1.5] rounded-pill bg-gradient-to-r from-brand to-accent px-4 py-2.5 text-sm font-bold text-canvas hover:opacity-90 disabled:opacity-60"
+                  >
+                    {saving ? "Menyimpan…" : booking.email && emailReady ? "Ya, simpan & kirim email" : "Ya, simpan"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       , document.body) : null}
     </>

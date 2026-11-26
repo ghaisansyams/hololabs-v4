@@ -5,9 +5,11 @@ import { MAX_GUESTS, seatLabels, sortSeats } from "@/lib/services/seat-booking";
 
 /**
  * Admin edits of an existing order: move it to another show and/or change its
- * seats (for example when a guest asks for a refund of one seat). Nothing is
- * emailed here: the booking is flagged `change_pending` and an admin sends
- * the "perubahan pesanan" email from the Aksi column of /admin/bookings.
+ * seats (a reschedule, or a guest asking for a refund of one seat). The guest
+ * paid for a fixed number of seats, so an edit can never hold more seats than
+ * the order already has. The booking is flagged `change_pending`; the admin
+ * action emails the guest and clears the flag (a failed send leaves it on, and
+ * "Kirim email perubahan" in the Aksi column retries).
  */
 
 let ready: Promise<void> | null = null;
@@ -77,7 +79,7 @@ export async function takenSeatsExcluding(sessionId: string, bookingId: string):
 }
 
 export type UpdateResult =
-  | { ok: true; amount: number; previousAmount: number }
+  | { ok: true; amount: number; previousAmount: number; changed: boolean }
   | { ok: false; error: string };
 
 export async function updateBookingShow(bookingId: string, sessionId: string, wanted: string[]): Promise<UpdateResult> {
@@ -103,6 +105,9 @@ export async function updateBookingShow(bookingId: string, sessionId: string, wa
       if (!booking) return { ok: false as const, error: "Booking tidak ditemukan." };
       if (booking.status === "CANCELLED") return { ok: false as const, error: "Booking ini sudah dibatalkan, tidak bisa diubah." };
       if (booking.checkin_status === "CHECKED_IN") return { ok: false as const, error: "Tamu ini sudah check-in, jadwal dan kursi tidak bisa diubah." };
+      if (seats.length > booking.seats) {
+        return { ok: false as const, error: `Maksimal ${booking.seats} kursi, sesuai pembayaran pelanggan.` };
+      }
 
       // Lock both shows in a fixed order so two edits can never wait on each other.
       const ids = Array.from(new Set([booking.session_id, sessionId])).sort();
@@ -124,7 +129,7 @@ export async function updateBookingShow(bookingId: string, sessionId: string, wa
 
       const same = booking.session_id === sessionId && sortSeats(booking.seat_labels ?? []).join(",") === seats.join(",");
       const previousAmount = Number(booking.amount);
-      if (same) return { ok: true as const, amount: previousAmount, previousAmount };
+      if (same) return { ok: true as const, amount: previousAmount, previousAmount, changed: false };
 
       const [payment] = await run<{ unique_code: number }>(sql`select unique_code from payments where booking_id = ${bookingId}::uuid order by created_at desc limit 1`);
       const amount = Number(target.price) * seats.length + (payment?.unique_code ?? 0);
@@ -137,7 +142,7 @@ export async function updateBookingShow(bookingId: string, sessionId: string, wa
             seat_labels = ${`{${seats.join(",")}}`}::text[], amount = ${amount}::numeric, change_pending = true
         where id = ${bookingId}::uuid`);
       await tx.execute(sql`update payments set amount = ${amount}::numeric where booking_id = ${bookingId}::uuid`);
-      return { ok: true as const, amount, previousAmount };
+      return { ok: true as const, amount, previousAmount, changed: true };
     });
   } catch (cause) {
     console.error("[booking] gagal mengubah booking", cause);

@@ -55,11 +55,20 @@ export default async function AdminBookingsPage({
   const ActionsCell = ({ b }: { b: AdminBookingRow }) => (
     <div className="flex flex-wrap items-center justify-end gap-1.5 lg:justify-end">
       {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} emailReady={emailReady} /> : null}
-      {b.status !== "CANCELLED" && b.checkinStatus !== "CHECKED_IN" ? <EditBookingDialog booking={b} /> : null}
       <SendChangeButton booking={b} emailReady={emailReady} />
       <BookingDetailModal booking={b} emailReady={emailReady} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
     </div>
   );
+  const canEdit = (b: AdminBookingRow) => b.status !== "CANCELLED" && b.checkinStatus !== "CHECKED_IN";
+  const withEdit = (b: AdminBookingRow, what: string, children: React.ReactNode) =>
+    canEdit(b) ? (
+      <div className="flex items-start gap-2">
+        <div>{children}</div>
+        <EditBookingDialog booking={b} emailReady={emailReady} what={what} className="mt-0.5" />
+      </div>
+    ) : (
+      children
+    );
   const seatText = (b: AdminBookingRow) => (b.seatLabels?.length ? `No. ${b.seatLabels.join(", ")}` : `${b.seats} kursi`);
 
   return (
@@ -146,16 +155,28 @@ export default async function AdminBookingsPage({
                     <p className="text-xs text-muted">{b.whatsapp}</p>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
-                    {formatDayMonth(b.sessionDate)} {b.sessionDate.slice(0, 4)}
-                    <br />
-                    <span className="text-xs text-muted">
-                      {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
-                    </span>
+                    {withEdit(
+                      b,
+                      "jadwal",
+                      <>
+                        {formatDayMonth(b.sessionDate)} {b.sessionDate.slice(0, 4)}
+                        <br />
+                        <span className="text-xs text-muted">
+                          {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
+                        </span>
+                      </>,
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
-                    {seatText(b)}
-                    <br />
-                    <span className="text-xs text-muted">{b.seatLabels?.length ? `${b.seats} orang` : b.packageName}</span>
+                    {withEdit(
+                      b,
+                      "kursi",
+                      <>
+                        {seatText(b)}
+                        <br />
+                        <span className="text-xs text-muted">{b.seatLabels?.length ? `${b.seats} orang` : b.packageName}</span>
+                      </>,
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
                   <td className="px-3 py-3">
@@ -194,16 +215,22 @@ export default async function AdminBookingsPage({
               <div>
                 <dt className="text-xs text-muted">Sesi</dt>
                 <dd className="text-ink-soft">
-                  {formatDate(b.sessionDate)}
-                  <br />
-                  <span className="text-xs text-muted">
-                    {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
-                  </span>
+                  {withEdit(
+                    b,
+                    "jadwal",
+                    <>
+                      {formatDate(b.sessionDate)}
+                      <br />
+                      <span className="text-xs text-muted">
+                        {b.startTime.slice(0, 5)}–{b.endTime.slice(0, 5)} WIB
+                      </span>
+                    </>,
+                  )}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted">Kursi</dt>
-                <dd className="text-ink-soft">{seatText(b)}</dd>
+                <dd className="text-ink-soft">{withEdit(b, "kursi", seatText(b))}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted">Total</dt>

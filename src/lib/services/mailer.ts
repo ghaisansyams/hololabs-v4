@@ -272,9 +272,10 @@ ${address ? `<p style="margin:18px 0 0;color:${TEXT};font-size:14px;line-height:
 }
 
 /**
- * 4. "Perubahan pesanan": never automatic. An admin edits the show or seats of
- * an order, then presses "Kirim email perubahan" in the Aksi column; the
- * flag set by the edit is cleared once the email went out.
+ * 4. "Perubahan pesanan": sent by the admin edit (reschedule) right after it is
+ * saved, once the admin confirmed the details in the pop-up. The flag set by
+ * the edit is cleared when the email goes out; if the send failed, it stays on
+ * and "Kirim email perubahan" in the Aksi column retries.
  */
 export async function sendBookingChangeEmail(bookingId: string): Promise<MailResult> {
   const b = await getBookingById(bookingId);

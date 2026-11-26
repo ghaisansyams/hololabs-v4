@@ -114,22 +114,35 @@ export async function loadTakenSeats(bookingId: string, sessionId: string): Prom
  * Saves a new show and/or seats for an order. The guest is NOT emailed: the
  * order is flagged and "Kirim email perubahan" in the Aksi column sends it.
  */
-export async function saveBookingChange(
-  bookingId: string,
-  sessionId: string,
-  seats: string[],
-): Promise<{ ok: true; amount: number; previousAmount: number } | { ok: false; error: string }> {
+export type SaveChangeResult =
+  | {
+      ok: true;
+      amount: number;
+      previousAmount: number;
+      changed: boolean;
+      /** The guest is emailed as part of saving; `error` is set when that send failed (the change itself is saved). */
+      email: { sent: boolean; to: string; error?: string };
+    }
+  | { ok: false; error: string };
+
+/** Saves the new show/seats, then emails the guest the "perubahan pesanan" notice right away. */
+export async function saveBookingChange(bookingId: string, sessionId: string, seats: string[]): Promise<SaveChangeResult> {
   await requireAdmin();
   const result = await updateBookingShow(bookingId, sessionId, seats);
-  if (result.ok) {
-    revalidatePath("/admin");
-    revalidatePath("/admin/bookings");
-    revalidatePath("/admin/sessions");
+  if (!result.ok) return result;
+  let email: { sent: boolean; to: string; error?: string } = { sent: false, to: "" };
+  if (result.changed) {
+    const mail = await sendBookingChangeEmail(bookingId);
+    const booking = await getBookingById(bookingId);
+    email = { sent: mail.ok, to: booking?.email ?? "", ...(mail.ok ? {} : { error: mail.error }) };
   }
-  return result;
+  revalidatePath("/admin");
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/sessions");
+  return { ...result, email };
 }
 
-/** The one place the "perubahan pesanan" email is sent from; an admin presses it. */
+/** Retry for the "perubahan pesanan" email when the automatic send after saving failed. */
 export async function sendChangeEmail(bookingId: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
   const result = await sendBookingChangeEmail(bookingId);

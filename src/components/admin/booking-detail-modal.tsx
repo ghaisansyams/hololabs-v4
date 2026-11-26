@@ -53,6 +53,7 @@ export function BookingDetailModal({
     router.refresh();
   };
   const stage = effectiveStage(booking);
+  const canEdit = booking.status !== "CANCELLED" && booking.checkinStatus !== "CHECKED_IN";
 
   return (
     <>
@@ -111,7 +112,6 @@ export function BookingDetailModal({
                   {booking.status !== "CANCELLED" ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {booking.paymentStatus !== "PAID" ? <PaymentFlowDialog booking={booking} emailReady={emailReady} /> : null}
-                      {booking.checkinStatus !== "CHECKED_IN" ? <EditBookingDialog booking={booking} /> : null}
                       <SendChangeButton booking={booking} emailReady={emailReady} className="items-start" />
                       {booking.paymentStatus === "PAID" && booking.checkinStatus !== "CHECKED_IN" ? (
                         <form action={checkInBooking}>
@@ -158,16 +158,20 @@ export function BookingDetailModal({
                     </div>
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted">Jadwal</dt>
-                      <dd className="text-right font-semibold text-ink">
-                        {formatWeekday(booking.sessionDate)}, {formatDate(booking.sessionDate)}
-                        <br />
-                        {formatTimeRange(booking.startTime, booking.endTime)}
+                      <dd className="flex items-start justify-end gap-2 text-right font-semibold text-ink">
+                        <span>
+                          {formatWeekday(booking.sessionDate)}, {formatDate(booking.sessionDate)}
+                          <br />
+                          {formatTimeRange(booking.startTime, booking.endTime)}
+                        </span>
+                        {canEdit ? <EditBookingDialog booking={booking} emailReady={emailReady} what="jadwal" className="mt-0.5" /> : null}
                       </dd>
                     </div>
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted">Kursi</dt>
-                      <dd className="text-right font-semibold text-ink">
-                        {booking.seatLabels?.length ? `No. ${booking.seatLabels.join(", ")} (${booking.seats})` : booking.seats}
+                      <dd className="flex items-start justify-end gap-2 text-right font-semibold text-ink">
+                        <span>{booking.seatLabels?.length ? `No. ${booking.seatLabels.join(", ")} (${booking.seats})` : booking.seats}</span>
+                        {canEdit ? <EditBookingDialog booking={booking} emailReady={emailReady} what="kursi" className="mt-0.5" /> : null}
                       </dd>
                     </div>
                     {booking.uniqueCode ? (
