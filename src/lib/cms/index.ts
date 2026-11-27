@@ -69,15 +69,23 @@ function cleanUrl(value: unknown): string {
   return "";
 }
 
+/** An uploaded video ("/media/<id>"), a file shipped in /public, or an http(s) link kept from before uploads existed. */
+function cleanVideo(value: unknown): string {
+  const text = String(value ?? "").trim();
+  if (/^\/media\/[0-9a-f-]{36}$/i.test(text)) return text;
+  return cleanUrl(text);
+}
+
 function cleanField(field: FieldDef, value: unknown): Value {
   if (field.type === "image") return cleanImage(value);
+  if (field.type === "video") return cleanVideo(value);
   if (field.type === "url") return cleanUrl(value);
   if (field.type === "text" || field.type === "textarea") {
     return cleanText(value, field.max ?? (field.type === "text" ? 160 : 600));
   }
   if (field.type === "tags") {
     const list = Array.isArray(value) ? value : String(value ?? "").split("\n");
-    return list.map((v) => cleanText(v, 120)).filter(Boolean).slice(0, 30);
+    return list.map((v) => cleanText(v, field.itemMax ?? 120)).filter(Boolean).slice(0, field.max ?? 30);
   }
   if (field.type !== "list") return ""; // headings hold no value
   const items = Array.isArray(value) ? value : [];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, Check, ExternalLink, ImagePlus, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ExternalLink, ImagePlus, Plus, RotateCcw, Trash2, Video, X } from "lucide-react";
 import { saveContent, type ContentFormState } from "@/app/admin/konten/actions";
 import { Button } from "@/components/ui/button";
 import type { FieldDef, ListField, SectionDef, TagsField, TextField } from "@/lib/cms/schema";
@@ -34,6 +34,7 @@ function ImageInput({
     try {
       const body = new FormData();
       body.set("file", file);
+      body.set("kind", "image");
       const response = await fetch("/admin/api/media", { method: "POST", body });
       const data = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
       if (!response.ok || !data.url) throw new Error(data.error ?? "Gagal mengunggah gambar.");
@@ -107,6 +108,192 @@ function ImageInput({
   );
 }
 
+/** Video field: upload from the computer (MP4 or WebM) with progress, a preview, and removal. */
+function VideoInput({ id, value, onChange }: { id: string; value: string; onChange: (value: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [percent, setPercent] = useState(0);
+  const [error, setError] = useState("");
+  const MAX = 25 * 1024 * 1024;
+
+  function upload(file: File) {
+    setError("");
+    if (file.size > MAX) {
+      setError(`Ukuran video ${(file.size / 1024 / 1024).toFixed(1)} MB, maksimal 25 MB. Kompres videonya dulu.`);
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    setBusy(true);
+    setPercent(0);
+    const body = new FormData();
+    body.set("file", file);
+    body.set("kind", "video");
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/admin/api/media");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) setPercent(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        // not JSON: the proxy answered, usually because the file is over its size limit
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && data.url) onChange(data.url);
+      else setError(data.error ?? (xhr.status === 413 ? "Server menolak ukuran berkas ini. Coba video yang lebih kecil." : "Gagal mengunggah video."));
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    };
+    xhr.onerror = () => {
+      setError("Koneksi terputus saat mengunggah. Coba lagi.");
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    };
+    xhr.send(body);
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-3">
+      <div className="flex h-24 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-canvas-deep">
+        {value ? (
+          <video key={value} src={value} muted loop playsInline controls preload="metadata" className="size-full object-contain" />
+        ) : (
+          <span className="px-2 text-center text-xs text-muted">Belum ada video</span>
+        )}
+      </div>
+      <div className="min-w-[14rem] flex-1 space-y-2">
+        <input
+          id={id}
+          ref={fileRef}
+          type="file"
+          accept="video/mp4,video/webm"
+          className="sr-only"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) upload(file);
+          }}
+        />
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border border-line px-3.5 py-2 text-sm font-semibold text-ink hover:border-accent/50 disabled:opacity-50"
+          >
+            <Video className="size-4" aria-hidden />
+            {busy ? `Mengunggah… ${percent}%` : value ? "Ganti video" : "Unggah video dari komputer"}
+          </button>
+          {value ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onChange("")}
+              className="rounded-pill border border-line px-3.5 py-2 text-sm font-semibold text-danger hover:bg-danger-soft disabled:opacity-50"
+            >
+              Hapus video
+            </button>
+          ) : null}
+        </div>
+        {busy ? (
+          <div className="h-1.5 overflow-hidden rounded-full bg-canvas-deep" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${percent}%` }} />
+          </div>
+        ) : null}
+        <p className="text-xs text-muted">MP4 atau WebM, maksimal 25 MB. Simpan setelah video selesai diunggah.</p>
+        {error ? <p className="text-xs font-medium text-danger">{error}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Short labels shown as buttons on the page. Each one is a pill you can type
+ * into, with a remove (×) and a "+ Tambah" pill, capped by the field's `max`
+ * so the page never gets crowded. A field with min === max (the five booking
+ * steps) is fixed: rename only.
+ */
+function ChipsInput({ id, field, value, onChange }: { id: string; field: TagsField; value: string | string[]; onChange: (value: string[]) => void }) {
+  const list = Array.isArray(value) ? value : String(value ?? "").split("\n").filter(Boolean);
+  const max = field.max ?? 30;
+  const min = field.min ?? 0;
+  const fixed = min === max;
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const [focusAt, setFocusAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (focusAt === null) return;
+    refs.current[focusAt]?.focus();
+    setFocusAt(null);
+  }, [focusAt]);
+
+  const add = () => {
+    if (list.length >= max) return;
+    onChange([...list, ""]);
+    setFocusAt(list.length);
+  };
+
+  return (
+    <div id={id} className="rounded-xl border border-line bg-surface p-3">
+      <ul className="flex flex-wrap items-center gap-2">
+        {list.map((item, i) => (
+          <li key={i} className="inline-flex items-center rounded-full border border-line bg-canvas-deep py-1 pl-3.5 pr-1.5 focus-within:border-accent">
+            <input
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
+              aria-label={`${field.label} ${i + 1}`}
+              value={item}
+              maxLength={field.itemMax}
+              placeholder="Teks tombol"
+              onChange={(e) => onChange(list.map((v, j) => (j === i ? e.target.value : v)))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (!fixed) add();
+                }
+              }}
+              style={{ width: `${Math.min(Math.max(item.length, 4) + 1, (field.itemMax ?? 24) + 1)}ch` }}
+              className="bg-transparent text-base text-ink outline-none placeholder:text-muted/60 sm:text-sm"
+            />
+            {fixed ? (
+              <span aria-hidden className="mr-1.5 text-[0.625rem] font-bold text-muted">
+                {i + 1}
+              </span>
+            ) : (
+              <button
+                type="button"
+                aria-label={`Hapus tombol ${item || i + 1}`}
+                disabled={list.length <= min}
+                onClick={() => onChange(list.filter((_, j) => j !== i))}
+                className="ml-1 flex size-6 items-center justify-center rounded-full text-muted hover:bg-danger-soft hover:text-danger disabled:opacity-30"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            )}
+          </li>
+        ))}
+        {!fixed && list.length < max ? (
+          <li>
+            <button
+              type="button"
+              onClick={add}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-line px-3.5 py-1.5 text-sm font-semibold text-ink-soft hover:border-accent/50 hover:text-ink"
+            >
+              <Plus className="size-4" aria-hidden /> Tambah tombol
+            </button>
+          </li>
+        ) : null}
+      </ul>
+      {!fixed ? (
+        <p className="mt-2 text-xs text-muted">
+          {list.length} dari maksimal {max} tombol{list.length >= max ? ". Sudah penuh, hapus satu untuk menambah yang lain." : "."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ScalarInput({
   field,
   value,
@@ -122,6 +309,12 @@ function ScalarInput({
 }) {
   if (field.type === "image") {
     return <ImageInput id={id} value={String(value ?? "")} onChange={onChange} fallback={fallback} />;
+  }
+  if (field.type === "video") {
+    return <VideoInput id={id} value={String(value ?? "")} onChange={onChange} />;
+  }
+  if (field.type === "tags" && field.chips) {
+    return <ChipsInput id={id} field={field} value={value} onChange={onChange} />;
   }
   if (field.type === "tags") {
     const text = Array.isArray(value) ? value.join("\n") : String(value ?? "");

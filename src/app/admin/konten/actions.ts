@@ -29,6 +29,7 @@ function describeChanges(key: string, before: Record<string, unknown>, after: Re
     const now = after[field.key];
     if (JSON.stringify(was ?? "") === JSON.stringify(now ?? "")) continue;
     if (field.type === "image") out.push(`${field.label}: gambar diganti`);
+    else if (field.type === "video") out.push(`${field.label}: ${now ? "video diganti" : "video dihapus"}`);
     else if (field.type === "tags") out.push(`${field.label}: diubah`);
     else if (field.type === "list") out.push(`${field.label}: daftar diubah (${Array.isArray(now) ? now.length : 0} item)`);
     else out.push(`${field.label}: "${brief(was)}" → "${brief(now)}"`);

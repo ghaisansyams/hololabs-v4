@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
     // Server actions default to a 1 MB body; the transfer-proof upload accepts
     // up to 3 MB (see MAX_PROOF_BYTES), so leave headroom for the form fields.
     serverActions: { bodySizeLimit: "4mb" },
+    // The CMS uploads videos (up to 25 MB) through /admin/api/media, which the admin middleware also matches.
+    middlewareClientMaxBodySize: "30mb",
   },
   images: {
     formats: ["image/avif", "image/webp"],

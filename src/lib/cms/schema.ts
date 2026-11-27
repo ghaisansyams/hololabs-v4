@@ -18,8 +18,14 @@ import { mainNav } from "@/data/site";
  * images shipped in /public); `url` holds a link ("/path", "#anchor" or
  * "https://..."). Both are validated in sanitizeSection.
  */
-export type TextField = { key: string; label: string; type: "text" | "textarea" | "image" | "url"; max?: number; hint?: string };
-export type TagsField = { key: string; label: string; type: "tags"; hint?: string };
+export type TextField = { key: string; label: string; type: "text" | "textarea" | "image" | "video" | "url"; max?: number; hint?: string };
+/**
+ * A list of short labels. With `chips` the editor shows each one as a button
+ * shaped like the one on the page, with add and remove; `max` and `itemMax`
+ * keep the page tidy (labels never wrap into a third row, buttons stay short).
+ * Without `chips` it is one line of text per entry.
+ */
+export type TagsField = { key: string; label: string; type: "tags"; hint?: string; chips?: boolean; min?: number; max?: number; itemMax?: number };
 export type ListField = {
   key: string;
   label: string;
@@ -48,6 +54,8 @@ export interface SectionDef {
 const t = (key: string, label: string, max = 160, hint?: string): TextField => ({ key, label, type: "text", max, hint });
 const ta = (key: string, label: string, max = 600, hint?: string): TextField => ({ key, label, type: "textarea", max, hint });
 const img = (key: string, label: string, hint?: string): TextField => ({ key, label, type: "image", max: 200, hint });
+const vid = (key: string, label: string, hint?: string): TextField => ({ key, label, type: "video", max: 200, hint });
+const chips = (key: string, label: string, opts: { min?: number; max: number; itemMax: number; hint?: string }): TagsField => ({ key, label, type: "tags", chips: true, ...opts });
 const url = (key: string, label: string, hint?: string): TextField => ({ key, label, type: "url", max: 300, hint });
 const h = (key: string, label: string, hint?: string): HeadingField => ({ key, label, type: "heading", hint });
 
@@ -167,8 +175,8 @@ export const sections = [
           t("title", "Subjudul babak (teks berwarna)", 70),
           ta("description", "Penjelasan", 360),
           t("minutes", "Durasi (mis. ±15 menit)", 20),
-          { key: "flow", label: "Alur yang dialami pengunjung", type: "tags", hint: "Satu langkah per baris, 3 sampai 5 langkah. Kosongkan untuk babak pertama dan terakhir." },
-          url("video", "Video babak (opsional)", "Link file video .mp4, mis. /experience/dj-beat.mp4 atau https://…. Video diputar tanpa suara dan berulang, dengan gambar babak sebagai sampul. Kosongkan untuk memakai video bawaan (babak 3 dan 6) atau tanpa video. Tidak dipakai pada babak pertama, babak 4, dan terakhir."),
+          chips("flow", "Alur yang dialami pengunjung (tombol bernomor)", { max: 5, itemMax: 22, hint: "Maksimal 5 tombol supaya rapi di layar HP. Kosongkan semuanya untuk babak pertama dan terakhir." }),
+          vid("video", "Video babak (opsional)", "Unggah video dari komputer (MP4 atau WebM, maksimal 25 MB). Video diputar tanpa suara dan berulang, dengan gambar babak sebagai sampul. Kosongkan untuk memakai video bawaan (babak 3 dan 6) atau tanpa video. Tidak dipakai pada babak pertama, babak 4, dan terakhir."),
           img("image", "Gambar babak", "Dipakai pada babak 2, 3, 5, dan 6. Babak pertama, babak 4 (Bertemu AI), dan terakhir memakai ilustrasi bawaan, jadi kolom ini diabaikan di sana. Mengganti gambar babak 3 atau 6 juga mengganti videonya dengan foto. Kosongkan untuk memakai gambar bawaan."),
         ],
       },
@@ -225,12 +233,12 @@ export const sections = [
       h("personalPart", "Kolom kiri: individu"),
       t("personalTitle", "Judul", 60),
       ta("personalBody", "Penjelasan", 240),
-      { key: "personalTags", label: "Label", type: "tags", hint: "Satu label per baris." },
+      chips("personalTags", "Label (tombol)", { max: 6, itemMax: 24, hint: "Maksimal 6 tombol, tampil dalam maksimal 2 baris." }),
       t("personalCta", "Tombol (menuju halaman booking)", 40),
       h("groupPart", "Kolom kanan: sekolah, perusahaan & merek"),
       t("groupTitle", "Judul", 60),
       ta("groupBody", "Penjelasan", 240),
-      { key: "groupTags", label: "Label", type: "tags", hint: "Satu label per baris." },
+      chips("groupTags", "Label (tombol)", { max: 6, itemMax: 24, hint: "Maksimal 6 tombol, tampil dalam maksimal 2 baris." }),
       t("groupCta", "Tombol (membuka WhatsApp)", 40),
       ta("groupMessage", "Pesan WhatsApp otomatis saat tombol diklik", 300),
     ],
@@ -294,7 +302,7 @@ export const sections = [
       t("pageEyebrow", "Label kecil", 30),
       t("pageTitle", "Judul (bagian putih)", 60),
       t("pageTitleAccent", "Judul (bagian gradien)", 60),
-      { key: "stepLabels", label: "Nama 5 langkah booking", type: "tags", hint: "Tepat lima baris: jadwal, pilih kursi, data diri, ketentuan, pembayaran." },
+      chips("stepLabels", "Nama 5 langkah booking", { min: 5, max: 5, itemMax: 20, hint: "Tepat lima: jadwal, pilih kursi, data diri, ketentuan, pembayaran." }),
       t("dateTitle", "Langkah 1: judul pilih tanggal", 40),
       t("timeTitle", "Langkah 1: judul pilih jam", 40),
       t("seatTitle", "Langkah 1: judul pilih kursi", 40),
