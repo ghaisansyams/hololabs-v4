@@ -40,20 +40,20 @@ export default async function AdminBookingsPage({
 
   const statusOf = (b: AdminBookingRow) =>
     b.status === "CANCELLED" ? "Dibatalkan" : b.paymentStatus === "PAID" ? "Lunas" : b.paymentStatus === "SUBMITTED" ? "Menunggu konfirmasi" : "Belum transfer";
-  const StatusCell = ({ b }: { b: AdminBookingRow }) => (
-    <div className="flex flex-col items-start gap-1">
+  const StatusCell = ({ b, row }: { b: AdminBookingRow; row?: boolean }) => (
+    <div className={cn("flex items-center gap-x-2.5 gap-y-1", row && !b.changePending ? "flex-nowrap" : "flex-wrap")}>
       <StatusPill tone={paymentTone(b.status === "CANCELLED" ? "CANCELLED" : b.paymentStatus)}>{statusOf(b)}</StatusPill>
       {b.checkinStatus === "CHECKED_IN" && b.status !== "CANCELLED" ? (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+        <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-success">
           <Check className="size-3.5" aria-hidden />
-          Sudah check-in
+          {row ? "Check-in" : "Sudah check-in"}
         </span>
       ) : null}
       {b.changePending && b.status !== "CANCELLED" ? <StatusPill tone="accent">Perubahan belum dikirim</StatusPill> : null}
     </div>
   );
-  const ActionsCell = ({ b }: { b: AdminBookingRow }) => (
-    <div className="flex flex-wrap items-center justify-end gap-1.5 lg:justify-end">
+  const ActionsCell = ({ b, row }: { b: AdminBookingRow; row?: boolean }) => (
+    <div className={cn("flex items-center justify-end gap-1.5", row ? "flex-nowrap" : "flex-wrap")}>
       {b.status !== "CANCELLED" ? <PaymentFlowDialog booking={b} emailReady={emailReady} /> : null}
       <SendChangeButton booking={b} emailReady={emailReady} />
       <BookingDetailModal booking={b} emailReady={emailReady} checkInBooking={checkInBooking} cancelBooking={cancelBooking} />
@@ -115,18 +115,18 @@ export default async function AdminBookingsPage({
       </div>
 
       {/* Wide screens: one row per booking, one status pill, e-ticket icons in their own column. */}
-      <div className="hidden overflow-x-auto rounded-card border border-line bg-surface lg:block">
-        <table className="w-full text-left text-sm">
+      <div className="hidden overflow-x-auto rounded-card border border-line bg-surface xl:block">
+        <table className="w-full text-left text-[13px]">
           <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">Booking</th>
-              <th className="px-3 py-3 font-semibold">Pemesan</th>
-              <th className="px-3 py-3 font-semibold">Sesi</th>
-              <th className="px-3 py-3 font-semibold">Kursi</th>
-              <th className="px-3 py-3 font-semibold">Total</th>
-              <th className="px-3 py-3 font-semibold">Status</th>
-              <th className="px-3 py-3 font-semibold">E-ticket</th>
-              <th className="px-4 py-3 text-right font-semibold">Aksi</th>
+              <th className="px-2 py-3 font-semibold">Pemesan</th>
+              <th className="px-2 py-3 font-semibold">Sesi</th>
+              <th className="px-2 py-3 font-semibold">Kursi</th>
+              <th className="px-2 py-3 font-semibold">Total</th>
+              <th className="px-2 py-3 font-semibold">Status</th>
+              <th className="whitespace-nowrap px-2 py-3 font-semibold">E-ticket</th>
+              <th className="px-3 py-3 text-right font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -150,11 +150,11 @@ export default async function AdminBookingsPage({
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-3">
                     <p className="font-semibold text-ink">{b.customerName}</p>
                     <p className="text-xs text-muted">{b.whatsapp}</p>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
+                  <td className="whitespace-nowrap px-2 py-3 text-ink-soft">
                     {withEdit(
                       b,
                       "jadwal",
@@ -167,7 +167,7 @@ export default async function AdminBookingsPage({
                       </>,
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-ink-soft">
+                  <td className="whitespace-nowrap px-2 py-3 text-ink-soft">
                     {withEdit(
                       b,
                       "kursi",
@@ -178,16 +178,16 @@ export default async function AdminBookingsPage({
                       </>,
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
-                  <td className="px-3 py-3">
-                    <StatusCell b={b} />
+                  <td className="whitespace-nowrap px-2 py-3 font-semibold text-ink">{formatRupiah(b.amount)}</td>
+                  <td className="px-2 py-3">
+                    <StatusCell b={b} row />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-3">
                     <TicketSentChips booking={b} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <div className="flex justify-end">
-                      <ActionsCell b={b} />
+                      <ActionsCell b={b} row />
                     </div>
                   </td>
                 </tr>
@@ -197,8 +197,8 @@ export default async function AdminBookingsPage({
         </table>
       </div>
 
-      {/* Phones and tablets: one card per booking. */}
-      <ul className="grid gap-3 lg:hidden">
+      {/* Phones, tablets and small laptops: one card per booking. */}
+      <ul className="grid gap-3 md:grid-cols-2 xl:hidden">
         {rows.length === 0 ? <li className="rounded-card border border-line bg-surface px-4 py-10 text-center text-muted">Tidak ada booking untuk filter ini.</li> : null}
         {rows.map((b) => (
           <li key={b.id} className={cn("rounded-card border border-line bg-surface p-4", b.status === "CANCELLED" && "opacity-60")}>

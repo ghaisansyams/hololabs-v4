@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/cn";
 import { TicketDelivery } from "@/components/admin/ticket-delivery";
 import { PaymentFlowDialog } from "@/components/admin/payment-flow-dialog";
 import { EditBookingDialog } from "@/components/admin/edit-booking-dialog";
+import { DeleteBookingDialog } from "@/components/admin/delete-booking-dialog";
 import { SendChangeButton } from "@/components/admin/send-change-button";
 
 type ServerAction = (formData: FormData) => void;
@@ -214,6 +215,11 @@ export function BookingDetailModal({
               </div>
 
               <TicketDelivery booking={booking} emailReady={emailReady} className="lg:col-span-2" />
+
+              <div className="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between lg:col-span-2">
+                <p className="text-xs text-muted">Salah input atau data uji? Hapus datanya dari sistem.</p>
+                <DeleteBookingDialog booking={booking} onDeleted={closeModal} />
+              </div>
             </div>
           </div>
           </div>

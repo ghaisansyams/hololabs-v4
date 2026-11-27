@@ -167,15 +167,16 @@ export function PaymentFlowDialog({
               </>
             ) : (
               <>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  {justConfirmed
-                    ? emailResult?.email === "sent"
-                      ? `E-ticket dan QR check-in sudah dikirim ke ${booking.email}.`
-                      : emailResult?.email === "skipped"
-                        ? `${booking.customerName} tidak mengisi email, jadi e-ticket tidak terkirim.`
-                        : "Pembayaran terkonfirmasi, tetapi email e-ticket belum terkirim."
-                    : `E-ticket untuk ${booking.customerName}.`}
-                </p>
+                {/* The e-ticket card below already names the address, so a successful send gets no second line. */}
+                {justConfirmed && emailResult?.email !== "sent" ? (
+                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                    {emailResult?.email === "skipped"
+                      ? `${booking.customerName} tidak mengisi email, jadi e-ticket tidak terkirim.`
+                      : "Pembayaran terkonfirmasi, tetapi email e-ticket belum terkirim."}
+                  </p>
+                ) : !justConfirmed ? (
+                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">{`E-ticket untuk ${booking.customerName}.`}</p>
+                ) : null}
                 <div className="mt-3">
                   <TicketDelivery
                     booking={{ ...booking, paymentStatus: "PAID", ticketSentEmailAt: emailResult?.email === "sent" ? new Date().toISOString() : booking.ticketSentEmailAt }}

@@ -149,3 +149,32 @@ export async function updateBookingShow(bookingId: string, sessionId: string, wa
     return { ok: false, error: "Gagal menyimpan perubahan. Coba lagi sebentar lagi." };
   }
 }
+
+/**
+ * Removes a booking for good (payments go with it through the cascade). A
+ * booking that still holds seats gives them back to its show first, and the
+ * customer record is removed too when this was their only booking, so no
+ * personal data is left behind.
+ */
+export async function deleteBookingRecord(bookingId: string): Promise<{ ok: true; customerRemoved: boolean } | { ok: false; error: string }> {
+  try {
+    return await getDb().transaction(async (tx) => {
+      const run = async <T,>(query: ReturnType<typeof sql>) => (await tx.execute(query)).rows as T[];
+      const [booking] = await run<{ session_id: string; customer_id: string; seats: number; status: string }>(
+        sql`select session_id, customer_id, seats, status from bookings where id = ${bookingId}::uuid for update`,
+      );
+      if (!booking) return { ok: false as const, error: "Data peserta tidak ditemukan, mungkin sudah dihapus." };
+      if (booking.status !== "CANCELLED") {
+        await run(sql`update sessions set seats_taken = greatest(seats_taken - ${booking.seats}, 0) where id = ${booking.session_id}::uuid`);
+      }
+      await run(sql`delete from bookings where id = ${bookingId}::uuid`);
+      const gone = await run<{ id: string }>(
+        sql`delete from customers c where c.id = ${booking.customer_id}::uuid and not exists (select 1 from bookings b where b.customer_id = c.id) returning c.id`,
+      );
+      return { ok: true as const, customerRemoved: gone.length > 0 };
+    });
+  } catch (cause) {
+    console.error("[booking] gagal menghapus", cause);
+    return { ok: false as const, error: "Gagal menghapus data peserta. Coba lagi." };
+  }
+}

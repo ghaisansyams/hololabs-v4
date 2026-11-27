@@ -15,6 +15,7 @@ import { findBookingByNumber, getBookingById } from "@/lib/services/admin";
 import { sendBookingChangeEmail, sendETicketEmail } from "@/lib/services/mailer";
 import {
   listEditableSessions,
+  deleteBookingRecord,
   takenSeatsExcluding,
   updateBookingShow,
   type EditableSession,
@@ -204,6 +205,25 @@ export async function cancelBooking(formData: FormData): Promise<void> {
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/sessions");
+}
+
+export async function deleteBooking(id: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const b = await getBookingById(id).catch(() => null);
+  if (!b) return { ok: false, error: "Data peserta tidak ditemukan, mungkin sudah dihapus." };
+  const res = await deleteBookingRecord(id);
+  if (!res.ok) return { ok: false, error: res.error };
+  await logActivity({
+    category: "Booking",
+    action: "Hapus data peserta",
+    target: b.bookingNumber,
+    detail: `${b.customerName} · ${showText(b)} · ${seatsText(b.seatLabels, b.seats)} · ${rp(b.amount)} · status ${b.status === "CANCELLED" ? "dibatalkan" : b.paymentStatus === "PAID" ? "lunas" : "belum lunas"}${res.customerRemoved ? " · data pelanggan ikut dihapus" : ""}`,
+  });
+  revalidatePath("/admin");
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/sessions");
+  revalidatePath("/admin/customers");
+  return { ok: true };
 }
 
 export async function checkInBooking(formData: FormData): Promise<void> {
