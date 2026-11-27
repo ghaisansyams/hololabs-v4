@@ -41,6 +41,9 @@ export default async function BookingPage() {
           emailHint: booking.emailHint,
           termsTitle: booking.termsTitle,
           paymentTitle: booking.paymentTitle,
+          includedEyebrow: booking.includedEyebrow,
+          includedTitle: booking.includedTitle,
+          includedNote: booking.includedNote,
         }}
       />
     </>

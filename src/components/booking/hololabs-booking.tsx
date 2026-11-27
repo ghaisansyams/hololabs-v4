@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CupSoda, Utensils } from "lucide-react";
 import { SeatMap } from "@/components/booking/seat-map";
 
 /**
@@ -42,6 +43,9 @@ export type BookingCopy = {
   emailHint: string;
   termsTitle: string;
   paymentTitle: string;
+  includedEyebrow: string;
+  includedTitle: string;
+  includedNote: string;
 };
 
 const fmtDate = (date: string, options: Intl.DateTimeFormatOptions) =>
@@ -695,6 +699,19 @@ export function HololabsBooking({
             </div>
           ))}
         </dl>
+        {copy.includedTitle.trim() ? (
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-hl-violet/45 bg-hl-violet/10 p-4">
+            <span aria-hidden className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-hl-violet/25 px-3 text-[#d8ccff]">
+              <Utensils className="size-4" strokeWidth={2} />
+              <CupSoda className="size-4" strokeWidth={2} />
+            </span>
+            <div className="min-w-0">
+              {copy.includedEyebrow.trim() ? <p className="text-[11px] font-bold tracking-[0.05em] text-[#c4b5fd]">{copy.includedEyebrow}</p> : null}
+              <p className="mt-1 text-[15px] font-semibold leading-snug text-hl-fg">{copy.includedTitle}</p>
+              {copy.includedNote.trim() ? <p className="mt-0.5 text-[13px] leading-snug text-[#a9a3bc]">{copy.includedNote}</p> : null}
+            </div>
+          </div>
+        ) : null}
         <div className="mt-5 flex items-baseline justify-between border-t border-white/10 pt-4">
           <span className="text-[#a9a3bc]">Total</span>
           <span className="hl-display text-3xl font-bold">{rupiah(total)}</span>
